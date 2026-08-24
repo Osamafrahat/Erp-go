@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Store Management POS & Stock System",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
@@ -12,6 +13,7 @@
     "client:build": "cd client && npm run build",
     "backup": "cd server && node -e \"import('./src/services/backupService.js').then(b => b.backupToJson())\"",
     "backup:sql": "cd server && node -e \"import('./src/services/backupService.js').then(b => b.backupToSql())\"",
+    "setup": "node setup.js",
     "backup:list": "cd server && node -e \"import('./src/services/backupService.js').then(b => b.listBackups().then(r => console.log(JSON.stringify(r, null, 2))))\""
   },
   "devDependencies": {

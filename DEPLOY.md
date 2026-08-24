@@ -1,41 +1,35 @@
 # Deployment Guide
 
-Complete guide to deploy Store Management POS on a VPS with Docker, Nginx, and SSL.
+Complete guide to deploy Store Management POS on any platform.
 
 ---
 
 ## Quick Install (One Command)
 
-### Linux VPS (Ubuntu/Debian) — Full Setup
-
-Installs Docker, Nginx, SSL, and deploys everything:
+Works on **Windows, Linux, and Mac**. Interactive setup guides you through everything.
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/Osamafrahat/store-management/master/install-linux.sh)
+git clone https://github.com/Osamafrahat/Erp-go.git
+cd Erp-go
+node setup.js
 ```
 
-Or clone and run:
+Or using npm:
 
 ```bash
-git clone https://github.com/Osamafrahat/store-management.git
-cd store-management
-bash install-linux.sh
-```
-
-### Windows / Mac (Docker Only)
-
-```bash
-git clone https://github.com/Osamafrahat/store-management.git
-cd store-management
-bash install.sh
+git clone https://github.com/Osamafrahat/Erp-go.git
+cd Erp-go
+npm run setup
 ```
 
 The script will:
-1. Check/install Docker
-2. Prompt for your Supabase credentials
-3. Generate a secure JWT secret
-4. Build and start all containers
-5. Print your login URL and credentials
+1. Check your prerequisites (Node.js, Git, Docker if needed)
+2. Ask you to choose a mode: **Local Dev**, **Docker**, or **VPS**
+3. Prompt for your Supabase credentials
+4. Generate a secure JWT secret automatically
+5. Create all `.env` files
+6. Install dependencies and start the app
+7. Print your URL and login credentials
 
 ---
 
