@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* Mobile: prevent horizontal overflow */
+@media (max-width: 767px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+}
+
+/* RTL Support for Arabic */
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.rtl table {
+  direction: rtl;
+}
+
+.rtl th, .rtl td {
+  text-align: start;
+}
+
+.rtl .flex-row-reverse {
+  flex-direction: row;
+}
+
+.rtl [dir="rtl"] {
+  direction: rtl;
+}
+
+/* Arabic font support */
+.rtl {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Print styles for receipts */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area, .print-area *,
+  .report-print-area, .report-print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+  }
+  .report-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    background: white;
+    color: black;
+  }
+  .report-print-area .dark\:bg-gray-800,
+  .report-print-area .dark\:bg-gray-700,
+  .report-print-area .dark\:bg-gray-700\/50 {
+    background: white !important;
+  }
+  .report-print-area .dark\:text-gray-400,
+  .report-print-area .dark\:text-gray-300,
+  .report-print-area .dark\:text-gray-600 {
+    color: #374151 !important;
+  }
+  .report-print-area .dark\:border-gray-700,
+  .report-print-area .dark\:border-gray-600 {
+    border-color: #d1d5db !important;
+  }
+}
