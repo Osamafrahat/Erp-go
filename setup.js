@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { createInterface } from 'readline'
-import { execSync } from 'child_process'
-import { existsSync, writeFileSync, readFileSync } from 'fs'
+import { execSync, spawn } from 'child_process'
+import { existsSync, writeFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { randomBytes } from 'crypto'
 import { fileURLToPath } from 'url'
@@ -376,7 +376,6 @@ async function installLocal(config) {
   console.log('  ✓ Client dependencies installed')
 
   divider()
-  return { mode: 'local' }
 }
 
 async function installDocker(config) {
@@ -513,9 +512,9 @@ async function installVPS(config) {
   return { mode: 'vps' }
 }
 
-// ── Success Output ───────────────────────────────────────────────────────
+// ── App Launcher ─────────────────────────────────────────────────────────
 
-function printSuccess(result, config) {
+function startApp(mode, config) {
   console.log('')
   console.log('  ╔═══════════════════════════════════════════════════╗')
   console.log('  ║                                                   ║')
@@ -524,45 +523,63 @@ function printSuccess(result, config) {
   console.log('  ╚═══════════════════════════════════════════════════╝')
   console.log('')
 
-  if (result.mode === 'local') {
-    console.log('  🚀 Start the app:');
-    console.log('');
-    console.log('     npm run dev');
-    console.log('');
-    console.log('  📍 URLs:');
-    console.log('     Frontend:  http://localhost:5173');
-    console.log('     Backend:   http://localhost:3001/api');
-  } else if (result.mode === 'docker') {
-    console.log('  🚀 Access the app:');
-    console.log('');
-    console.log('     http://localhost');
-    console.log('');
-    console.log('  📍 Commands:');
-    console.log('     docker compose logs -f    # View logs');
-    console.log('     docker compose restart    # Restart');
-    console.log('     docker compose down       # Stop');
-  } else if (result.mode === 'vps') {
-    console.log('  🚀 Access the app:');
-    console.log('');
-    console.log(`     https://${config.domain}`);
-    console.log('');
-    console.log('  📍 Commands:');
-    console.log('     docker compose logs -f    # View logs');
-    console.log('     docker compose restart    # Restart');
-    console.log('     docker compose down       # Stop');
-    console.log('     sudo certbot renew --dry-run  # Test SSL renewal');
+  if (mode === 1) {
+    console.log('  Starting the app...\n')
+
+    // Start server in background
+    const server = spawn('node', ['src/index.js'], {
+      cwd: join(ROOT, 'server'),
+      stdio: 'ignore',
+      detached: true,
+      shell: process.platform === 'win32',
+    })
+    server.unref()
+    console.log('  ✓ Server started on http://localhost:3001')
+
+    // Cleanup server on exit
+    const cleanup = () => {
+      try { process.kill(-server.pid) } catch {}
+      process.exit()
+    }
+    process.on('SIGINT', cleanup)
+    process.on('SIGTERM', cleanup)
+    process.on('exit', cleanup)
+
+    // Start client (foreground — this blocks until user presses Ctrl+C)
+    console.log('  ✓ Starting client on http://localhost:5173...\n')
+    console.log('  Press Ctrl+C to stop.\n')
+
+    const client = spawn('npx', ['vite', '--port', '5173'], {
+      cwd: join(ROOT, 'client'),
+      stdio: 'inherit',
+      shell: process.platform === 'win32',
+    })
+
+    client.on('close', () => {
+      cleanup()
+    })
+
+  } else if (mode === 2) {
+    console.log('  App is running at http://localhost\n')
+    console.log('  Commands:')
+    console.log('    docker compose logs -f    # View logs')
+    console.log('    docker compose restart    # Restart')
+    console.log('    docker compose down       # Stop')
+    console.log('')
+
+  } else if (mode === 3) {
+    console.log(`  App is running at https://${config.domain}\n`)
+    console.log('  Commands:')
+    console.log('    docker compose logs -f    # View logs')
+    console.log('    docker compose restart    # Restart')
+    console.log('    docker compose down       # Stop')
+    console.log('    sudo certbot renew --dry-run  # Test SSL renewal')
+    console.log('')
   }
 
-  console.log('');
-  console.log('  🔐 Default Login:');
-  console.log('     Username: admin');
-  console.log('     Password: admin123');
-  console.log('     (You will be forced to change the password on first login)');
-  console.log('');
-  console.log('  📚 Documentation:');
-  console.log('     DEPLOY.md    — Full deployment guide');
-  console.log('     README.md    — Features & usage');
-  console.log('');
+  console.log('  🔐 Default Login: admin / admin123')
+  console.log('     (You will be forced to change the password on first login)')
+  console.log('')
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────
@@ -595,18 +612,17 @@ async function main() {
   const config = await collectConfig(mode)
 
   // Install
-  let result
   if (mode === 1) {
-    result = await installLocal(config)
+    await installLocal(config)
   } else if (mode === 2) {
-    result = await installDocker(config)
+    await installDocker(config)
   } else {
-    result = await installVPS(config)
+    await installVPS(config)
   }
 
-  // Done
-  printSuccess(result, config)
+  // Start the app
   rl.close()
+  startApp(mode, config)
 }
 
 main().catch((err) => {
