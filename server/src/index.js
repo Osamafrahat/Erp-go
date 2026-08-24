@@ -80,7 +80,7 @@ const corsOptions = {
     
     if (allowedOrigins.length === 0) {
       // No origins configured — allow all in dev, reject in production
-      if (process.env.NODE_ENV === 'production') {
+      if (process.env.NODE_ENV !== 'production') {
         return callback(null, true)
       }
       return callback(new Error('CORS not configured'))

@@ -806,15 +806,6 @@ export async function seedChartOfAccounts() {
     { code: '5050', name: 'Utilities Expense', account_type: 'expense' },
   ]
 
-  const validCodes = defaultAccounts.map(a => a.code)
-
-  const { data: allAccounts } = await supabase.from('accounts').select('id, code')
-  for (const acct of (allAccounts || [])) {
-    if (!validCodes.includes(acct.code)) {
-      await supabase.from('accounts').delete().eq('id', acct.id)
-    }
-  }
-
   for (const account of defaultAccounts) {
     const { data: existing } = await supabase
       .from('accounts')

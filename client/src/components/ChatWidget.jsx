@@ -86,8 +86,10 @@ export default function ChatWidget() {
     }
   }, [open, currentUser?.id])
 
-  // Polling fallback — fetches new messages every 10s in case real-time misses them
+  // Polling fallback — fetches new messages every 30s when open, only if real-time is disconnected
   useEffect(() => {
+    if (!open && connected) return
+
     const poll = async () => {
       try {
         const res = await api.get('/chat?limit=100')
@@ -111,9 +113,9 @@ export default function ChatWidget() {
       } catch { /* silent */ }
     }
 
-    pollRef.current = setInterval(poll, 10000)
+    pollRef.current = setInterval(poll, 30000)
     return () => clearInterval(pollRef.current)
-  }, [open, currentUser?.id])
+  }, [open, connected, currentUser?.id])
 
   const sendMessage = async (e) => {
     e.preventDefault()

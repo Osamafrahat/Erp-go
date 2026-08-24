@@ -16,7 +16,12 @@ export default defineConfig({
     target: 'es2020',
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'router': ['react-router-dom'],
+          'charts': ['recharts'],
+          'zustand': ['zustand'],
+        },
       },
     },
   },

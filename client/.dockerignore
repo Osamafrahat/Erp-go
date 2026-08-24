@@ -7,6 +7,5 @@ dist
 .gitignore
 Dockerfile
 .dockerignore
-nginx.conf
 vercel.json
 README.md
