@@ -3,23 +3,36 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error(
+const isConfigured = !!(supabaseUrl && supabaseKey)
+
+if (!isConfigured) {
+  console.warn(
     'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. ' +
-    'Chat features will be disabled until these are configured in Vercel.'
+    'Chat features will be disabled until these are configured.'
   )
 }
 
-// Proxy stub returns no-ops when Supabase is not configured,
-// preventing the app from crashing on import
-const supabase = supabaseUrl && supabaseKey
+// Stub client: every method returns a chainable no-op so supabase.channel(...).on(...).subscribe()
+// and supabase.removeChannel() never crash when env vars are missing.
+function createStubClient() {
+  const stub = () => stub
+  stub.then = undefined
+  stub.channel = () => ({
+    on: () => ({ on: () => ({ subscribe: () => stub }) }),
+    subscribe: () => stub,
+  })
+  stub.removeChannel = () => Promise.resolve()
+  stub.from = () => stub
+  stub.select = () => stub
+  stub.insert = () => Promise.resolve({ data: null, error: null })
+  stub.update = () => Promise.resolve({ data: null, error: null })
+  stub.delete = () => Promise.resolve({ data: null, error: null })
+  stub.upsert = () => Promise.resolve({ data: null, error: null })
+  return stub
+}
+
+const supabase = isConfigured
   ? createClient(supabaseUrl, supabaseKey)
-  : new Proxy({}, {
-      get: () => new Proxy({}, {
-        get: () => new Proxy({}, {
-          get: () => () => ({ data: null, error: new Error('Supabase not configured') }),
-        }),
-      }),
-    })
+  : createStubClient()
 
 export default supabase
