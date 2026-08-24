@@ -58,7 +58,7 @@ function generateSecret() {
 
 function run(cmd, opts = {}) {
   try {
-    execSync(cmd, { stdio: 'pipe', ...opts })
+    execSync(cmd, { stdio: 'pipe', timeout: opts.timeout || 30000, ...opts })
     return true
   } catch {
     return false
@@ -147,8 +147,18 @@ async function checkPrereqs(mode) {
         process.exit(1)
       }
     } else {
-      console.log('  ✓ Docker')
+      console.log('  ✓ Docker CLI')
     }
+
+    // Check Docker daemon is actually running
+    const daemonRunning = run('docker ps', { timeout: 5000 })
+    if (!daemonRunning) {
+      console.error('\n  ✗ Docker is installed but the daemon is not running.')
+      console.error('    Start Docker Desktop and try again.')
+      console.error('    Or choose mode [1] for local development (no Docker needed).')
+      process.exit(1)
+    }
+    console.log('  ✓ Docker daemon is running')
 
     // Docker Compose
     const composeVersion = runOutput('docker compose version')
@@ -381,7 +391,9 @@ async function installDocker(config) {
 
   const started = run('docker compose up -d --build', { cwd: ROOT })
   if (!started) {
-    console.error('  ✗ Docker Compose failed. Check: docker compose logs')
+    console.error('\n  ✗ Docker Compose build failed.')
+    console.error('    Try: docker compose logs server')
+    console.error('    Or run setup again and choose mode [1] for local development.')
     process.exit(1)
   }
 
@@ -430,7 +442,8 @@ async function installVPS(config) {
 
   // Install Nginx
   console.log('  Checking Nginx...')
-  if (!run('nginx -v 2>/dev/null')) {
+  const nginxCheck = runOutput('nginx -v 2>&1')
+  if (!nginxCheck.includes('nginx/')) {
     console.log('  Installing Nginx...')
     run('sudo apt-get update -qq && sudo apt-get install -y nginx')
     console.log('  ✓ Nginx installed')
@@ -440,7 +453,8 @@ async function installVPS(config) {
 
   // Install Certbot
   console.log('  Checking Certbot...')
-  if (!run('certbot --version 2>/dev/null')) {
+  const certbotCheck = runOutput('certbot --version 2>&1')
+  if (!certbotCheck.includes('certbot')) {
     console.log('  Installing Certbot...')
     run('sudo apt-get install -y certbot python3-certbot-nginx')
     console.log('  ✓ Certbot installed')
@@ -453,7 +467,9 @@ async function installVPS(config) {
 
   const started = run('docker compose up -d --build', { cwd: ROOT })
   if (!started) {
-    console.error('  ✗ Docker Compose failed')
+    console.error('\n  ✗ Docker Compose build failed.')
+    console.error('    Try: docker compose logs server')
+    console.error('    Or run setup again and choose mode [1] for local development.')
     process.exit(1)
   }
   console.log('  ✓ Docker containers started')
