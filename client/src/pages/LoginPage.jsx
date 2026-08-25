@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useUserStore } from '../stores/userStore'
 import { useAppStore } from '../stores/appStore'
 import { Store, User, Lock, AlertCircle, Info } from 'lucide-react'
@@ -111,6 +111,16 @@ export default function LoginPage() {
               {loading ? t('users.signingIn') : t('users.signIn')}
             </button>
           </form>
+
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Don't have a store yet?</p>
+            <Link
+              to="/signup"
+              className="inline-flex items-center justify-center w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              Create Store
+            </Link>
+          </div>
         </div>
       </div>
     </div>

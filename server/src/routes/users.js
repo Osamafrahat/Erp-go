@@ -21,6 +21,7 @@ router.get('/', async (req, res, next) => {
     const { data, error } = await supabase
       .from('users')
       .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, created_at, updated_at')
+      .eq('tenant_id', req.user.tenantId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -32,6 +33,7 @@ router.get('/', async (req, res, next) => {
       const { data: emps } = await supabase
         .from('employees')
         .select('id, name, role, phone, email, is_active')
+        .eq('tenant_id', req.user.tenantId)
         .in('id', empIds)
       ;(emps || []).forEach(e => { employeesMap[e.id] = e })
     }
@@ -55,6 +57,7 @@ router.get('/:id', [
     const { data, error } = await supabase
       .from('users')
       .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, created_at, updated_at')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -65,7 +68,7 @@ router.get('/:id', [
     // Enrich with employee data
     let employee = null
     if (data.employee_id) {
-      const { data: emp } = await supabase.from('employees').select('id, name, role, phone, email, is_active').eq('id', data.employee_id).single()
+      const { data: emp } = await supabase.from('employees').select('id, name, role, phone, email, is_active').eq('tenant_id', req.user.tenantId).eq('id', data.employee_id).single()
       employee = emp || null
     }
 
@@ -89,10 +92,11 @@ router.post('/', authenticateToken, requirePermission('user_manage'), [
   try {
     const { username, password, fullName, role, permissions, employeeId } = req.body
 
-    // Check if username exists
+    // Check if username exists per tenant
     const { data: existing } = await supabase
       .from('users')
       .select('id')
+      .eq('tenant_id', req.user.tenantId)
       .eq('username', username)
       .single()
 
@@ -106,6 +110,7 @@ router.post('/', authenticateToken, requirePermission('user_manage'), [
     const { data, error } = await supabase
       .from('users')
       .insert({
+        tenant_id: req.user.tenantId,
         username,
         password: hashedPassword,
         full_name: fullName,
@@ -144,6 +149,7 @@ router.put('/:id', authenticateToken, requirePermission('user_manage'), [
     const { data: existing } = await supabase
       .from('users')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -158,11 +164,12 @@ router.put('/:id', authenticateToken, requirePermission('user_manage'), [
     }
 
     if (username !== undefined) {
-      // Check username uniqueness if changing
+      // Check username uniqueness per tenant if changing
       if (username !== existing.username) {
         const { data: existingUser } = await supabase
           .from('users')
           .select('id')
+          .eq('tenant_id', req.user.tenantId)
           .eq('username', username)
           .single()
         if (existingUser) {
@@ -191,6 +198,7 @@ router.put('/:id', authenticateToken, requirePermission('user_manage'), [
     const { data, error } = await supabase
       .from('users')
       .update(updateData)
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, created_at, updated_at')
       .single()
@@ -214,6 +222,7 @@ router.patch('/:id/toggle-active', authenticateToken, requirePermission('user_ma
     const { data: existing } = await supabase
       .from('users')
       .select('id, is_active, employee_id')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -236,6 +245,7 @@ router.patch('/:id/toggle-active', authenticateToken, requirePermission('user_ma
     const { data, error } = await supabase
       .from('users')
       .update(updatePayload)
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, created_at, updated_at')
       .single()
@@ -244,7 +254,7 @@ router.patch('/:id/toggle-active', authenticateToken, requirePermission('user_ma
 
     // Sync linked employee's active status
     if (existing.employee_id) {
-      await supabase.from('employees').update({ is_active: newActiveState, updated_at: new Date().toISOString() }).eq('id', existing.employee_id)
+      await supabase.from('employees').update({ is_active: newActiveState, updated_at: new Date().toISOString() }).eq('tenant_id', req.user.tenantId).eq('id', existing.employee_id)
     }
 
     req.logActivity({ action: 'toggled_active', entity_type: 'user', entity_id: req.params.id })
@@ -262,6 +272,7 @@ router.delete('/:id', authenticateToken, requirePermission('user_manage'), [
     const { data: existing } = await supabase
       .from('users')
       .select('id, username, employee_id')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -277,11 +288,13 @@ router.delete('/:id', authenticateToken, requirePermission('user_manage'), [
     await supabase
       .from('users')
       .update({ session_token: null })
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
 
     const { error } = await supabase
       .from('users')
       .delete()
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
 
     if (error) throw error

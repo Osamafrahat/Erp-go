@@ -20,6 +20,7 @@ router.get('/', async (req, res, next) => {
     let query = supabase
       .from('performance_reviews')
       .select('*, employees(name, role), users!performance_reviews_reviewer_id_fkey(full_name)')
+      .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
     if (employee_id) query = query.eq('employee_id', employee_id)
     if (status) query = query.eq('status', status)
@@ -40,6 +41,7 @@ router.get('/:id', [
       .from('performance_reviews')
       .select('*, employees(name, role), users!performance_reviews_reviewer_id_fkey(full_name)')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
     if (error || !review) {
       return res.status(404).json({ error: 'Performance review not found' })
@@ -48,6 +50,7 @@ router.get('/:id', [
     const { data: criteria } = await supabase
       .from('review_criteria')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('review_id', review.id)
       .order('id')
 
@@ -69,6 +72,7 @@ router.post('/', requirePermission('hr_edit'), [
     const { data: review, error } = await supabase
       .from('performance_reviews')
       .insert({
+        tenant_id: req.user?.tenantId,
         employee_id,
         reviewer_id: req.user.id,
         review_period_start,
@@ -87,6 +91,7 @@ router.post('/', requirePermission('hr_edit'), [
     // Insert criteria if provided
     if (criteria && Array.isArray(criteria) && criteria.length > 0) {
       const criteriaRows = criteria.map(c => ({
+        tenant_id: req.user?.tenantId,
         review_id: review.id,
         criterion: c.criterion,
         rating: c.rating || null,
@@ -110,6 +115,7 @@ router.put('/:id', requirePermission('hr_edit'), [
       .from('performance_reviews')
       .select('id')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (!existing) {
@@ -130,15 +136,17 @@ router.put('/:id', requirePermission('hr_edit'), [
         updated_at: new Date().toISOString(),
       })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select('*, employees(name, role), users!performance_reviews_reviewer_id_fkey(full_name)')
       .single()
     if (error) throw error
 
     // Update criteria if provided
     if (criteria && Array.isArray(criteria)) {
-      await supabase.from('review_criteria').delete().eq('review_id', req.params.id)
+      await supabase.from('review_criteria').delete().eq('review_id', req.params.id).eq('tenant_id', req.user?.tenantId)
       if (criteria.length > 0) {
         const criteriaRows = criteria.map(c => ({
+          tenant_id: req.user?.tenantId,
           review_id: parseInt(req.params.id),
           criterion: c.criterion,
           rating: c.rating || null,
@@ -163,6 +171,7 @@ router.delete('/:id', requirePermission('hr_edit'), [
       .from('performance_reviews')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
     if (error) throw error
     res.json({ message: 'Performance review deleted' })
   } catch (err) {

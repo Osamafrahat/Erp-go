@@ -14,10 +14,11 @@ const validate = (req, res, next) => {
 }
 
 // Helper: get attendance settings from store_settings
-async function getSettings() {
+async function getSettings(tenantId) {
   const { data } = await supabase
     .from('store_settings')
     .select('key, value')
+    .eq('tenant_id', tenantId)
     .in('key', [
       'attendance.lateGraceMinutes',
       'attendance.overtimeThresholdHours',
@@ -51,6 +52,7 @@ router.get('/', async (req, res, next) => {
     let query = supabase
       .from('attendance')
       .select('*, employees(name, role)')
+      .eq('tenant_id', req.user?.tenantId)
       .order('date', { ascending: false })
     if (employee_id) query = query.eq('employee_id', employee_id)
     if (start_date) query = query.gte('date', start_date)
@@ -80,6 +82,7 @@ router.get('/summary/:employeeId', [
     const { data: records, error } = await supabase
       .from('attendance')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('employee_id', employeeId)
       .gte('date', startDate)
       .lt('date', endDate)
@@ -114,6 +117,7 @@ router.post('/', requirePermission('hr_edit'), [
     const { data: existing } = await supabase
       .from('attendance')
       .select('id, clock_out')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('employee_id', employee_id)
       .eq('date', recordDate)
       .maybeSingle()
@@ -124,6 +128,7 @@ router.post('/', requirePermission('hr_edit'), [
           .from('attendance')
           .update({ clock_out, overtime_hours: overtime_hours || 0, notes, updated_at: new Date().toISOString() })
           .eq('id', existing.id)
+          .eq('tenant_id', req.user?.tenantId)
           .select('*, employees(name, role)')
           .single()
         if (error) throw error
@@ -135,6 +140,7 @@ router.post('/', requirePermission('hr_edit'), [
     const { data, error } = await supabase
       .from('attendance')
       .insert({
+        tenant_id: req.user?.tenantId,
         employee_id,
         date: recordDate,
         clock_in: clock_in || new Date().toISOString(),
@@ -161,6 +167,7 @@ router.patch('/:id/clock-out', requirePermission('hr_edit'), [
       .from('attendance')
       .select('*')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
     if (findError || !record) return res.status(404).json({ error: 'Record not found' })
 
@@ -179,6 +186,7 @@ router.patch('/:id/clock-out', requirePermission('hr_edit'), [
         updated_at: new Date().toISOString(),
       })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select('*, employees(name, role)')
       .single()
     if (error) throw error
@@ -198,6 +206,7 @@ router.patch('/:id', requirePermission('hr_edit'), [
       .from('attendance')
       .select('*')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
     if (findError || !record) return res.status(404).json({ error: 'Record not found' })
 
@@ -212,6 +221,7 @@ router.patch('/:id', requirePermission('hr_edit'), [
       .from('attendance')
       .update(updates)
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select('*, employees(name, role)')
       .single()
     if (error) throw error
@@ -230,6 +240,7 @@ router.delete('/:id', requirePermission('hr_edit'), [
       .from('attendance')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
     if (error) throw error
     res.json({ message: 'Attendance record deleted' })
   } catch (err) {
@@ -238,12 +249,13 @@ router.delete('/:id', requirePermission('hr_edit'), [
 })
 
 // Helper: get employee_id from user, auto-link if possible
-async function getEmployeeId(userId) {
+async function getEmployeeId(userId, tenantId) {
   // First check if already linked
   const { data: user } = await supabase
     .from('users')
     .select('employee_id, full_name')
     .eq('id', userId)
+    .eq('tenant_id', tenantId)
     .maybeSingle()
 
   if (user?.employee_id) return user.employee_id
@@ -254,6 +266,7 @@ async function getEmployeeId(userId) {
       .from('employees')
       .select('id')
       .ilike('name', user.full_name)
+      .eq('tenant_id', tenantId)
       .eq('is_active', true)
       .maybeSingle()
 
@@ -263,6 +276,7 @@ async function getEmployeeId(userId) {
         .from('users')
         .update({ employee_id: emp.id })
         .eq('id', userId)
+        .eq('tenant_id', tenantId)
       return emp.id
     }
   }
@@ -275,7 +289,7 @@ async function getEmployeeId(userId) {
 // Get my employee linkage status
 router.get('/me', async (req, res, next) => {
   try {
-    const employeeId = await getEmployeeId(req.user.id)
+    const employeeId = await getEmployeeId(req.user.id, req.user?.tenantId)
     if (!employeeId) {
       return res.json({ linked: false, employee_id: null })
     }
@@ -283,6 +297,7 @@ router.get('/me', async (req, res, next) => {
       .from('employees')
       .select('id, name, role')
       .eq('id', employeeId)
+      .eq('tenant_id', req.user?.tenantId)
       .maybeSingle()
     res.json({ linked: true, employee_id: employeeId, employee: emp })
   } catch (err) {
@@ -297,18 +312,19 @@ router.post('/clock-in', [
   body('location.lng').optional().isFloat({ min: -180, max: 180 }),
 ], validate, async (req, res, next) => {
   try {
-    const employeeId = await getEmployeeId(req.user.id)
+    const employeeId = await getEmployeeId(req.user.id, req.user?.tenantId)
     if (!employeeId) {
       return res.status(400).json({ error: 'No employee profile linked to your account' })
     }
 
     const today = new Date().toISOString().split('T')[0]
-    const settings = await getSettings()
+    const settings = await getSettings(req.user?.tenantId)
 
     // Check if already clocked in today
     const { data: existing } = await supabase
       .from('attendance')
       .select('id, clock_out')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('employee_id', employeeId)
       .eq('date', today)
       .maybeSingle()
@@ -335,6 +351,7 @@ router.post('/clock-in', [
     const { data: shiftAssignment } = await supabase
       .from('employee_shifts')
       .select('shift_id, shifts(start_time, end_time, name)')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('employee_id', employeeId)
       .eq('date', today)
       .maybeSingle()
@@ -358,6 +375,7 @@ router.post('/clock-in', [
     const { data, error } = await supabase
       .from('attendance')
       .insert({
+        tenant_id: req.user?.tenantId,
         employee_id: employeeId,
         date: today,
         clock_in: now.toISOString(),
@@ -379,17 +397,18 @@ router.post('/self-clock-out', [
   body('location').optional().isObject(),
 ], validate, async (req, res, next) => {
   try {
-    const employeeId = await getEmployeeId(req.user.id)
+    const employeeId = await getEmployeeId(req.user.id, req.user?.tenantId)
     if (!employeeId) {
       return res.status(400).json({ error: 'No employee profile linked to your account' })
     }
 
     const today = new Date().toISOString().split('T')[0]
-    const settings = await getSettings()
+    const settings = await getSettings(req.user?.tenantId)
 
     const { data: record, error: findError } = await supabase
       .from('attendance')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('employee_id', employeeId)
       .eq('date', today)
       .maybeSingle()
@@ -429,6 +448,7 @@ router.post('/self-clock-out', [
       .from('attendance')
       .update(updates)
       .eq('id', record.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select('*, employees(name, role)')
       .single()
     if (error) throw error
@@ -441,13 +461,14 @@ router.post('/self-clock-out', [
 // Start break (self-service)
 router.post('/break-start', async (req, res, next) => {
   try {
-    const employeeId = await getEmployeeId(req.user.id)
+    const employeeId = await getEmployeeId(req.user.id, req.user?.tenantId)
     if (!employeeId) return res.status(400).json({ error: 'No employee profile linked' })
 
     const today = new Date().toISOString().split('T')[0]
     const { data: record } = await supabase
       .from('attendance')
       .select('id, break_start')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('employee_id', employeeId)
       .eq('date', today)
       .maybeSingle()
@@ -459,6 +480,7 @@ router.post('/break-start', async (req, res, next) => {
       .from('attendance')
       .update({ break_start: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq('id', record.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select('*')
       .single()
     if (error) throw error
@@ -471,13 +493,14 @@ router.post('/break-start', async (req, res, next) => {
 // End break (self-service)
 router.post('/break-end', async (req, res, next) => {
   try {
-    const employeeId = await getEmployeeId(req.user.id)
+    const employeeId = await getEmployeeId(req.user.id, req.user?.tenantId)
     if (!employeeId) return res.status(400).json({ error: 'No employee profile linked' })
 
     const today = new Date().toISOString().split('T')[0]
     const { data: record } = await supabase
       .from('attendance')
       .select('id, break_start')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('employee_id', employeeId)
       .eq('date', today)
       .maybeSingle()
@@ -496,6 +519,7 @@ router.post('/break-end', async (req, res, next) => {
         updated_at: breakEnd.toISOString(),
       })
       .eq('id', record.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select('*')
       .single()
     if (error) throw error
@@ -517,12 +541,14 @@ router.get('/dashboard', requirePermission('hr_view'), async (req, res, next) =>
       supabase
         .from('attendance')
         .select('*, employees(name, role)')
+        .eq('tenant_id', req.user?.tenantId)
         .gte('date', startDate)
         .lte('date', endDate)
         .order('date'),
       supabase
         .from('employees')
         .select('id, name, role')
+        .eq('tenant_id', req.user?.tenantId)
         .eq('is_active', true),
     ])
 
@@ -615,7 +641,7 @@ router.get('/dashboard', requirePermission('hr_view'), async (req, res, next) =>
 router.post('/auto-clock-out', async (req, res, next) => {
   try {
     const today = new Date().toISOString().split('T')[0]
-    const settings = await getSettings()
+    const settings = await getSettings(req.user?.tenantId)
 
     if (settings['attendance.autoClockOut'] !== 'true') {
       return res.json({ message: 'Auto clock-out is disabled', processed: 0 })
@@ -625,6 +651,7 @@ router.post('/auto-clock-out', async (req, res, next) => {
     const { data: assignments } = await supabase
       .from('employee_shifts')
       .select('employee_id, shifts(start_time, end_time)')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('date', today)
 
     if (!assignments?.length) {
@@ -636,6 +663,7 @@ router.post('/auto-clock-out', async (req, res, next) => {
       const { data: record } = await supabase
         .from('attendance')
         .select('id, clock_out')
+        .eq('tenant_id', req.user?.tenantId)
         .eq('employee_id', assignment.employee_id)
         .eq('date', today)
         .maybeSingle()
@@ -659,6 +687,7 @@ router.post('/auto-clock-out', async (req, res, next) => {
             updated_at: new Date().toISOString(),
           })
           .eq('id', record.id)
+          .eq('tenant_id', req.user?.tenantId)
         processed++
       }
     }

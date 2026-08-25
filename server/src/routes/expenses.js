@@ -21,6 +21,7 @@ router.get('/', async (req, res, next) => {
     let query = supabase
       .from('expenses')
       .select('*, users(full_name)')
+      .eq('tenant_id', req.user.tenantId)
       .order('created_at', { ascending: false })
 
     if (start_date) {
@@ -50,6 +51,7 @@ router.get('/summary', async (req, res, next) => {
     let query = supabase
       .from('expenses')
       .select('category, amount')
+      .eq('tenant_id', req.user.tenantId)
 
     if (start_date) {
       query = query.gte('expense_date', start_date)
@@ -89,6 +91,7 @@ router.post('/', authenticateToken, requirePermission('expenses_edit'), [
     const { data, error } = await supabase
       .from('expenses')
       .insert({
+        tenant_id: req.user.tenantId,
         category,
         amount,
         description: description || null,
@@ -135,6 +138,7 @@ router.put('/:id', authenticateToken, requirePermission('expenses_edit'), [
         receipt_image: receipt_image || null,
         expense_date: expense_date || undefined
       })
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .select()
       .single()
@@ -164,6 +168,7 @@ router.delete('/:id', authenticateToken, requirePermission('expenses_edit'), [
     const { error } = await supabase
       .from('expenses')
       .delete()
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
 
     if (error) throw error
@@ -175,6 +180,7 @@ router.delete('/:id', authenticateToken, requirePermission('expenses_edit'), [
       const { data: entry } = await supabase
         .from('journal_entries')
         .select('id')
+        .eq('tenant_id', req.user.tenantId)
         .eq('source_type', 'expense')
         .eq('source_id', req.params.id)
         .eq('is_reversed', false)

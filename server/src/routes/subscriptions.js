@@ -20,6 +20,7 @@ router.get('/payments/all', async (req, res) => {
     const { data, error } = await supabase
       .from('subscription_payments')
       .select('*, subscription:subscriptions(id, customer_id, plan_id, status, customer:customers(id, name), plan:service_plans(id, name, billing_cycle))')
+      .eq('tenant_id', req.user?.tenantId)
       .order('payment_date', { ascending: false })
       .limit(500)
     if (error) throw error
@@ -36,6 +37,7 @@ router.get('/', async (req, res) => {
     let query = supabase
       .from('subscriptions')
       .select('*, customer:customers(id, name, phone), service:services(id, name, name_ar, service_type), plan:service_plans(id, name, name_ar, billing_cycle)')
+      .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
     if (status) query = query.eq('status', status)
     if (customer_id) query = query.eq('customer_id', customer_id)
@@ -55,6 +57,7 @@ router.get('/:id/payments', [
     const { data, error } = await supabase
       .from('subscription_payments')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('subscription_id', req.params.id)
       .order('payment_date', { ascending: false })
     if (error) throw error
@@ -73,6 +76,7 @@ router.get('/:id', [
       .from('subscriptions')
       .select('*, customer:customers(id, name, phone), service:services(id, name, name_ar), plan:service_plans(id, name, name_ar, billing_cycle)')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
     if (error || !data) return res.status(404).json({ error: 'Subscription not found' })
     res.json(data)
@@ -91,6 +95,7 @@ router.post('/', authenticateToken, requirePermission('services_edit'), [
     const { customer_id, service_id, plan_id, start_date, end_date, next_billing_date, auto_renew, billing_amount, notes } = req.body
 
     const insertData = {
+      tenant_id: req.user?.tenantId,
       customer_id,
       service_id: service_id || null,
       plan_id: plan_id || null,
@@ -135,6 +140,7 @@ router.put('/:id', authenticateToken, requirePermission('services_edit'), [
       .from('subscriptions')
       .update(updateData)
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select('*, customer:customers(id, name, phone), service:services(id, name, name_ar), plan:service_plans(id, name, name_ar, billing_cycle)')
       .single()
     if (error) throw error
@@ -153,6 +159,7 @@ router.patch('/:id/cancel', authenticateToken, requirePermission('services_edit'
       .from('subscriptions')
       .select('status')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
     if (!existing) return res.status(404).json({ error: 'Subscription not found' })
     if (existing.status === 'cancelled') return res.status(400).json({ error: 'Subscription is already cancelled' })
@@ -161,6 +168,7 @@ router.patch('/:id/cancel', authenticateToken, requirePermission('services_edit'
       .from('subscriptions')
       .update({ status: 'cancelled', auto_renew: false, updated_at: new Date().toISOString() })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
     if (error) throw error
@@ -179,6 +187,7 @@ router.patch('/:id/renew', authenticateToken, requirePermission('services_edit')
       .from('subscriptions')
       .select('*, plan:service_plans(billing_cycle, duration_months)')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
     if (!sub) return res.status(404).json({ error: 'Subscription not found' })
     if (sub.status === 'cancelled') return res.status(400).json({ error: 'Cannot renew a cancelled subscription' })
@@ -217,6 +226,7 @@ router.patch('/:id/renew', authenticateToken, requirePermission('services_edit')
         updated_at: new Date().toISOString(),
       })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
     if (error) throw error
@@ -225,6 +235,7 @@ router.patch('/:id/renew', authenticateToken, requirePermission('services_edit')
     const { data: renewalPayment } = await supabase
       .from('subscription_payments')
       .insert({
+        tenant_id: req.user?.tenantId,
         subscription_id: req.params.id,
         amount: sub.billing_amount,
         payment_method: 'cash',
@@ -261,11 +272,13 @@ router.post('/:id/payments', authenticateToken, requirePermission('services_edit
       .from('subscriptions')
       .select('*, plan:service_plans(id, name, price)')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     const { data, error } = await supabase
       .from('subscription_payments')
       .insert({
+        tenant_id: req.user?.tenantId,
         subscription_id: req.params.id,
         amount,
         payment_method: payment_method || 'cash',
@@ -299,6 +312,7 @@ router.delete('/:id', authenticateToken, requirePermission('services_edit'), [
       .from('subscriptions')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
     if (error) throw error
     res.json({ success: true })
   } catch (err) {
@@ -321,6 +335,7 @@ router.post('/quick', authenticateToken, requirePermission('services_edit'), [
       .from('service_plans')
       .select('*')
       .eq('id', plan_id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
     if (planError || !plan) return res.status(404).json({ error: 'Plan not found' })
 
@@ -328,6 +343,7 @@ router.post('/quick', authenticateToken, requirePermission('services_edit'), [
     const { data: existingSub } = await supabase
       .from('subscriptions')
       .select('id, status')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('customer_id', customer_id)
       .eq('plan_id', plan_id)
       .in('status', ['active', 'past_due'])
@@ -353,6 +369,7 @@ router.post('/quick', authenticateToken, requirePermission('services_edit'), [
     }
 
     const insertData = {
+      tenant_id: req.user?.tenantId,
       customer_id,
       service_id: null,
       plan_id,
@@ -375,6 +392,7 @@ router.post('/quick', authenticateToken, requirePermission('services_edit'), [
     const { data: paymentData, error: payError } = await supabase
       .from('subscription_payments')
       .insert({
+        tenant_id: req.user?.tenantId,
         subscription_id: sub.id,
         amount: plan.price,
         payment_method: payment_method || 'cash',

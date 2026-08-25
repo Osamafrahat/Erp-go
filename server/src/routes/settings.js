@@ -45,6 +45,7 @@ router.get('/', async (req, res, next) => {
       .from('store_settings')
       .select('key, value')
       .in('key', PUBLIC_SETTINGS)
+      .eq('tenant_id', req.user?.tenantId)
 
     if (error) throw error
 
@@ -63,6 +64,7 @@ router.get('/all', authenticateToken, async (req, res, next) => {
       .from('store_settings')
       .select('key, value')
       .in('key', ALL_ALLOWED_SETTINGS)
+      .eq('tenant_id', req.user.tenantId)
 
     if (error) throw error
 
@@ -90,11 +92,11 @@ router.put('/', authenticateToken, requirePermission('settings_edit'), async (re
       return res.status(400).json({ error: 'No valid settings provided' })
     }
 
-    const rows = entries.map(([key, value]) => ({ key, value: String(value) }))
+    const rows = entries.map(([key, value]) => ({ key, value: String(value), tenant_id: req.user.tenantId }))
 
     const { error } = await supabase
       .from('store_settings')
-      .upsert(rows, { onConflict: 'key' })
+      .upsert(rows, { onConflict: 'tenant_id,key' })
 
     if (error) throw error
 

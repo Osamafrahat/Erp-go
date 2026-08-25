@@ -11,6 +11,7 @@ router.get('/trial-balance', async (req, res) => {
     let query = supabase
       .from('accounts')
       .select('id, code, name, account_type, balance')
+      .eq('tenant_id', req.user.tenantId)
       .eq('is_active', true)
       .order('code')
 
@@ -67,6 +68,7 @@ router.get('/balance-sheet', async (req, res) => {
     const { data: accounts, error } = await supabase
       .from('accounts')
       .select('id, code, name, account_type, balance')
+      .eq('tenant_id', req.user.tenantId)
       .eq('is_active', true)
       .in('account_type', ['asset', 'liability', 'equity'])
       .order('code')
@@ -102,6 +104,7 @@ router.get('/profit-loss', async (req, res) => {
     let entryQuery = supabase
       .from('journal_entry_lines')
       .select('debit, credit, accounts(code, name, account_type), journal_entries!inner(date)')
+      .eq('tenant_id', req.user.tenantId)
 
     if (date_from) entryQuery = entryQuery.gte('journal_entries.date', date_from)
     if (date_to) entryQuery = entryQuery.lte('journal_entries.date', date_to)
@@ -154,6 +157,7 @@ router.get('/account-ledger/:accountId', async (req, res) => {
     let query = supabase
       .from('journal_entry_lines')
       .select('*, journal_entries!inner(entry_number, date, description, source_type)')
+      .eq('tenant_id', req.user.tenantId)
       .eq('account_id', req.params.accountId)
       .order('journal_entries.date', { ascending: false })
 
@@ -166,6 +170,7 @@ router.get('/account-ledger/:accountId', async (req, res) => {
     const { data: account } = await supabase
       .from('accounts')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.accountId)
       .single()
 
@@ -193,6 +198,7 @@ router.get('/fiscal-periods', async (req, res) => {
     const { data, error } = await supabase
       .from('fiscal_periods')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .order('start_date', { ascending: false })
 
     if (error) throw error
@@ -209,6 +215,7 @@ router.post('/fiscal-periods/:id/close', async (req, res) => {
     const { data: period } = await supabase
       .from('fiscal_periods')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -219,6 +226,7 @@ router.post('/fiscal-periods/:id/close', async (req, res) => {
     const { data: accounts, error: accountsErr } = await supabase
       .from('accounts')
       .select('id, account_type, balance')
+      .eq('tenant_id', req.user.tenantId)
 
     if (accountsErr) throw accountsErr
 
@@ -230,11 +238,11 @@ router.post('/fiscal-periods/:id/close', async (req, res) => {
 
     if (totalRevenue > 0.01 || totalExpenses > 0.01) {
       // Ensure Retained Earnings account exists
-      let { data: retainedEarnings } = await supabase.from('accounts').select('id').eq('code', '3020').single()
+      let { data: retainedEarnings } = await supabase.from('accounts').select('id').eq('tenant_id', req.user.tenantId).eq('code', '3020').single()
 
       if (!retainedEarnings) {
         const { data: newAcct } = await supabase.from('accounts').insert({
-          code: '3020', name: 'Retained Earnings', account_type: 'equity', balance: 0, is_active: true
+          tenant_id: req.user.tenantId, code: '3020', name: 'Retained Earnings', account_type: 'equity', balance: 0, is_active: true
         }).select('id').single()
         retainedEarnings = newAcct
       }
@@ -295,6 +303,7 @@ router.post('/fiscal-periods/:id/close', async (req, res) => {
         closed_by: req.user?.id,
         closed_at: new Date().toISOString(),
       })
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
 
     res.json({ message: 'Fiscal period closed successfully' })
@@ -311,6 +320,7 @@ router.post('/recalculate-cye', async (req, res) => {
     const { data: accounts } = await supabase
       .from('accounts')
       .select('id, account_type, balance')
+      .eq('tenant_id', req.user.tenantId)
       .in('account_type', ['revenue', 'expense'])
 
     const totalRevenue = (accounts || [])
@@ -324,12 +334,12 @@ router.post('/recalculate-cye', async (req, res) => {
     const netIncome = totalRevenue - totalExpenses
 
     // Find or create 3030
-    let { data: cye } = await supabase.from('accounts').select('id, balance').eq('code', '3030').single()
+    let { data: cye } = await supabase.from('accounts').select('id, balance').eq('tenant_id', req.user.tenantId).eq('code', '3030').single()
 
     if (!cye) {
       const { data: newAccount } = await supabase
         .from('accounts')
-        .insert({ code: '3030', name: 'Current Year Earnings', account_type: 'equity', balance: netIncome })
+        .insert({ tenant_id: req.user.tenantId, code: '3030', name: 'Current Year Earnings', account_type: 'equity', balance: netIncome })
         .select('id, balance')
         .single()
       cye = newAccount
@@ -337,6 +347,7 @@ router.post('/recalculate-cye', async (req, res) => {
       await supabase
         .from('accounts')
         .update({ balance: netIncome, updated_at: new Date().toISOString() })
+        .eq('tenant_id', req.user.tenantId)
         .eq('id', cye.id)
     }
 

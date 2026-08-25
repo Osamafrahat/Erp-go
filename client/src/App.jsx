@@ -40,6 +40,10 @@ const PerformanceReviewsPage = lazy(() => import('./pages/PerformanceReviewsPage
 const ServicesPage = lazy(() => import('./pages/ServicesPage'))
 const ServicePlansPage = lazy(() => import('./pages/ServicePlansPage'))
 const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'))
+const SignupPage = lazy(() => import('./pages/SignupPage'))
+const PricingPage = lazy(() => import('./pages/PricingPage'))
+const BillingPage = lazy(() => import('./pages/BillingPage'))
+const SuperAdminPage = lazy(() => import('./pages/SuperAdminPage'))
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
@@ -91,6 +95,12 @@ function App() {
                 <Route path="/login" element={
                   isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
                 } />
+                <Route path="/signup" element={
+                  isAuthenticated ? <Navigate to="/" replace /> : <SignupPage />
+                } />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/billing" element={<ProtectedRoute><Layout><BillingPage /></Layout></ProtectedRoute>} />
+                <Route path="/super-admin" element={<ProtectedRoute><Layout><SuperAdminPage /></Layout></ProtectedRoute>} />
 
                 <Route path="/" element={<ProtectedRoute><Layout><DashboardPage /></Layout></ProtectedRoute>} />
                 <Route path="/pos" element={<ProtectedRoute><Layout><POSPage /></Layout></ProtectedRoute>} />

@@ -11,6 +11,7 @@ router.get('/', async (req, res) => {
     let query = supabase
       .from('messages')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
       .limit(limit)
 
@@ -37,6 +38,7 @@ router.post('/', async (req, res) => {
 
     const user = req.user || {}
     const message = {
+      tenant_id: req.user?.tenantId,
       user_id: user.id || null,
       user_name: user.full_name || user.username || 'Unknown',
       content: content.trim(),
@@ -66,6 +68,7 @@ router.delete('/all', async (req, res) => {
     const { data: messages, error: fetchError } = await supabase
       .from('messages')
       .select('id')
+      .eq('tenant_id', req.user?.tenantId)
     if (fetchError) throw fetchError
     if (!messages || messages.length === 0) {
       return res.json({ message: 'No messages to delete', count: 0 })
@@ -75,6 +78,7 @@ router.delete('/all', async (req, res) => {
       .from('messages')
       .delete()
       .in('id', ids)
+      .eq('tenant_id', req.user?.tenantId)
     if (error) throw error
     res.json({ message: 'All messages deleted', count: ids.length })
   } catch (err) {
@@ -90,7 +94,7 @@ router.delete('/:id', async (req, res) => {
       return res.status(403).json({ error: 'Only managers can delete messages' })
     }
     const { id } = req.params
-    const { error } = await supabase.from('messages').delete().eq('id', id)
+    const { error } = await supabase.from('messages').delete().eq('id', id).eq('tenant_id', req.user?.tenantId)
     if (error) throw error
     res.json({ message: 'Message deleted' })
   } catch (err) {

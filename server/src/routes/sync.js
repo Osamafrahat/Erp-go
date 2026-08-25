@@ -20,6 +20,7 @@ router.post('/order', async (req, res, next) => {
     const { data: existing } = await supabase
       .from('orders')
       .select('id')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('client_order_id', client_order_id)
       .single()
 
@@ -38,6 +39,7 @@ router.post('/order', async (req, res, next) => {
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
+        tenant_id: req.user?.tenantId,
         order_number,
         subtotal: subtotal || 0,
         discount_amount: discount_amount || 0,
@@ -58,7 +60,7 @@ router.post('/order', async (req, res, next) => {
     console.log(`[SYNC] Order synced: ${client_order_id} -> ${order.id} (${order_number})`)
 
     // Process order items and stock (same as normal order)
-    processSyncedOrder(order, items, payments, customer_id, userId, order_number, total).catch(err => {
+    processSyncedOrder(order, items, payments, customer_id, userId, order_number, total, req.user?.tenantId).catch(err => {
       console.error('[SYNC BG] Error:', err.message)
     })
 
@@ -90,6 +92,7 @@ router.post('/bulk', async (req, res, next) => {
         const { data: existing } = await supabase
           .from('orders')
           .select('id')
+          .eq('tenant_id', req.user?.tenantId)
           .eq('client_order_id', client_order_id)
           .single()
 
@@ -103,6 +106,7 @@ router.post('/bulk', async (req, res, next) => {
         const { data: order, error } = await supabase
           .from('orders')
           .insert({
+            tenant_id: req.user?.tenantId,
             order_number: orderData.order_number,
             subtotal: orderData.subtotal || 0,
             discount_amount: orderData.discount_amount || 0,
@@ -120,7 +124,7 @@ router.post('/bulk', async (req, res, next) => {
 
         if (error) throw error
 
-        processSyncedOrder(order, orderData.items, orderData.payments, orderData.customer_id, userId, orderData.order_number, orderData.total).catch(err => {
+        processSyncedOrder(order, orderData.items, orderData.payments, orderData.customer_id, userId, orderData.order_number, orderData.total, req.user?.tenantId).catch(err => {
           console.error('[SYNC BULK BG] Error:', err.message)
         })
 
@@ -154,21 +158,21 @@ router.get('/status', async (req, res) => {
 })
 
 // Background processing for synced orders (same logic as normal orders)
-async function processSyncedOrder(order, items, payments, customer_id, userId, order_number, total) {
+async function processSyncedOrder(order, items, payments, customer_id, userId, order_number, total, tenantId) {
   console.log(`[SYNC BG] Processing order ${order_number}`)
 
   // Update customer loyalty points
   if (customer_id) {
     try {
-      const { data: setting } = await supabase.from('store_settings').select('value').eq('key', 'loyaltyPointsPerCurrency').single()
+      const { data: setting } = await supabase.from('store_settings').select('value').eq('key', 'loyaltyPointsPerCurrency').eq('tenant_id', tenantId).single()
       const pointsPerCurrency = parseFloat(setting?.value) || 0
-      const { data: customer } = await supabase.from('customers').select('loyalty_points, total_spent').eq('id', customer_id).single()
+      const { data: customer } = await supabase.from('customers').select('loyalty_points, total_spent').eq('id', customer_id).eq('tenant_id', tenantId).single()
       if (customer) {
         await supabase.from('customers').update({
           loyalty_points: (customer.loyalty_points || 0) + Math.floor(total * pointsPerCurrency),
           total_spent: (customer.total_spent || 0) + total,
           updated_at: new Date().toISOString()
-        }).eq('id', customer_id)
+        }).eq('id', customer_id).eq('tenant_id', tenantId)
       }
     } catch (e) { console.error('[SYNC BG] Loyalty update failed:', e.message) }
   }
@@ -180,6 +184,7 @@ async function processSyncedOrder(order, items, payments, customer_id, userId, o
       const itemTotal = qty * item.unit_price - (item.discount || 0)
 
       await supabase.from('order_items').insert({
+        tenant_id: tenantId,
         order_id: order.id,
         product_id: item.product_id,
         quantity: qty,
@@ -188,15 +193,16 @@ async function processSyncedOrder(order, items, payments, customer_id, userId, o
         total: itemTotal
       })
 
-      const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', item.product_id).single()
+      const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', item.product_id).eq('tenant_id', tenantId).single()
       if (product) {
         await supabase.from('products').update({
           stock_quantity: Math.max(0, product.stock_quantity - qty),
           updated_at: new Date().toISOString()
-        }).eq('id', item.product_id)
+        }).eq('id', item.product_id).eq('tenant_id', tenantId)
       }
 
       await supabase.from('stock_movements').insert({
+        tenant_id: tenantId,
         product_id: item.product_id,
         type: 'sale',
         quantity: -qty,
@@ -210,6 +216,7 @@ async function processSyncedOrder(order, items, payments, customer_id, userId, o
   if (payments && payments.length > 0) {
     try {
       const paymentInserts = payments.map(p => ({
+        tenant_id: tenantId,
         order_id: order.id,
         method: p.method,
         amount: p.amount,
@@ -220,7 +227,7 @@ async function processSyncedOrder(order, items, payments, customer_id, userId, o
       const { createJournalEntry } = await import('../services/accountingEngine.js')
 
       async function findAcc(code) {
-        const { data } = await supabase.from('accounts').select('id, code').eq('code', code).single()
+        const { data } = await supabase.from('accounts').select('id, code').eq('code', code).eq('tenant_id', tenantId).single()
         return data
       }
 
@@ -242,6 +249,7 @@ async function processSyncedOrder(order, items, payments, customer_id, userId, o
           if (lines.length > 0) {
             const entry = await createJournalEntry({ date, description: `Payment: ${paymentNumber}`, reference: paymentNumber, sourceType: 'payment', sourceId: null, lines, createdBy: userId })
             await supabase.from('payments').insert({
+              tenant_id: tenantId,
               payment_number: paymentNumber, payment_type: 'inbound', method: p.method,
               amount: parseFloat(p.amount), reference: p.reference || null,
               payment_date: date, recorded_by: userId, journal_entry_id: entry.id,
@@ -256,12 +264,12 @@ async function processSyncedOrder(order, items, payments, customer_id, userId, o
   try {
     const { postOrderJournal } = await import('../services/accountingEngine.js')
     const itemsWithCost = await Promise.all(items.map(async (item) => {
-      const { data: product } = await supabase.from('products').select('cost_price').eq('id', item.product_id).single()
+      const { data: product } = await supabase.from('products').select('cost_price').eq('id', item.product_id).eq('tenant_id', tenantId).single()
       return { ...item, cost_price: product?.cost_price || 0 }
     }))
     const journalEntry = await postOrderJournal(order, itemsWithCost)
     if (journalEntry) {
-      await supabase.from('orders').update({ journal_entry_id: journalEntry.id }).eq('id', order.id)
+      await supabase.from('orders').update({ journal_entry_id: journalEntry.id }).eq('id', order.id).eq('tenant_id', tenantId)
     }
   } catch (e) { console.error('[SYNC BG] Order journal failed:', e.message) }
 

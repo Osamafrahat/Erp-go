@@ -19,6 +19,7 @@ router.get('/', async (req, res) => {
     const { data, error } = await supabase
       .from('services')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
     if (error) throw error
     res.json(data)
@@ -36,6 +37,7 @@ router.get('/:id', [
       .from('services')
       .select('*')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
     if (error || !data) return res.status(404).json({ error: 'Service not found' })
     res.json(data)
@@ -54,7 +56,7 @@ router.post('/', authenticateToken, requirePermission('services_edit'), [
     const { name, name_ar, description, price, service_type } = req.body
     const { data, error } = await supabase
       .from('services')
-      .insert({ name, name_ar, description, price, service_type })
+      .insert({ tenant_id: req.user?.tenantId, name, name_ar, description, price, service_type })
       .select()
       .single()
     if (error) throw error
@@ -84,6 +86,7 @@ router.put('/:id', authenticateToken, requirePermission('services_edit'), [
       .from('services')
       .update(updateData)
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
     if (error) throw error
@@ -102,6 +105,7 @@ router.delete('/:id', authenticateToken, requirePermission('services_edit'), [
       .from('services')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
     if (error) throw error
     res.json({ success: true })
   } catch (err) {

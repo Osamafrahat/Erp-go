@@ -51,6 +51,7 @@ api.interceptors.response.use(
       localStorage.removeItem('user')
       localStorage.removeItem('user-storage')
       localStorage.removeItem('cart-storage')
+      localStorage.removeItem('tenant_id')
       if (sessionExpired) {
         window.location.href = '/login?expired=1'
       } else {

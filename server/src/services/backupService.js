@@ -13,6 +13,16 @@ const TABLES = [
   'expenses', 'store_settings', 'activity_log'
 ]
 
+// Tables that have tenant_id column
+const TENANT_TABLES = [
+  'accounts', 'fiscal_periods', 'journal_entries', 'journal_entry_lines',
+  'payments', 'account_balances', 'orders', 'order_items',
+  'payment_splits', 'stock_movements', 'refunds', 'refund_items',
+  'expenses', 'store_settings', 'activity_log',
+  'categories', 'suppliers', 'products', 'customers', 'employees', 'users',
+  'promotions'
+]
+
 async function ensureBackupDir() {
   await fs.mkdir(BACKUP_DIR, { recursive: true })
   await fs.mkdir(path.join(BACKUP_DIR, 'json'), { recursive: true })
@@ -31,14 +41,18 @@ function escapeIdentifier(name) {
   return `"${name}"`
 }
 
-export async function backupToJson() {
+export async function backupToJson(tenantId) {
   await ensureBackupDir()
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-  const backup = { timestamp, tables: {} }
+  const backup = { timestamp, tenant_id: tenantId, tables: {} }
   let totalRows = 0
 
   for (const table of TABLES) {
-    const { data, error } = await supabase.from(table).select('*')
+    let query = supabase.from(table).select('*')
+    if (tenantId && TENANT_TABLES.includes(table)) {
+      query = query.eq('tenant_id', tenantId)
+    }
+    const { data, error } = await query
     if (error) {
       console.error(`[BACKUP] Error fetching ${table}:`, error.message)
       backup.tables[table] = { error: error.message, rows: [] }
@@ -48,25 +62,30 @@ export async function backupToJson() {
     }
   }
 
-  const filePath = path.join(BACKUP_DIR, 'json', `backup-${timestamp}.json`)
+  const filePath = path.join(BACKUP_DIR, 'json', `backup-${tenantId || 'global'}-${timestamp}.json`)
   await fs.writeFile(filePath, JSON.stringify(backup, null, 2))
   console.log(`[BACKUP] JSON backup saved: ${filePath} (${totalRows} rows)`)
 
   return { filePath, timestamp, totalRows, tableCount: TABLES.length }
 }
 
-export async function backupToSql() {
+export async function backupToSql(tenantId) {
   await ensureBackupDir()
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
   const lines = []
   lines.push('-- Store Management System Database Backup')
   lines.push(`-- Generated: ${new Date().toISOString()}`)
+  if (tenantId) lines.push(`-- Tenant: ${tenantId}`)
   lines.push('--')
   lines.push('')
   let totalRows = 0
 
   for (const table of TABLES) {
-    const { data, error } = await supabase.from(table).select('*')
+    let query = supabase.from(table).select('*')
+    if (tenantId && TENANT_TABLES.includes(table)) {
+      query = query.eq('tenant_id', tenantId)
+    }
+    const { data, error } = await query
     if (error || !data || data.length === 0) {
       if (error) console.error(`[BACKUP] Error fetching ${table}:`, error.message)
       continue
@@ -89,14 +108,14 @@ export async function backupToSql() {
     lines.push('')
   }
 
-  const filePath = path.join(BACKUP_DIR, 'sql', `backup-${timestamp}.sql`)
+  const filePath = path.join(BACKUP_DIR, 'sql', `backup-${tenantId || 'global'}-${timestamp}.sql`)
   await fs.writeFile(filePath, lines.join('\n'))
   console.log(`[BACKUP] SQL backup saved: ${filePath} (${totalRows} rows)`)
 
   return { filePath, timestamp, totalRows, tableCount: TABLES.length }
 }
 
-export async function restoreFromJson(filePath) {
+export async function restoreFromJson(filePath, tenantId) {
   const content = await fs.readFile(filePath, 'utf-8')
   const backup = JSON.parse(content)
   let restoredRows = 0
@@ -107,15 +126,24 @@ export async function restoreFromJson(filePath) {
     if (!tableData?.rows || tableData.rows.length === 0) continue
 
     try {
-      const { error } = await supabase.from(table).delete().neq('id', 0)
+      let deleteQuery = supabase.from(table).delete().neq('id', 0)
+      if (tenantId && TENANT_TABLES.includes(table)) {
+        deleteQuery = deleteQuery.eq('tenant_id', tenantId)
+      }
+      const { error } = await deleteQuery
       if (error && !error.message.includes('No rows')) {
         results.push({ table, status: 'error', message: error.message })
         continue
       }
 
+      // Ensure tenant_id is set on restored rows
+      const rowsToInsert = tenantId
+        ? tableData.rows.map(row => ({ ...row, tenant_id: tenantId }))
+        : tableData.rows
+
       const batchSize = 50
-      for (let i = 0; i < tableData.rows.length; i += batchSize) {
-        const batch = tableData.rows.slice(i, i + batchSize)
+      for (let i = 0; i < rowsToInsert.length; i += batchSize) {
+        const batch = rowsToInsert.slice(i, i + batchSize)
         const { error: insertErr } = await supabase.from(table).insert(batch)
         if (insertErr) {
           results.push({ table, status: 'partial', message: insertErr.message, rows: i })
@@ -123,8 +151,8 @@ export async function restoreFromJson(filePath) {
         }
       }
 
-      restoredRows += tableData.rows.length
-      results.push({ table, status: 'ok', rows: tableData.rows.length })
+      restoredRows += rowsToInsert.length
+      results.push({ table, status: 'ok', rows: rowsToInsert.length })
     } catch (err) {
       results.push({ table, status: 'error', message: err.message })
     }
@@ -222,17 +250,17 @@ export async function ensureCloudBucket() {
   }
 }
 
-export async function backupToCloud(format = 'json') {
+export async function backupToCloud(format = 'json', tenantId) {
   await ensureCloudBucket()
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-  const filename = `backup-${timestamp}.${format}`
+  const filename = `backup-${tenantId || 'global'}-${timestamp}.${format}`
 
   let fileContent
   if (format === 'sql') {
-    const result = await backupToSql()
+    const result = await backupToSql(tenantId)
     fileContent = await fs.readFile(result.filePath)
   } else {
-    const result = await backupToJson()
+    const result = await backupToJson(tenantId)
     fileContent = await fs.readFile(result.filePath)
   }
 

@@ -21,6 +21,7 @@ router.get('/types', async (req, res, next) => {
     const { data, error } = await supabase
       .from('leave_types')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .order('name')
     if (error) throw error
     res.json(data || [])
@@ -38,7 +39,7 @@ router.post('/types', requirePermission('hr_edit'), [
     const { name, days_per_year, is_paid } = req.body
     const { data, error } = await supabase
       .from('leave_types')
-      .insert({ name, days_per_year, is_paid: is_paid !== false })
+      .insert({ tenant_id: req.user?.tenantId, name, days_per_year, is_paid: is_paid !== false })
       .select()
       .single()
     if (error) throw error
@@ -58,6 +59,7 @@ router.put('/types/:id', requirePermission('hr_edit'), [
       .from('leave_types')
       .update({ name, days_per_year, is_paid, is_active })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
     if (error) throw error
@@ -76,6 +78,7 @@ router.get('/requests', async (req, res, next) => {
     let query = supabase
       .from('leave_requests')
       .select('*, employees(name, role), leave_types(name, is_paid)')
+      .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
     if (employee_id) query = query.eq('employee_id', employee_id)
     if (status) query = query.eq('status', status)
@@ -103,6 +106,7 @@ router.post('/requests', [
     const { data, error } = await supabase
       .from('leave_requests')
       .insert({
+        tenant_id: req.user?.tenantId,
         employee_id,
         leave_type_id,
         start_date,
@@ -131,6 +135,7 @@ router.patch('/requests/:id/approve', requirePermission('hr_edit'), [
       .from('leave_requests')
       .select('id, employee_id, leave_type_id, days, start_date, end_date')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (!existing) {
@@ -147,6 +152,7 @@ router.patch('/requests/:id/approve', requirePermission('hr_edit'), [
         updated_at: new Date().toISOString(),
       })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select('*, employees(name, role), leave_types(name, is_paid)')
       .single()
     if (error) throw error
@@ -157,6 +163,7 @@ router.patch('/requests/:id/approve', requirePermission('hr_edit'), [
       const { data: balance } = await supabase
         .from('leave_balances')
         .select('id, used_days, remaining_days')
+        .eq('tenant_id', req.user?.tenantId)
         .eq('employee_id', existing.employee_id)
         .eq('leave_type_id', existing.leave_type_id)
         .eq('year', year)
@@ -171,11 +178,13 @@ router.patch('/requests/:id/approve', requirePermission('hr_edit'), [
             updated_at: new Date().toISOString(),
           })
           .eq('id', balance.id)
+          .eq('tenant_id', req.user?.tenantId)
       } else {
         // Get leave type for total days
-        const { data: lt } = await supabase.from('leave_types').select('days_per_year').eq('id', existing.leave_type_id).single()
+        const { data: lt } = await supabase.from('leave_types').select('days_per_year').eq('id', existing.leave_type_id).eq('tenant_id', req.user?.tenantId).single()
         const totalDays = lt?.days_per_year || 0
         await supabase.from('leave_balances').insert({
+          tenant_id: req.user?.tenantId,
           employee_id: existing.employee_id,
           leave_type_id: existing.leave_type_id,
           year,
@@ -189,7 +198,7 @@ router.patch('/requests/:id/approve', requirePermission('hr_edit'), [
     // Auto-create attendance + shift records for approved leave
     if (status === 'approved') {
       // Get leave type name for shift label
-      const { data: lt } = await supabase.from('leave_types').select('name').eq('id', existing.leave_type_id).single()
+      const { data: lt } = await supabase.from('leave_types').select('name').eq('id', existing.leave_type_id).eq('tenant_id', req.user?.tenantId).single()
       const shiftName = lt?.name || 'Annual'
 
       // Find or create shift with leave type name
@@ -197,6 +206,7 @@ router.patch('/requests/:id/approve', requirePermission('hr_edit'), [
       const { data: existingShift } = await supabase
         .from('shifts')
         .select('id')
+        .eq('tenant_id', req.user?.tenantId)
         .ilike('name', shiftName)
         .maybeSingle()
       if (existingShift) {
@@ -204,7 +214,7 @@ router.patch('/requests/:id/approve', requirePermission('hr_edit'), [
       } else {
         const { data: newShift } = await supabase
           .from('shifts')
-          .insert({ name: shiftName, start_time: '00:00', end_time: '00:00' })
+          .insert({ tenant_id: req.user?.tenantId, name: shiftName, start_time: '00:00', end_time: '00:00' })
           .select('id')
           .single()
         leaveShift = newShift
@@ -222,13 +232,15 @@ router.patch('/requests/:id/approve', requirePermission('hr_edit'), [
         const { data: existingAtt } = await supabase
           .from('attendance')
           .select('id')
+          .eq('tenant_id', req.user?.tenantId)
           .eq('employee_id', existing.employee_id)
           .eq('date', dateStr)
           .maybeSingle()
         if (existingAtt) {
-          await supabase.from('attendance').update({ status: 'on_leave', source: 'leave', notes: 'Approved leave' }).eq('id', existingAtt.id)
+          await supabase.from('attendance').update({ status: 'on_leave', source: 'leave', notes: 'Approved leave' }).eq('id', existingAtt.id).eq('tenant_id', req.user?.tenantId)
         } else {
           await supabase.from('attendance').insert({
+            tenant_id: req.user?.tenantId,
             employee_id: existing.employee_id,
             date: dateStr,
             status: 'on_leave',
@@ -242,13 +254,15 @@ router.patch('/requests/:id/approve', requirePermission('hr_edit'), [
           const { data: existingShiftAssign } = await supabase
             .from('employee_shifts')
             .select('id')
+            .eq('tenant_id', req.user?.tenantId)
             .eq('employee_id', existing.employee_id)
             .eq('date', dateStr)
             .maybeSingle()
           if (existingShiftAssign) {
-            await supabase.from('employee_shifts').update({ shift_id: leaveShift.id }).eq('id', existingShiftAssign.id)
+            await supabase.from('employee_shifts').update({ shift_id: leaveShift.id }).eq('id', existingShiftAssign.id).eq('tenant_id', req.user?.tenantId)
           } else {
             await supabase.from('employee_shifts').insert({
+              tenant_id: req.user?.tenantId,
               employee_id: existing.employee_id,
               shift_id: leaveShift.id,
               date: dateStr,
@@ -273,6 +287,7 @@ router.delete('/requests/:id', requirePermission('hr_edit'), [
       .from('leave_requests')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
     if (error) throw error
     res.json({ message: 'Leave request deleted' })
   } catch (err) {
@@ -291,6 +306,7 @@ router.get('/balances/:employeeId', [
     const { data, error } = await supabase
       .from('leave_balances')
       .select('*, leave_types(name, is_paid)')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('employee_id', req.params.employeeId)
       .eq('year', year)
     if (error) throw error

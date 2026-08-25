@@ -19,6 +19,7 @@ router.get('/', async (req, res) => {
     const { data, error } = await supabase
       .from('service_plans')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
     if (error) throw error
     res.json(data)
@@ -36,6 +37,7 @@ router.get('/:id', [
       .from('service_plans')
       .select('*')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
     if (error || !data) return res.status(404).json({ error: 'Plan not found' })
     res.json(data)
@@ -54,7 +56,7 @@ router.post('/', authenticateToken, requirePermission('services_edit'), [
     const { name, name_ar, description, price, billing_cycle, duration_months, features } = req.body
     const { data, error } = await supabase
       .from('service_plans')
-      .insert({ name, name_ar, description, price, billing_cycle, duration_months, features })
+      .insert({ tenant_id: req.user?.tenantId, name, name_ar, description, price, billing_cycle, duration_months, features })
       .select()
       .single()
     if (error) throw error
@@ -86,6 +88,7 @@ router.put('/:id', authenticateToken, requirePermission('services_edit'), [
       .from('service_plans')
       .update(updateData)
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
     if (error) throw error
@@ -104,6 +107,7 @@ router.delete('/:id', authenticateToken, requirePermission('services_edit'), [
       .from('service_plans')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
     if (error) throw error
     res.json({ success: true })
   } catch (err) {

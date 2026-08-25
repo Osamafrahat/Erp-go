@@ -21,6 +21,7 @@ router.get('/', async (req, res, next) => {
     const { data, error } = await supabase
       .from('shifts')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .order('name')
     if (error) {
       console.error('Shifts query error:', error)
@@ -42,7 +43,7 @@ router.post('/', requirePermission('hr_edit'), [
     const { name, start_time, end_time } = req.body
     const { data, error } = await supabase
       .from('shifts')
-      .insert({ name, start_time, end_time })
+      .insert({ tenant_id: req.user?.tenantId, name, start_time, end_time })
       .select()
       .single()
     if (error) throw error
@@ -62,6 +63,7 @@ router.put('/:id', requirePermission('hr_edit'), [
       .from('shifts')
       .update({ name, start_time, end_time, is_active })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
     if (error) throw error
@@ -80,6 +82,7 @@ router.delete('/:id', requirePermission('hr_edit'), [
       .from('shifts')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
     if (error) throw error
     res.json({ message: 'Shift deleted' })
   } catch (err) {
@@ -96,6 +99,7 @@ router.get('/assignments', async (req, res, next) => {
     let query = supabase
       .from('employee_shifts')
       .select('*, employees(name, role), shifts(name, start_time, end_time)')
+      .eq('tenant_id', req.user?.tenantId)
       .order('date')
     if (start_date) query = query.gte('date', start_date)
     if (end_date) query = query.lte('date', end_date)
@@ -135,6 +139,7 @@ router.post('/assignments', requirePermission('hr_edit'), [
       const { data: existing } = await supabase
         .from('employee_shifts')
         .select('id')
+        .eq('tenant_id', req.user?.tenantId)
         .eq('employee_id', employee_id)
         .eq('date', date)
         .maybeSingle()
@@ -144,13 +149,14 @@ router.post('/assignments', requirePermission('hr_edit'), [
           .from('employee_shifts')
           .update({ shift_id })
           .eq('id', existing.id)
+          .eq('tenant_id', req.user?.tenantId)
           .select('*, employees(name, role), shifts(name, start_time, end_time)')
           .single()
         if (data) results.push(data)
       } else {
         const { data } = await supabase
           .from('employee_shifts')
-          .insert({ employee_id, shift_id, date })
+          .insert({ tenant_id: req.user?.tenantId, employee_id, shift_id, date })
           .select('*, employees(name, role), shifts(name, start_time, end_time)')
           .single()
         if (data) results.push(data)
@@ -180,6 +186,7 @@ router.post('/assignments/bulk', requirePermission('hr_edit'), [
       const { data: existing } = await supabase
         .from('employee_shifts')
         .select('id')
+        .eq('tenant_id', req.user?.tenantId)
         .eq('employee_id', employee_id)
         .eq('date', date)
         .maybeSingle()
@@ -189,13 +196,14 @@ router.post('/assignments/bulk', requirePermission('hr_edit'), [
           .from('employee_shifts')
           .update({ shift_id })
           .eq('id', existing.id)
+          .eq('tenant_id', req.user?.tenantId)
           .select()
           .single()
         if (data) results.push(data)
       } else {
         const { data } = await supabase
           .from('employee_shifts')
-          .insert({ employee_id, shift_id, date })
+          .insert({ tenant_id: req.user?.tenantId, employee_id, shift_id, date })
           .select()
           .single()
         if (data) results.push(data)
@@ -217,6 +225,7 @@ router.delete('/assignments/:id', requirePermission('hr_edit'), [
       .from('employee_shifts')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
     if (error) throw error
     res.json({ message: 'Shift assignment removed' })
   } catch (err) {

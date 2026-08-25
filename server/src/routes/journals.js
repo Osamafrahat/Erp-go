@@ -15,6 +15,7 @@ router.get('/', async (req, res) => {
     let query = supabase
       .from('journal_entries')
       .select('*, journal_entry_lines(*, accounts(code, name, account_type))', { count: 'exact' })
+      .eq('tenant_id', req.user.tenantId)
       .order('date', { ascending: false })
       .order('id', { ascending: false })
       .range(offset, offset + limit - 1)
@@ -44,6 +45,7 @@ router.get('/:id', async (req, res) => {
     const { data, error } = await supabase
       .from('journal_entries')
       .select('*, journal_entry_lines(*, accounts(code, name, account_type))')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -86,6 +88,7 @@ router.post('/:id/reverse', authenticateToken, requirePermission('accounting_edi
     const { data: original, error: fetchError } = await supabase
       .from('journal_entries')
       .select('*, journal_entry_lines(*)')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -114,6 +117,7 @@ router.post('/:id/reverse', authenticateToken, requirePermission('accounting_edi
     await supabase
       .from('journal_entries')
       .update({ is_reversed: true, reversed_by: reverseEntry.id })
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', original.id)
 
     res.json(reverseEntry)
@@ -130,6 +134,7 @@ router.delete('/:id', authenticateToken, requirePermission('accounting_edit'), a
     const { data: entry } = await supabase
       .from('journal_entries')
       .select('is_posted')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -137,7 +142,7 @@ router.delete('/:id', authenticateToken, requirePermission('accounting_edit'), a
       return res.status(400).json({ error: 'Cannot delete posted entries. Reverse instead.' })
     }
 
-    const { error } = await supabase.from('journal_entries').delete().eq('id', req.params.id)
+    const { error } = await supabase.from('journal_entries').delete().eq('tenant_id', req.user.tenantId).eq('id', req.params.id)
     if (error) throw error
     req.logActivity({ action: 'deleted', entity_type: 'journal_entry', entity_id: req.params.id })
     res.json({ message: 'Entry deleted' })

@@ -1,5 +1,6 @@
 ﻿import cron from 'node-cron'
 import { backupToJson, backupToCloud, cleanupOldBackups, listCloudBackups, deleteCloudBackup } from './backupService.js'
+import supabase from '../db/supabase.js'
 
 const BACKUP_SCHEDULE = process.env.BACKUP_SCHEDULE || '0 2 * * *'
 const BACKUP_RETENTION_DAYS = parseInt(process.env.BACKUP_RETENTION_DAYS) || 30
@@ -8,6 +9,11 @@ let backupJob = null
 let cleanupJob = null
 let autoBackupEnabled = process.env.BACKUP_ENABLED !== 'false'
 let lastBackupTime = null
+
+async function getAllTenantIds() {
+  const { data } = await supabase.from('tenants').select('id')
+  return (data || []).map(t => t.id)
+}
 
 export function startBackupScheduler() {
   if (!autoBackupEnabled) {
@@ -25,9 +31,24 @@ export function enableAutoBackup() {
     backupJob = cron.schedule(BACKUP_SCHEDULE, async () => {
       console.log(`[CRON] Running scheduled backup at ${new Date().toISOString()}`)
       try {
-        const result = await backupToJson()
-        lastBackupTime = new Date().toISOString()
-        console.log(`[CRON] Local backup completed: ${result.totalRows} rows`)
+        const tenantIds = await getAllTenantIds()
+
+        if (tenantIds.length === 0) {
+          console.log('[CRON] No tenants found, running global backup')
+          const result = await backupToJson()
+          lastBackupTime = new Date().toISOString()
+          console.log(`[CRON] Local backup completed: ${result.totalRows} rows`)
+        } else {
+          for (const tenantId of tenantIds) {
+            try {
+              const result = await backupToJson(tenantId)
+              console.log(`[CRON] Local backup for tenant ${tenantId}: ${result.totalRows} rows`)
+            } catch (err) {
+              console.error(`[CRON] Backup failed for tenant ${tenantId}:`, err.message)
+            }
+          }
+          lastBackupTime = new Date().toISOString()
+        }
 
         try {
           await backupToCloud('json')

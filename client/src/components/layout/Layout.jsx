@@ -39,6 +39,9 @@ import {
   Award,
   Wrench,
   CreditCard,
+  Crown,
+  Sparkles,
+  Shield,
 } from 'lucide-react'
 import ChatWidget from '../ChatWidget'
 
@@ -47,7 +50,7 @@ export default function Layout({ children }) {
   const navigate = useNavigate()
   const { theme, toggleTheme, sidebarOpen, toggleSidebar, language, setLanguage, t, settings } = useAppStore()
   const { getItemCount } = useCartStore()
-  const { currentUser, logout, canAccess, hasPermission } = useUserStore()
+  const { currentUser, logout, canAccess, hasPermission, subscriptionTier, subscriptionStatus, trialEndsAt, isTrial } = useUserStore()
   const { isOnline, pendingCount, lastSyncTime, isSyncing, syncProgress, init: initOffline, syncPendingOrders, retryFailed } = useOfflineStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
@@ -198,6 +201,19 @@ export default function Layout({ children }) {
   }
   if (settingsItems.length > 0) {
     groups.push({ key: 'settings', label: t('nav.groupSettings') || 'Settings', items: settingsItems })
+  }
+
+  // -- Subscription --
+  const subscriptionItems = []
+  if (subscriptionTier === 'free') {
+    subscriptionItems.push({ name: 'Upgrade', href: '/pricing', icon: Crown })
+  }
+  subscriptionItems.push({ name: 'Billing', href: '/billing', icon: CreditCard })
+  if (currentUser?.role === 'SUPER_ADMIN') {
+    subscriptionItems.push({ name: 'Super Admin', href: '/super-admin', icon: Shield })
+  }
+  if (subscriptionItems.length > 0) {
+    groups.push({ key: 'subscription', label: 'Subscription', items: subscriptionItems })
   }
 
   const handleLogout = () => {
@@ -677,6 +693,41 @@ export default function Layout({ children }) {
                   </div>
                 )}
               </div>
+
+              {/* Subscription Badge */}
+              {(() => {
+                const trialDaysLeft = isTrial() ? Math.ceil((new Date(trialEndsAt) - new Date()) / (1000 * 60 * 60 * 24)) : 0
+                if (isTrial()) {
+                  return (
+                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-800/40 transition-all duration-200">
+                      <Sparkles className="w-4 h-4" />
+                      <span className="hidden sm:inline">Trial ({trialDaysLeft}d left)</span>
+                    </Link>
+                  )
+                }
+                if (subscriptionTier === 'pro') {
+                  return (
+                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800/40 transition-all duration-200">
+                      <Crown className="w-4 h-4" />
+                      <span className="hidden sm:inline">Pro</span>
+                    </Link>
+                  )
+                }
+                if (subscriptionTier === 'enterprise') {
+                  return (
+                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-all duration-200">
+                      <Crown className="w-4 h-4" />
+                      <span className="hidden sm:inline">Enterprise</span>
+                    </Link>
+                  )
+                }
+                return (
+                  <Link to="/pricing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200">
+                    <span className="hidden sm:inline">Free</span>
+                    <span className="hidden sm:inline text-primary-600 dark:text-primary-400 font-semibold">Upgrade</span>
+                  </Link>
+                )
+              })()}
 
               {/* Mobile Language Switcher */}
               <div className="relative md:hidden">

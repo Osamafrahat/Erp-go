@@ -133,6 +133,20 @@ export const useUserStore = create(
       lastActivity: null,
       token: null,
 
+      // Tenant
+      tenantId: null,
+      tenantName: null,
+      subscriptionTier: 'free',
+      subscriptionStatus: null,
+      trialEndsAt: null,
+
+      // Computed getters
+      isTrial: () => {
+        const { subscriptionStatus, trialEndsAt } = get()
+        return subscriptionStatus === 'trialing' && new Date(trialEndsAt) > new Date()
+      },
+      isPaid: () => get().subscriptionTier !== 'free',
+
       // Login
       login: async (username, password) => {
         try {
@@ -150,11 +164,26 @@ export const useUserStore = create(
             email: user.email,
           }
 
+          // Extract tenant data from response (snake_case from API)
+          const tenantData = {
+            tenantId: response.data.tenant_id ?? user.tenant_id ?? null,
+            tenantName: response.data.tenant_name ?? user.tenant_name ?? null,
+            subscriptionTier: response.data.subscription_tier ?? user.subscription_tier ?? 'free',
+            subscriptionStatus: response.data.subscription_status ?? user.subscription_status ?? null,
+            trialEndsAt: response.data.trial_ends_at ?? user.trial_ends_at ?? null,
+          }
+
+          // Persist tenantId in localStorage
+          if (tenantData.tenantId) {
+            localStorage.setItem('tenant_id', tenantData.tenantId)
+          }
+
           set({
             currentUser: mappedUser,
             isAuthenticated: true,
             lastActivity: Date.now(),
-            token
+            token,
+            ...tenantData,
           })
 
           return { success: true, user: mappedUser }
@@ -171,11 +200,17 @@ export const useUserStore = create(
         localStorage.removeItem('auth_token')
         localStorage.removeItem('user-storage')
         localStorage.removeItem('cart-storage')
+        localStorage.removeItem('tenant_id')
         set({
           currentUser: null,
           isAuthenticated: false,
           lastActivity: null,
-          token: null
+          token: null,
+          tenantId: null,
+          tenantName: null,
+          subscriptionTier: 'free',
+          subscriptionStatus: null,
+          trialEndsAt: null,
         })
       },
 
@@ -421,6 +456,11 @@ export const useUserStore = create(
         isAuthenticated: state.isAuthenticated,
         lastActivity: state.lastActivity,
         token: state.token,
+        tenantId: state.tenantId,
+        tenantName: state.tenantName,
+        subscriptionTier: state.subscriptionTier,
+        subscriptionStatus: state.subscriptionStatus,
+        trialEndsAt: state.trialEndsAt,
       }),
     }
   )

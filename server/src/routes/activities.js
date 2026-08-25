@@ -21,6 +21,7 @@ router.get('/', managerOnly, async (req, res) => {
     let query = supabase
       .from('activity_log')
       .select('*', { count: 'exact' })
+      .eq('tenant_id', req.user.tenantId)
       .order('created_at', { ascending: false })
 
     if (action) query = query.eq('action', action)
@@ -57,6 +58,7 @@ router.get('/stats', managerOnly, async (req, res) => {
     const { data: allActivities } = await supabase
       .from('activity_log')
       .select('action, entity_type, user_name, created_at')
+      .eq('tenant_id', req.user.tenantId)
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -96,6 +98,7 @@ router.post('/', managerOnly, async (req, res) => {
     const { data, error } = await supabase
       .from('activity_log')
       .insert([{
+        tenant_id: req.user.tenantId,
         user_id,
         user_name,
         action,
@@ -127,6 +130,7 @@ router.delete('/cleanup', managerOnly, async (req, res) => {
     const { error, count } = await supabase
       .from('activity_log')
       .delete()
+      .eq('tenant_id', req.user.tenantId)
       .lt('created_at', cutoff.toISOString())
 
     if (error) throw error

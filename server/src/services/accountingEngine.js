@@ -17,22 +17,23 @@ function generatePaymentNumber() {
 }
 
 // Find account by code, auto-seed if missing
-async function findAccountByCode(code) {
-  let { data } = await supabase.from('accounts').select('id').eq('code', code).single()
+async function findAccountByCode(code, tenantId) {
+  let { data } = await supabase.from('accounts').select('id').eq('code', code).eq('tenant_id', tenantId).single()
   if (!data) {
-    await seedChartOfAccounts()
-    const retry = await supabase.from('accounts').select('id').eq('code', code).single()
+    await seedChartOfAccounts(tenantId)
+    const retry = await supabase.from('accounts').select('id').eq('code', code).eq('tenant_id', tenantId).single()
     data = retry.data
   }
   return data
 }
 
 // Get or create current open fiscal period
-export async function getCurrentPeriod() {
+export async function getCurrentPeriod(tenantId) {
   const today = new Date().toISOString().split('T')[0]
   const { data } = await supabase
     .from('fiscal_periods')
     .select('*')
+    .eq('tenant_id', tenantId)
     .lte('start_date', today)
     .gte('end_date', today)
     .eq('is_closed', false)
@@ -45,6 +46,7 @@ export async function getCurrentPeriod() {
   const { data: newPeriod, error } = await supabase
     .from('fiscal_periods')
     .insert({
+      tenant_id: tenantId,
       name: `FY ${year}`,
       start_date: `${year}-01-01`,
       end_date: `${year}-12-31`,
@@ -57,7 +59,7 @@ export async function getCurrentPeriod() {
 }
 
 // Create journal entry with balanced lines
-export async function createJournalEntry({ date, description, reference, sourceType, sourceId, lines, createdBy }) {
+export async function createJournalEntry({ date, description, reference, sourceType, sourceId, lines, createdBy }, tenantId) {
   // Validate: total debits must equal total credits
   const totalDebit = lines.reduce((sum, l) => sum + (parseFloat(l.debit) || 0), 0)
   const totalCredit = lines.reduce((sum, l) => sum + (parseFloat(l.credit) || 0), 0)
@@ -70,13 +72,14 @@ export async function createJournalEntry({ date, description, reference, sourceT
     throw new Error('Journal entry must have non-zero amounts')
   }
 
-  const period = await getCurrentPeriod()
+  const period = await getCurrentPeriod(tenantId)
   const entryNumber = generateEntryNumber()
 
   // Create entry
   const { data: entry, error: entryError } = await supabase
     .from('journal_entries')
     .insert({
+      tenant_id: tenantId,
       entry_number: entryNumber,
       date: date || new Date().toISOString().split('T')[0],
       description,
@@ -94,6 +97,7 @@ export async function createJournalEntry({ date, description, reference, sourceT
 
   // Create lines
   const linesData = lines.map(l => ({
+    tenant_id: tenantId,
     entry_id: entry.id,
     account_id: l.accountId,
     debit: parseFloat(l.debit) || 0,
@@ -109,7 +113,7 @@ export async function createJournalEntry({ date, description, reference, sourceT
 
   // Update account balances
   for (const line of linesData) {
-    await updateAccountBalance(line.account_id, period.id, line.debit, line.credit)
+    await updateAccountBalance(line.account_id, period.id, line.debit, line.credit, tenantId)
   }
 
   console.log('Journal entry created:', {
@@ -121,7 +125,7 @@ export async function createJournalEntry({ date, description, reference, sourceT
   })
 
   // Recalculate current year earnings after every journal entry
-  recalculateCurrentYearEarnings().catch(err =>
+  recalculateCurrentYearEarnings(tenantId).catch(err =>
     console.error('[CYE] Recalculate failed:', err.message)
   )
 
@@ -129,12 +133,13 @@ export async function createJournalEntry({ date, description, reference, sourceT
 }
 
 // Update account balance
-async function updateAccountBalance(accountId, periodId, debit, credit) {
+async function updateAccountBalance(accountId, periodId, debit, credit, tenantId) {
   const { data: existing } = await supabase
     .from('account_balances')
     .select('*')
     .eq('account_id', accountId)
     .eq('period_id', periodId)
+    .eq('tenant_id', tenantId)
     .single()
 
   if (existing) {
@@ -150,6 +155,7 @@ async function updateAccountBalance(accountId, periodId, debit, credit) {
     await supabase
       .from('account_balances')
       .insert({
+        tenant_id: tenantId,
         account_id: accountId,
         period_id: periodId,
         opening_balance: 0,
@@ -164,6 +170,7 @@ async function updateAccountBalance(accountId, periodId, debit, credit) {
     .from('accounts')
     .select('account_type, balance')
     .eq('id', accountId)
+    .eq('tenant_id', tenantId)
     .single()
 
   if (account) {
@@ -177,6 +184,7 @@ async function updateAccountBalance(accountId, periodId, debit, credit) {
       .from('accounts')
       .update({ balance: newBalance, updated_at: new Date().toISOString() })
       .eq('id', accountId)
+      .eq('tenant_id', tenantId)
     
     console.log('Account balance updated:', {
       accountId,
@@ -190,10 +198,11 @@ async function updateAccountBalance(accountId, periodId, debit, credit) {
 }
 
 // Recalculate Current Year Earnings (3030) = Total Revenue - Total Expenses
-async function recalculateCurrentYearEarnings() {
+async function recalculateCurrentYearEarnings(tenantId) {
   const { data: accounts } = await supabase
     .from('accounts')
     .select('id, account_type, balance')
+    .eq('tenant_id', tenantId)
     .in('account_type', ['revenue', 'expense'])
 
   if (!accounts) return
@@ -213,12 +222,13 @@ async function recalculateCurrentYearEarnings() {
     .from('accounts')
     .select('id, balance')
     .eq('code', '3030')
+    .eq('tenant_id', tenantId)
     .single()
 
   if (!cyeAccount) {
     const { data: newAcc } = await supabase
       .from('accounts')
-      .insert({ code: '3030', name: 'Current Year Earnings', account_type: 'equity', balance: netIncome })
+      .insert({ tenant_id: tenantId, code: '3030', name: 'Current Year Earnings', account_type: 'equity', balance: netIncome })
       .select('id, balance')
       .single()
     cyeAccount = newAcc
@@ -228,31 +238,32 @@ async function recalculateCurrentYearEarnings() {
       .from('accounts')
       .update({ balance: netIncome, updated_at: new Date().toISOString() })
       .eq('id', cyeAccount.id)
+      .eq('tenant_id', tenantId)
 
     console.log('[CYE] Current Year Earnings updated:', netIncome)
   }
 }
 
 // Auto-post order to journal
-export async function postOrderJournal(order, orderItems, customer = null) {
+export async function postOrderJournal(order, orderItems, customer = null, tenantId) {
   // Ensure accounts exist
-  await seedChartOfAccounts()
+  await seedChartOfAccounts(tenantId)
 
   // Find accounts - use customer-specific AR if available
   let arAccount = null
   if (customer && customer.account_code) {
-    const { data } = await supabase.from('accounts').select('id').eq('code', customer.account_code).single()
+    const { data } = await supabase.from('accounts').select('id').eq('code', customer.account_code).eq('tenant_id', tenantId).single()
     arAccount = data
   }
   if (!arAccount) {
-    const { data } = await supabase.from('accounts').select('id').eq('code', '1030').single()
+    const { data } = await supabase.from('accounts').select('id').eq('code', '1030').eq('tenant_id', tenantId).single()
     arAccount = data
   }
-  const { data: salesAccount } = await supabase.from('accounts').select('id').eq('code', '4010').single()
-  const { data: serviceRevenueAccount } = await supabase.from('accounts').select('id').eq('code', '4015').single()
-  const { data: vatAccount } = await supabase.from('accounts').select('id').eq('code', '2030').single()
-  const { data: cogsAccount } = await supabase.from('accounts').select('id').eq('code', '5010').single()
-  const { data: inventoryAccount } = await supabase.from('accounts').select('id').eq('code', '1050').single()
+  const { data: salesAccount } = await supabase.from('accounts').select('id').eq('code', '4010').eq('tenant_id', tenantId).single()
+  const { data: serviceRevenueAccount } = await supabase.from('accounts').select('id').eq('code', '4015').eq('tenant_id', tenantId).single()
+  const { data: vatAccount } = await supabase.from('accounts').select('id').eq('code', '2030').eq('tenant_id', tenantId).single()
+  const { data: cogsAccount } = await supabase.from('accounts').select('id').eq('code', '5010').eq('tenant_id', tenantId).single()
+  const { data: inventoryAccount } = await supabase.from('accounts').select('id').eq('code', '1050').eq('tenant_id', tenantId).single()
 
   const lines = []
 
@@ -351,17 +362,17 @@ export async function postOrderJournal(order, orderItems, customer = null) {
     sourceId: order.id,
     lines,
     createdBy: order.user_id,
-  })
+  }, tenantId)
 }
 
 // Auto-post refund to journal
-export async function postRefundJournal(refund, refundItems = null) {
-  const { data: returnsAccount } = await supabase.from('accounts').select('id').eq('code', '4020').single()
-  const { data: cashAccount } = await supabase.from('accounts').select('id').eq('code', '1010').single()
-  const { data: bankAccount } = await supabase.from('accounts').select('id').eq('code', '1020').single()
-  const { data: vatAccount } = await supabase.from('accounts').select('id').eq('code', '2030').single()
-  const { data: cogsAccount } = await supabase.from('accounts').select('id').eq('code', '5010').single()
-  const { data: inventoryAccount } = await supabase.from('accounts').select('id').eq('code', '1050').single()
+export async function postRefundJournal(refund, refundItems = null, tenantId) {
+  const { data: returnsAccount } = await supabase.from('accounts').select('id').eq('code', '4020').eq('tenant_id', tenantId).single()
+  const { data: cashAccount } = await supabase.from('accounts').select('id').eq('code', '1010').eq('tenant_id', tenantId).single()
+  const { data: bankAccount } = await supabase.from('accounts').select('id').eq('code', '1020').eq('tenant_id', tenantId).single()
+  const { data: vatAccount } = await supabase.from('accounts').select('id').eq('code', '2030').eq('tenant_id', tenantId).single()
+  const { data: cogsAccount } = await supabase.from('accounts').select('id').eq('code', '5010').eq('tenant_id', tenantId).single()
+  const { data: inventoryAccount } = await supabase.from('accounts').select('id').eq('code', '1050').eq('tenant_id', tenantId).single()
 
   let creditAccount = cashAccount
   let orderTaxAmount = 0
@@ -372,6 +383,7 @@ export async function postRefundJournal(refund, refundItems = null) {
       .from('payments')
       .select('method')
       .eq('order_id', refund.order_id)
+      .eq('tenant_id', tenantId)
       .limit(1)
     if (orderPayments && orderPayments.length > 0) {
       const originalMethod = orderPayments[0].method
@@ -385,6 +397,7 @@ export async function postRefundJournal(refund, refundItems = null) {
       .from('orders')
       .select('tax_amount, total')
       .eq('id', refund.order_id)
+      .eq('tenant_id', tenantId)
       .single()
     if (order) {
       orderTaxAmount = parseFloat(order.tax_amount || 0)
@@ -444,6 +457,7 @@ export async function postRefundJournal(refund, refundItems = null) {
           .from('products')
           .select('cost_price')
           .eq('id', ri.product_id)
+          .eq('tenant_id', tenantId)
           .single()
 
         const cost = product?.cost_price ? parseFloat(product.cost_price) : parseFloat(ri.unit_price) * 0.5
@@ -455,12 +469,14 @@ export async function postRefundJournal(refund, refundItems = null) {
         .from('order_items')
         .select('quantity, unit_price, product_id')
         .eq('order_id', refund.order_id)
+        .eq('tenant_id', tenantId)
 
       if (orderItems && orderItems.length > 0) {
         const { data: order } = await supabase
           .from('orders')
           .select('total')
           .eq('id', refund.order_id)
+          .eq('tenant_id', tenantId)
           .single()
 
         if (order && parseFloat(order.total) > 0) {
@@ -471,6 +487,7 @@ export async function postRefundJournal(refund, refundItems = null) {
               .from('products')
               .select('cost_price')
               .eq('id', item.product_id)
+              .eq('tenant_id', tenantId)
               .single()
 
             const cost = product?.cost_price ? parseFloat(product.cost_price) : parseFloat(item.unit_price) * 0.5
@@ -510,11 +527,11 @@ export async function postRefundJournal(refund, refundItems = null) {
     sourceId: refund.id,
     lines,
     createdBy: refund.processed_by,
-  })
+  }, tenantId)
 }
 
 // Auto-post expense to journal
-export async function postExpenseJournal(expense) {
+export async function postExpenseJournal(expense, tenantId) {
   // Map expense category to correct account
   const categoryAccountMap = {
     'Rent': '5040',
@@ -526,12 +543,12 @@ export async function postExpenseJournal(expense) {
     'Supplies': '5020',
   }
   const accountCode = categoryAccountMap[expense.category] || '5020'
-  const { data: expenseAccount } = await supabase.from('accounts').select('id').eq('code', accountCode).single()
+  const { data: expenseAccount } = await supabase.from('accounts').select('id').eq('code', accountCode).eq('tenant_id', tenantId).single()
 
   // Use correct source account based on payment method
   const method = expense.method || 'cash'
   const sourceCode = method === 'cash' ? '1010' : '1020'
-  const { data: sourceAccount } = await supabase.from('accounts').select('id').eq('code', sourceCode).single()
+  const { data: sourceAccount } = await supabase.from('accounts').select('id').eq('code', sourceCode).eq('tenant_id', tenantId).single()
 
   const lines = []
 
@@ -562,21 +579,21 @@ export async function postExpenseJournal(expense) {
     sourceId: expense.id,
     lines,
     createdBy: expense.recorded_by,
-  })
+  }, tenantId)
 }
 
 // Auto-post subscription payment to journal
-export async function postSubscriptionPaymentJournal(payment, subscription, plan) {
-  await seedChartOfAccounts()
+export async function postSubscriptionPaymentJournal(payment, subscription, plan, tenantId) {
+  await seedChartOfAccounts(tenantId)
 
   // Determine revenue account based on subscription type
   const revenueCode = '4025' // Subscription Revenue
-  const revenueAccount = await findAccountByCode(revenueCode)
+  const revenueAccount = await findAccountByCode(revenueCode, tenantId)
 
   // Determine cash/bank account based on payment method
   const method = payment.payment_method || 'cash'
   const sourceCode = method === 'card' || method === 'bank' ? '1020' : '1010'
-  const sourceAccount = await findAccountByCode(sourceCode)
+  const sourceAccount = await findAccountByCode(sourceCode, tenantId)
 
   const lines = []
 
@@ -610,24 +627,25 @@ export async function postSubscriptionPaymentJournal(payment, subscription, plan
     sourceId: payment.id,
     lines,
     createdBy: null,
-  })
+  }, tenantId)
 }
 
 // Auto-post stock receive to journal (with per-supplier AP)
-export async function postStockReceiveJournal(movement, product, supplier) {
-  const inventoryAccount = await findAccountByCode('1050')
+export async function postStockReceiveJournal(movement, product, supplier, tenantId) {
+  const inventoryAccount = await findAccountByCode('1050', tenantId)
 
   const costValue = (product.cost_price || 0) * movement.quantity
 
   // Per-supplier AP account
   let apAccount = null
   if (supplier && supplier.account_code) {
-    apAccount = await findAccountByCode(supplier.account_code)
+    apAccount = await findAccountByCode(supplier.account_code, tenantId)
     if (!apAccount) {
       // Auto-create supplier AP account
       const { data: newAcc } = await supabase
         .from('accounts')
         .insert({
+          tenant_id: tenantId,
           code: supplier.account_code,
           name: `AP - ${supplier.name}`,
           account_type: 'liability',
@@ -638,7 +656,7 @@ export async function postStockReceiveJournal(movement, product, supplier) {
     }
   } else {
     // Fallback to generic AP
-    apAccount = await findAccountByCode('2010')
+    apAccount = await findAccountByCode('2010', tenantId)
   }
 
   const lines = []
@@ -668,13 +686,13 @@ export async function postStockReceiveJournal(movement, product, supplier) {
     sourceId: movement.id,
     lines,
     createdBy: null,
-  })
+  }, tenantId)
 }
 
 // Auto-post stock adjustment to journal
-export async function postStockAdjustJournal(movement, product) {
-  const inventoryAccount = await findAccountByCode('1050')
-  const cogsAccount = await findAccountByCode('5010')
+export async function postStockAdjustJournal(movement, product, tenantId) {
+  const inventoryAccount = await findAccountByCode('1050', tenantId)
+  const cogsAccount = await findAccountByCode('5010', tenantId)
 
   const costValue = (product.cost_price || 0) * Math.abs(movement.quantity)
 
@@ -699,15 +717,16 @@ export async function postStockAdjustJournal(movement, product) {
     sourceId: movement.id,
     lines,
     createdBy: null,
-  })
+  }, tenantId)
 }
 
 // Reverse a journal entry (creates opposite entry)
-export async function reverseJournalEntry(entryId, reason, userId) {
+export async function reverseJournalEntry(entryId, reason, userId, tenantId) {
   const { data: originalEntry } = await supabase
     .from('journal_entries')
     .select('*, journal_entry_lines(*)')
     .eq('id', entryId)
+    .eq('tenant_id', tenantId)
     .single()
 
   if (!originalEntry) throw new Error('Journal entry not found')
@@ -729,19 +748,20 @@ export async function reverseJournalEntry(entryId, reason, userId) {
     sourceId: originalEntry.id,
     lines: reversalLines,
     createdBy: userId,
-  })
+  }, tenantId)
 
   // Mark original as reversed
   await supabase
     .from('journal_entries')
     .update({ is_reversed: true, reversed_by: entry.id })
     .eq('id', entryId)
+    .eq('tenant_id', tenantId)
 
   return entry
 }
 
 // Post expense update: reverse old entry, create new entry
-export async function postExpenseUpdateJournal(oldExpense, newExpense) {
+export async function postExpenseUpdateJournal(oldExpense, newExpense, tenantId) {
   // Find and reverse the original journal entry
   const { data: oldEntry } = await supabase
     .from('journal_entries')
@@ -749,37 +769,39 @@ export async function postExpenseUpdateJournal(oldExpense, newExpense) {
     .eq('source_type', 'expense')
     .eq('source_id', oldExpense.id)
     .eq('is_reversed', false)
+    .eq('tenant_id', tenantId)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()
 
   if (oldEntry) {
-    await reverseJournalEntry(oldEntry.id, `Expense updated: ${newExpense.category}`, newExpense.recorded_by)
+    await reverseJournalEntry(oldEntry.id, `Expense updated: ${newExpense.category}`, newExpense.recorded_by, tenantId)
   }
 
   // Create new entry for updated expense
-  return postExpenseJournal(newExpense)
+  return postExpenseJournal(newExpense, tenantId)
 }
 
 // Post payment delete: reverse the journal entry
-export async function postPaymentDeleteJournal(payment) {
+export async function postPaymentDeleteJournal(payment, tenantId) {
   if (!payment.journal_entry_id) return null
 
   const { data: entry } = await supabase
     .from('journal_entries')
     .select('id, is_reversed')
     .eq('id', payment.journal_entry_id)
+    .eq('tenant_id', tenantId)
     .single()
 
   if (entry && !entry.is_reversed) {
-    return reverseJournalEntry(entry.id, `Payment deleted: ${payment.payment_number}`, payment.recorded_by)
+    return reverseJournalEntry(entry.id, `Payment deleted: ${payment.payment_number}`, payment.recorded_by, tenantId)
   }
 
   return null
 }
 
 // Seed default chart of accounts
-export async function seedChartOfAccounts() {
+export async function seedChartOfAccounts(tenantId) {
   const defaultAccounts = [
     // Assets
     { code: '1010', name: 'Cash', account_type: 'asset' },
@@ -811,10 +833,11 @@ export async function seedChartOfAccounts() {
       .from('accounts')
       .select('id')
       .eq('code', account.code)
+      .eq('tenant_id', tenantId)
       .single()
 
     if (!existing) {
-      await supabase.from('accounts').insert(account)
+      await supabase.from('accounts').insert({ ...account, tenant_id: tenantId })
     }
   }
 }

@@ -9,7 +9,7 @@ const router = Router()
 router.get('/', async (req, res) => {
   try {
     const { type, search } = req.query
-    let query = supabase.from('accounts').select('*').order('code')
+    let query = supabase.from('accounts').select('*').eq('tenant_id', req.user.tenantId).order('code')
 
     if (type) query = query.eq('account_type', type)
     if (search) {
@@ -32,6 +32,7 @@ router.get('/:id', async (req, res) => {
     const { data, error } = await supabase
       .from('accounts')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -53,7 +54,7 @@ router.post('/', async (req, res) => {
 
     const { data, error } = await supabase
       .from('accounts')
-      .insert({ code, name, account_type, parent_id: parent_id || null, description: description || null })
+      .insert({ tenant_id: req.user.tenantId, code, name, account_type, parent_id: parent_id || null, description: description || null })
       .select()
       .single()
 
@@ -84,6 +85,7 @@ router.put('/:id', async (req, res) => {
     const { data, error } = await supabase
       .from('accounts')
       .update(updateData)
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .select()
       .single()
@@ -104,13 +106,14 @@ router.delete('/:id', async (req, res) => {
     const { count } = await supabase
       .from('journal_entry_lines')
       .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', req.user.tenantId)
       .eq('account_id', req.params.id)
 
     if (count > 0) {
       return res.status(400).json({ error: 'Cannot delete account with existing journal entries' })
     }
 
-    const { error } = await supabase.from('accounts').delete().eq('id', req.params.id)
+    const { error } = await supabase.from('accounts').delete().eq('tenant_id', req.user.tenantId).eq('id', req.params.id)
     if (error) throw error
     req.logActivity({ action: 'deleted', entity_type: 'account', entity_id: req.params.id })
     res.json({ message: 'Account deleted' })
@@ -142,8 +145,8 @@ router.post('/initial-capital', async (req, res) => {
 
     const { createJournalEntry } = await import('../services/accountingEngine.js')
 
-    const equityAccount = await supabase.from('accounts').select('id').eq('code', '3010').single()
-    const cashAccount = await supabase.from('accounts').select('id').eq('code', '1010').single()
+    const equityAccount = await supabase.from('accounts').select('id').eq('tenant_id', req.user.tenantId).eq('code', '3010').single()
+    const cashAccount = await supabase.from('accounts').select('id').eq('tenant_id', req.user.tenantId).eq('code', '1010').single()
 
     if (!equityAccount.data || !cashAccount.data) {
       return res.status(400).json({ error: 'Owner Equity (3010) or Cash (1010) account not found. Run Seed Defaults first.' })
@@ -171,12 +174,13 @@ router.post('/initial-capital', async (req, res) => {
 // Recalculate all account balances from journal entries
 router.post('/recalculate-balances', async (req, res) => {
   try {
-    const { data: accounts } = await supabase.from('accounts').select('id, code, account_type')
+    const { data: accounts } = await supabase.from('accounts').select('id, code, account_type').eq('tenant_id', req.user.tenantId)
 
     for (const account of accounts || []) {
       const { data: lines } = await supabase
         .from('journal_entry_lines')
         .select('debit, credit')
+        .eq('tenant_id', req.user.tenantId)
         .eq('account_id', account.id)
 
       const totalDebit = (lines || []).reduce((s, l) => s + parseFloat(l.debit), 0)
@@ -189,7 +193,7 @@ router.post('/recalculate-balances', async (req, res) => {
         balance = totalCredit - totalDebit
       }
 
-      await supabase.from('accounts').update({ balance, updated_at: new Date().toISOString() }).eq('id', account.id)
+      await supabase.from('accounts').update({ balance, updated_at: new Date().toISOString() }).eq('tenant_id', req.user.tenantId).eq('id', account.id)
     }
 
     res.json({ message: 'All account balances recalculated' })

@@ -15,7 +15,7 @@ const router = Router()
 // Test ETA connection
 router.post('/test', async (req, res, next) => {
   try {
-    const { data: settings } = await supabase.from('store_settings').select('*').limit(1).single()
+    const { data: settings } = await supabase.from('store_settings').select('*').eq('tenant_id', req.user?.tenantId).limit(1).single()
     const config = getEtaConfig(settings)
 
     if (!config.clientId || !config.clientSecret) {
@@ -35,7 +35,7 @@ router.post('/submit', async (req, res, next) => {
     const { order_id } = req.body
     if (!order_id) return res.status(400).json({ error: 'order_id is required' })
 
-    const { data: settings } = await supabase.from('store_settings').select('*').limit(1).single()
+    const { data: settings } = await supabase.from('store_settings').select('*').eq('tenant_id', req.user?.tenantId).limit(1).single()
     const config = getEtaConfig(settings)
 
     if (!config.clientId || !config.clientSecret) {
@@ -47,6 +47,7 @@ router.post('/submit', async (req, res, next) => {
       .from('orders')
       .select('*, order_items(*, products(name, sku))')
       .eq('id', order_id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (orderError || !order) return res.status(404).json({ error: 'Order not found' })
@@ -84,7 +85,7 @@ router.post('/submit', async (req, res, next) => {
       eta_submitted_at: new Date().toISOString(),
     }
 
-    await supabase.from('orders').update(updateData).eq('id', order_id)
+    await supabase.from('orders').update(updateData).eq('id', order_id).eq('tenant_id', req.user?.tenantId)
 
     res.json({
       success: true,
@@ -104,7 +105,7 @@ router.post('/submit', async (req, res, next) => {
 router.get('/status/:etaUUID', async (req, res, next) => {
   try {
     const { etaUUID } = req.params
-    const { data: settings } = await supabase.from('store_settings').select('*').limit(1).single()
+    const { data: settings } = await supabase.from('store_settings').select('*').eq('tenant_id', req.user?.tenantId).limit(1).single()
     const config = getEtaConfig(settings)
 
     const status = await getDocumentStatus(etaUUID, config)
@@ -118,13 +119,14 @@ router.get('/status/:etaUUID', async (req, res, next) => {
 router.post('/qr', async (req, res, next) => {
   try {
     const { order_id } = req.body
-    const { data: settings } = await supabase.from('store_settings').select('*').limit(1).single()
+    const { data: settings } = await supabase.from('store_settings').select('*').eq('tenant_id', req.user?.tenantId).limit(1).single()
     const config = getEtaConfig(settings)
 
     const { data: order } = await supabase
       .from('orders')
       .select('*, order_items(*, products(name))')
       .eq('id', order_id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (!order) return res.status(404).json({ error: 'Order not found' })
@@ -141,7 +143,7 @@ router.post('/qr', async (req, res, next) => {
 
     // Save QR if not already saved
     if (!order.eta_qr_code) {
-      await supabase.from('orders').update({ eta_qr_code: qrContent }).eq('id', order_id)
+      await supabase.from('orders').update({ eta_qr_code: qrContent }).eq('id', order_id).eq('tenant_id', req.user?.tenantId)
     }
 
     res.json({ qrContent, etaUUID: uuid })

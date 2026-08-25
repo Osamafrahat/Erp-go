@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url'
 import { errorHandler } from './middleware/errorHandler.js'
 import { activityLogger } from './middleware/activityLogger.js'
 import { authRouter } from './routes/auth.js'
-import { authenticateToken, requireManager } from './middleware/auth.js'
+import { authenticateToken, requireManager, setTenantContext } from './middleware/auth.js'
 
 import productsRouter from './routes/products.js'
 import categoriesRouter from './routes/categories.js'
@@ -44,6 +44,9 @@ import performanceRouter from './routes/performance.js'
 import servicesRouter from './routes/services.js'
 import servicePlansRouter from './routes/servicePlans.js'
 import subscriptionsRouter from './routes/subscriptions.js'
+import billingRouter, { stripeWebhookHandler } from './routes/billing.js'
+import tenantRouter from './routes/tenant.js'
+import superAdminRouter from './routes/superAdmin.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -71,6 +74,8 @@ app.use(helmet({
 }))
 
 app.use(express.static(clientDist))
+
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), stripeWebhookHandler)
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean)
 const corsOptions = {
@@ -125,38 +130,41 @@ app.disable('x-powered-by')
 
 app.use('/api/auth', authRouter)
 
-app.use('/api/products', authenticateToken, activityLogger, productsRouter)
-app.use('/api/categories', authenticateToken, activityLogger, categoriesRouter)
-app.use('/api/orders', authenticateToken, activityLogger, ordersRouter)
-app.use('/api/stock', authenticateToken, activityLogger, stockRouter)
-app.use('/api/suppliers', authenticateToken, activityLogger, suppliersRouter)
-app.use('/api/promotions', authenticateToken, activityLogger, promotionsRouter)
-app.use('/api/reports', authenticateToken, activityLogger, reportsRouter)
+app.use('/api/products', authenticateToken, setTenantContext, activityLogger, productsRouter)
+app.use('/api/categories', authenticateToken, setTenantContext, activityLogger, categoriesRouter)
+app.use('/api/orders', authenticateToken, setTenantContext, activityLogger, ordersRouter)
+app.use('/api/stock', authenticateToken, setTenantContext, activityLogger, stockRouter)
+app.use('/api/suppliers', authenticateToken, setTenantContext, activityLogger, suppliersRouter)
+app.use('/api/promotions', authenticateToken, setTenantContext, activityLogger, promotionsRouter)
+app.use('/api/reports', authenticateToken, setTenantContext, activityLogger, reportsRouter)
 app.use('/api/settings', activityLogger, settingsRouter)
-app.use('/api/users', authenticateToken, requireManager, activityLogger, usersRouter)
-app.use('/api/customers', authenticateToken, activityLogger, customersRouter)
-app.use('/api/employees', authenticateToken, activityLogger, employeesRouter)
-app.use('/api/expenses', authenticateToken, activityLogger, expensesRouter)
-app.use('/api/refunds', authenticateToken, activityLogger, refundsRouter)
-app.use('/api/notifications', authenticateToken, activityLogger, emailRouter)
-app.use('/api/activities', authenticateToken, requireManager, activitiesRouter)
+app.use('/api/users', authenticateToken, setTenantContext, requireManager, activityLogger, usersRouter)
+app.use('/api/customers', authenticateToken, setTenantContext, activityLogger, customersRouter)
+app.use('/api/employees', authenticateToken, setTenantContext, activityLogger, employeesRouter)
+app.use('/api/expenses', authenticateToken, setTenantContext, activityLogger, expensesRouter)
+app.use('/api/refunds', authenticateToken, setTenantContext, activityLogger, refundsRouter)
+app.use('/api/notifications', authenticateToken, setTenantContext, activityLogger, emailRouter)
+app.use('/api/activities', authenticateToken, setTenantContext, requireManager, activitiesRouter)
 
-app.use('/api/accounting/accounts', authenticateToken, requireManager, activityLogger, accountsRouter)
-app.use('/api/accounting/journals', authenticateToken, requireManager, activityLogger, journalsRouter)
-app.use('/api/accounting/reports', authenticateToken, requireManager, accountingReportsRouter)
-app.use('/api/accounting/payments', authenticateToken, requireManager, activityLogger, paymentsRouter)
-app.use('/api/sync', authenticateToken, syncRouter)
-app.use('/api/eta', authenticateToken, etaRouter)
-app.use('/api/backup', authenticateToken, requireManager, activityLogger, backupRouter)
-app.use('/api/chat', authenticateToken, chatRouter)
-app.use('/api/attendance', authenticateToken, activityLogger, attendanceRouter)
-app.use('/api/leave', authenticateToken, activityLogger, leaveRouter)
-app.use('/api/payroll', authenticateToken, activityLogger, payrollRouter)
-app.use('/api/shifts', authenticateToken, activityLogger, shiftsRouter)
-app.use('/api/performance', authenticateToken, activityLogger, performanceRouter)
-app.use('/api/services', authenticateToken, activityLogger, servicesRouter)
-app.use('/api/service-plans', authenticateToken, activityLogger, servicePlansRouter)
-app.use('/api/subscriptions', authenticateToken, activityLogger, subscriptionsRouter)
+app.use('/api/accounting/accounts', authenticateToken, setTenantContext, requireManager, activityLogger, accountsRouter)
+app.use('/api/accounting/journals', authenticateToken, setTenantContext, requireManager, activityLogger, journalsRouter)
+app.use('/api/accounting/reports', authenticateToken, setTenantContext, requireManager, accountingReportsRouter)
+app.use('/api/accounting/payments', authenticateToken, setTenantContext, requireManager, activityLogger, paymentsRouter)
+app.use('/api/sync', authenticateToken, setTenantContext, syncRouter)
+app.use('/api/eta', authenticateToken, setTenantContext, etaRouter)
+app.use('/api/backup', authenticateToken, setTenantContext, requireManager, activityLogger, backupRouter)
+app.use('/api/chat', authenticateToken, setTenantContext, chatRouter)
+app.use('/api/attendance', authenticateToken, setTenantContext, activityLogger, attendanceRouter)
+app.use('/api/leave', authenticateToken, setTenantContext, activityLogger, leaveRouter)
+app.use('/api/payroll', authenticateToken, setTenantContext, activityLogger, payrollRouter)
+app.use('/api/shifts', authenticateToken, setTenantContext, activityLogger, shiftsRouter)
+app.use('/api/performance', authenticateToken, setTenantContext, activityLogger, performanceRouter)
+app.use('/api/services', authenticateToken, setTenantContext, activityLogger, servicesRouter)
+app.use('/api/service-plans', authenticateToken, setTenantContext, activityLogger, servicePlansRouter)
+app.use('/api/subscriptions', authenticateToken, setTenantContext, activityLogger, subscriptionsRouter)
+app.use('/api/billing', billingRouter)
+app.use('/api/tenant', authenticateToken, setTenantContext, tenantRouter)
+app.use('/api/super-admin', authenticateToken, superAdminRouter)
 
 app.get('/api/health', (req, res) => {
   const emailConfigured = !!(process.env.RESEND_API_KEY)

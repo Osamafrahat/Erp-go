@@ -16,23 +16,29 @@ function getLocalTime() {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 }
 
-async function runAutoClockOut() {
+async function getAllTenantIds() {
+  const { data } = await supabase.from('tenants').select('id')
+  return (data || []).map(t => t.id)
+}
+
+async function runAutoClockOutForTenant(tenantId) {
   try {
     const today = getLocalDate()
     const currentTime = getLocalTime()
-    console.log(`[Attendance Cron] Running at ${currentTime} for date ${today}`)
+    console.log(`[Attendance Cron] Running at ${currentTime} for date ${today}, tenant ${tenantId}`)
 
     // Get settings
     const { data: settingsData } = await supabase
       .from('store_settings')
       .select('key, value')
+      .eq('tenant_id', tenantId)
       .in('key', ['attendance.autoClockOut', 'attendance.autoClockOutTime', 'attendance.overtimeThresholdHours'])
 
     const settings = {}
     settingsData?.forEach(s => { settings[s.key] = s.value })
 
     if (settings['attendance.autoClockOut'] !== 'true') {
-      console.log('[Attendance Cron] Auto clock-out is disabled in settings')
+      console.log(`[Attendance Cron] Auto clock-out is disabled in settings for tenant ${tenantId}`)
       return
     }
 
@@ -44,18 +50,19 @@ async function runAutoClockOut() {
       .from('employee_shifts')
       .select('employee_id')
       .eq('date', today)
+      .eq('tenant_id', tenantId)
 
     if (assignErr) {
-      console.error('[Attendance Cron] Error fetching shifts:', assignErr.message)
+      console.error(`[Attendance Cron] Error fetching shifts for tenant ${tenantId}:`, assignErr.message)
       return
     }
 
     if (!assignments?.length) {
-      console.log('[Attendance Cron] No shift assignments found for today')
+      console.log(`[Attendance Cron] No shift assignments found for today in tenant ${tenantId}`)
       return
     }
 
-    console.log(`[Attendance Cron] Found ${assignments.length} shift assignments for today`)
+    console.log(`[Attendance Cron] Found ${assignments.length} shift assignments for today in tenant ${tenantId}`)
 
     let processed = 0
     for (const { employee_id } of assignments) {
@@ -64,6 +71,7 @@ async function runAutoClockOut() {
         .select('id, clock_in, clock_out')
         .eq('employee_id', employee_id)
         .eq('date', today)
+        .eq('tenant_id', tenantId)
         .maybeSingle()
 
       if (record && !record.clock_out) {
@@ -82,12 +90,13 @@ async function runAutoClockOut() {
             updated_at: new Date().toISOString(),
           })
           .eq('id', record.id)
+          .eq('tenant_id', tenantId)
         processed++
       }
     }
 
     if (processed > 0) {
-      console.log(`[Attendance Cron] Auto clock-out: ${processed} employees processed`)
+      console.log(`[Attendance Cron] Auto clock-out: ${processed} employees processed for tenant ${tenantId}`)
     }
 
     // Mark employees with shifts but no attendance as absent
@@ -95,6 +104,7 @@ async function runAutoClockOut() {
       .from('attendance')
       .select('employee_id')
       .eq('date', today)
+      .eq('tenant_id', tenantId)
 
     const attendedIds = new Set(attendedEmpIds?.map(r => r.employee_id) || [])
     const absentEmployees = assignments.filter(a => !attendedIds.has(a.employee_id))
@@ -103,6 +113,7 @@ async function runAutoClockOut() {
       const { error: insertErr } = await supabase
         .from('attendance')
         .insert({
+          tenant_id: tenantId,
           employee_id,
           date: today,
           status: 'absent',
@@ -114,15 +125,32 @@ async function runAutoClockOut() {
           notes: 'Auto-marked absent by system',
         })
       if (insertErr) {
-        console.error(`[Attendance Cron] Failed to mark employee ${employee_id} absent:`, insertErr.message)
+        console.error(`[Attendance Cron] Failed to mark employee ${employee_id} absent for tenant ${tenantId}:`, insertErr.message)
       }
     }
 
     if (absentEmployees.length > 0) {
-      console.log(`[Attendance Cron] Auto-absent: ${absentEmployees.length} employees marked absent`)
+      console.log(`[Attendance Cron] Auto-absent: ${absentEmployees.length} employees marked absent for tenant ${tenantId}`)
     }
 
-    console.log(`[Attendance Cron] Done. Clock-out: ${processed}, Absent: ${absentEmployees.length}`)
+    console.log(`[Attendance Cron] Done for tenant ${tenantId}. Clock-out: ${processed}, Absent: ${absentEmployees.length}`)
+  } catch (err) {
+    console.error(`[Attendance Cron] Error for tenant ${tenantId}:`, err.message)
+  }
+}
+
+async function runAutoClockOut() {
+  try {
+    const tenantIds = await getAllTenantIds()
+
+    if (tenantIds.length === 0) {
+      console.log('[Attendance Cron] No tenants found')
+      return
+    }
+
+    for (const tenantId of tenantIds) {
+      await runAutoClockOutForTenant(tenantId)
+    }
   } catch (err) {
     console.error('[Attendance Cron] Error:', err.message)
   }

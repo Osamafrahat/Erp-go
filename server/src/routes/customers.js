@@ -21,6 +21,7 @@ router.get('/', async (req, res, next) => {
     let query = supabase
       .from('customers')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .eq('is_active', true)
       .order('name')
 
@@ -45,6 +46,7 @@ router.get('/:id', [
     const { data, error } = await supabase
       .from('customers')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -65,11 +67,12 @@ router.post('/', authenticateToken, requirePermission('customers_edit'), [
   try {
     const { name, phone, email, address, notes } = req.body
 
-    // Check if phone number already exists
+    // Check if phone number already exists per tenant
     if (phone) {
       const { data: existing } = await supabase
         .from('customers')
         .select('id, name')
+        .eq('tenant_id', req.user.tenantId)
         .eq('phone', phone)
         .eq('is_active', true)
         .limit(1)
@@ -84,6 +87,7 @@ router.post('/', authenticateToken, requirePermission('customers_edit'), [
     const { data, error } = await supabase
       .from('customers')
       .insert({
+        tenant_id: req.user.tenantId,
         name,
         phone: phone || null,
         email: email || null,
@@ -100,6 +104,7 @@ router.post('/', authenticateToken, requirePermission('customers_edit'), [
     await supabase
       .from('customers')
       .update({ account_code: accountCode })
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', data.id)
 
     data.account_code = accountCode
@@ -119,11 +124,12 @@ router.put('/:id', authenticateToken, requirePermission('customers_edit'), [
   try {
     const { name, phone, email, address, notes } = req.body
 
-    // Check if phone number already exists (excluding current customer)
+    // Check if phone number already exists per tenant (excluding current customer)
     if (phone) {
       const { data: existing } = await supabase
         .from('customers')
         .select('id, name')
+        .eq('tenant_id', req.user.tenantId)
         .eq('phone', phone)
         .eq('is_active', true)
         .neq('id', req.params.id)
@@ -146,6 +152,7 @@ router.put('/:id', authenticateToken, requirePermission('customers_edit'), [
         notes: notes || null,
         updated_at: new Date().toISOString()
       })
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .select()
       .single()
@@ -166,6 +173,7 @@ router.delete('/:id', authenticateToken, requirePermission('customers_edit'), [
     const { error } = await supabase
       .from('customers')
       .update({ is_active: false })
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
 
     if (error) throw error

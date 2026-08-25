@@ -31,6 +31,7 @@ router.get('/', async (req, res, next) => {
     const { data: usersData } = await supabase
       .from('users')
       .select('id, username, full_name, role, employee_id')
+      .eq('tenant_id', req.user.tenantId)
       .not('employee_id', 'is', null)
 
     // Index users by employee_id for fast lookup
@@ -42,6 +43,7 @@ router.get('/', async (req, res, next) => {
     const { data, error } = await supabase
       .from('employees')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .order('name')
 
     if (error) throw error
@@ -65,6 +67,7 @@ router.get('/:id', [
     const { data, error } = await supabase
       .from('employees')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -90,6 +93,7 @@ router.post('/', authenticateToken, requirePermission('employees_edit'), [
     const { data, error } = await supabase
       .from('employees')
       .insert({
+        tenant_id: req.user.tenantId,
         name,
         role,
         phone: phone || null,
@@ -108,8 +112,8 @@ router.post('/', authenticateToken, requirePermission('employees_edit'), [
     if (create_user && username) {
       const validRole = ['MANAGER','SALES_MANAGER','CASHIER','INVENTORY_CLERK','ACCOUNTANT','HR_MANAGER'].includes(user_role) ? user_role : 'CASHIER'
 
-      // Check username uniqueness
-      const { data: existingUser } = await supabase.from('users').select('id').eq('username', username).single()
+      // Check username uniqueness per tenant
+      const { data: existingUser } = await supabase.from('users').select('id').eq('tenant_id', req.user.tenantId).eq('username', username).single()
       if (existingUser) {
         return res.status(409).json({ error: `Username "${username}" already exists` })
       }
@@ -120,6 +124,7 @@ router.post('/', authenticateToken, requirePermission('employees_edit'), [
       const { data: newUser, error: userError } = await supabase
         .from('users')
         .insert({
+          tenant_id: req.user.tenantId,
           username,
           password: hashedPassword,
           full_name: name,
@@ -154,6 +159,7 @@ router.put('/:id', authenticateToken, requirePermission('employees_edit'), [
     const { data: existing } = await supabase
       .from('employees')
       .select('id, is_active')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -162,7 +168,7 @@ router.put('/:id', authenticateToken, requirePermission('employees_edit'), [
     }
 
     // Find linked user via users.employee_id
-    const { data: linkedUser } = await supabase.from('users').select('id').eq('employee_id', existing.id).maybeSingle()
+    const { data: linkedUser } = await supabase.from('users').select('id').eq('tenant_id', req.user.tenantId).eq('employee_id', existing.id).maybeSingle()
 
     const { name, role, phone, email, salary, hire_date, notes, is_active } = req.body
 
@@ -179,6 +185,7 @@ router.put('/:id', authenticateToken, requirePermission('employees_edit'), [
         is_active: is_active ?? true,
         updated_at: new Date().toISOString()
       })
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .select()
       .single()
@@ -187,7 +194,7 @@ router.put('/:id', authenticateToken, requirePermission('employees_edit'), [
 
     // Sync is_active status to linked user
     if (is_active !== undefined && linkedUser && existing.is_active !== is_active) {
-      await supabase.from('users').update({ is_active, updated_at: new Date().toISOString() }).eq('id', linkedUser.id)
+      await supabase.from('users').update({ is_active, updated_at: new Date().toISOString() }).eq('tenant_id', req.user.tenantId).eq('id', linkedUser.id)
     }
 
     req.logActivity({ action: 'updated', entity_type: 'employee', entity_id: req.params.id })
@@ -205,6 +212,7 @@ router.patch('/:id/toggle-active', authenticateToken, requirePermission('employe
     const { data: existing } = await supabase
       .from('employees')
       .select('id, is_active')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -217,6 +225,7 @@ router.patch('/:id/toggle-active', authenticateToken, requirePermission('employe
     const { data, error } = await supabase
       .from('employees')
       .update({ is_active: newActiveState, updated_at: new Date().toISOString() })
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .select()
       .single()
@@ -224,9 +233,9 @@ router.patch('/:id/toggle-active', authenticateToken, requirePermission('employe
     if (error) throw error
 
     // Sync linked user's active status via users.employee_id
-    const { data: linkedUser } = await supabase.from('users').select('id').eq('employee_id', existing.id).maybeSingle()
+    const { data: linkedUser } = await supabase.from('users').select('id').eq('tenant_id', req.user.tenantId).eq('employee_id', existing.id).maybeSingle()
     if (linkedUser) {
-      const { error: userUpdateError } = await supabase.from('users').update({ is_active: newActiveState, updated_at: new Date().toISOString() }).eq('id', linkedUser.id)
+      const { error: userUpdateError } = await supabase.from('users').update({ is_active: newActiveState, updated_at: new Date().toISOString() }).eq('tenant_id', req.user.tenantId).eq('id', linkedUser.id)
       if (userUpdateError) console.error('Failed to sync user active status:', userUpdateError)
     }
 
@@ -245,6 +254,7 @@ router.delete('/:id', authenticateToken, requirePermission('employees_edit'), [
     const { data: existing } = await supabase
       .from('employees')
       .select('id')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -253,14 +263,15 @@ router.delete('/:id', authenticateToken, requirePermission('employees_edit'), [
     }
 
     // Delete linked user via users.employee_id
-    const { data: linkedUser } = await supabase.from('users').select('id').eq('employee_id', existing.id).maybeSingle()
+    const { data: linkedUser } = await supabase.from('users').select('id').eq('tenant_id', req.user.tenantId).eq('employee_id', existing.id).maybeSingle()
     if (linkedUser) {
-      await supabase.from('users').delete().eq('id', linkedUser.id)
+      await supabase.from('users').delete().eq('tenant_id', req.user.tenantId).eq('id', linkedUser.id)
     }
 
     const { error } = await supabase
       .from('employees')
       .delete()
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
 
     if (error) throw error

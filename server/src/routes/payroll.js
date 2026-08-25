@@ -19,6 +19,7 @@ router.get('/', requireManager, async (req, res, next) => {
     const { data, error } = await supabase
       .from('payroll')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .order('period_start', { ascending: false })
     if (error) throw error
     res.json(data || [])
@@ -36,6 +37,7 @@ router.get('/:id', requireManager, [
       .from('payroll')
       .select('*')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
     if (error || !payroll) {
       return res.status(404).json({ error: 'Payroll not found' })
@@ -44,6 +46,7 @@ router.get('/:id', requireManager, [
     const { data: items } = await supabase
       .from('payroll_items')
       .select('*, employees(name, role)')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('payroll_id', payroll.id)
 
     res.json({ ...payroll, items: items || [] })
@@ -68,6 +71,7 @@ router.post('/', requirePermission('hr_edit'), [
     const { data: existing } = await supabase
       .from('payroll')
       .select('id')
+      .eq('tenant_id', req.user?.tenantId)
       .neq('status', 'rejected')
       .lte('period_start', period_end)
       .gte('period_end', period_start)
@@ -81,6 +85,7 @@ router.post('/', requirePermission('hr_edit'), [
     const { data: employees } = await supabase
       .from('employees')
       .select('id, salary, name')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('is_active', true)
 
     if (!employees || employees.length === 0) {
@@ -91,6 +96,7 @@ router.post('/', requirePermission('hr_edit'), [
     const { data: payroll, error: payrollError } = await supabase
       .from('payroll')
       .insert({
+        tenant_id: req.user?.tenantId,
         period_start,
         period_end,
         status: 'draft',
@@ -114,6 +120,7 @@ router.post('/', requirePermission('hr_edit'), [
       const { data: attendance } = await supabase
         .from('attendance')
         .select('overtime_hours')
+        .eq('tenant_id', req.user?.tenantId)
         .eq('employee_id', emp.id)
         .gte('date', period_start)
         .lte('date', period_end)
@@ -131,6 +138,7 @@ router.post('/', requirePermission('hr_edit'), [
       const { data: item } = await supabase
         .from('payroll_items')
         .insert({
+          tenant_id: req.user?.tenantId,
           payroll_id: payroll.id,
           employee_id: emp.id,
           base_salary: baseSalary,
@@ -155,6 +163,7 @@ router.post('/', requirePermission('hr_edit'), [
       .from('payroll')
       .update({ total_amount: totalAmount, status: 'processed', updated_at: new Date().toISOString() })
       .eq('id', payroll.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     req.logActivity?.({ action: 'processed', entity_type: 'payroll', entity_name: `Payroll ${period_start} to ${period_end}` })
 
@@ -173,6 +182,7 @@ router.patch('/:id/pay', requirePermission('hr_edit'), [
       .from('payroll_items')
       .select('id, payroll_id')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (!existing) {
@@ -183,6 +193,7 @@ router.patch('/:id/pay', requirePermission('hr_edit'), [
       .from('payroll_items')
       .update({ status: 'paid', paid_at: new Date().toISOString() })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
 
@@ -192,6 +203,7 @@ router.patch('/:id/pay', requirePermission('hr_edit'), [
     const { data: items } = await supabase
       .from('payroll_items')
       .select('status')
+      .eq('tenant_id', req.user?.tenantId)
       .eq('payroll_id', existing.payroll_id)
 
     const allPaid = (items || []).every(i => i.status === 'paid')
@@ -200,6 +212,7 @@ router.patch('/:id/pay', requirePermission('hr_edit'), [
         .from('payroll')
         .update({ status: 'paid', updated_at: new Date().toISOString() })
         .eq('id', existing.payroll_id)
+        .eq('tenant_id', req.user?.tenantId)
     }
 
     res.json(data)
@@ -217,6 +230,7 @@ router.delete('/:id', requirePermission('hr_edit'), [
       .from('payroll')
       .select('id, status')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (!existing) {
@@ -228,12 +242,13 @@ router.delete('/:id', requirePermission('hr_edit'), [
     }
 
     // Delete items first
-    await supabase.from('payroll_items').delete().eq('payroll_id', existing.id)
+    await supabase.from('payroll_items').delete().eq('payroll_id', existing.id).eq('tenant_id', req.user?.tenantId)
 
     const { error } = await supabase
       .from('payroll')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     if (error) throw error
     res.json({ message: 'Payroll deleted' })

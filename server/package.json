@@ -21,7 +21,8 @@
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^4.6.0",
     "nodemailer": "^9.0.3",
-    "resend": "^6.18.1"
+    "resend": "^6.18.1",
+    "stripe": "^22.5.0"
   },
   "engines": {
     "node": ">=18.0.0"

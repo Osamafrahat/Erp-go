@@ -20,6 +20,7 @@ export function generateToken(user) {
       id: user.id, 
       username: user.username, 
       role: user.role,
+      tenantId: user.tenant_id,
       sessionToken: user.session_token
     },
     JWT_SECRET,
@@ -124,6 +125,80 @@ export function requirePermission(...permissions) {
       next()
     } catch {
       return res.status(500).json({ error: 'Failed to check permissions' })
+    }
+  }
+}
+
+export async function setTenantContext(req, res, next) {
+  if (!req.user?.tenantId) {
+    return next()
+  }
+  try {
+    const { error } = await supabase.rpc('set_current_tenant', { tenant_id: req.user.tenantId })
+    if (error) {
+      console.error('Failed to set tenant context:', error.message)
+    }
+  } catch (err) {
+    console.error('Tenant context error:', err.message)
+  }
+  next()
+}
+
+export function requireSuperAdmin(req, res, next) {
+  if (!req.user || req.user.role !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'Super admin access required' })
+  }
+  next()
+}
+
+export function checkTenantLimits(resource) {
+  const LIMITS = {
+    products: { free: 100, starter: 1000, professional: 10000, enterprise: Infinity },
+    users: { free: 3, starter: 10, professional: 50, enterprise: Infinity },
+    orders: { free: 1000, starter: 10000, professional: 100000, enterprise: Infinity }
+  }
+
+  return async (req, res, next) => {
+    if (!req.user?.tenantId) {
+      return next()
+    }
+
+    try {
+      const { data: tenant } = await supabase
+        .from('tenants')
+        .select('plan')
+        .eq('id', req.user.tenantId)
+        .single()
+
+      if (!tenant) {
+        return res.status(403).json({ error: 'Tenant not found' })
+      }
+
+      const plan = tenant.plan || 'free'
+      const limit = LIMITS[resource]?.[plan] ?? Infinity
+
+      if (limit === Infinity) {
+        return next()
+      }
+
+      const { count } = await supabase
+        .from(resource)
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', req.user.tenantId)
+
+      if (count >= limit) {
+        return res.status(403).json({ 
+          error: `${resource} limit reached for ${plan} plan`,
+          limit,
+          current: count,
+          upgradeRequired: true
+        })
+      }
+
+      next()
+    } catch (err) {
+      console.error('Tenant limit check error:', err.message)
+      next()
     }
   }
 }

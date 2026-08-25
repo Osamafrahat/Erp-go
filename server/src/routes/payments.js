@@ -25,6 +25,7 @@ router.get('/', async (req, res) => {
     let query = supabase
       .from('payments')
       .select('*', { count: 'exact' })
+      .eq('tenant_id', req.user.tenantId)
       .order('payment_date', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -63,6 +64,7 @@ router.post('/', async (req, res) => {
     const { data: payment, error } = await supabase
       .from('payments')
       .insert({
+        tenant_id: req.user.tenantId,
         payment_number: paymentNumber,
         payment_type,
         method,
@@ -90,6 +92,7 @@ router.post('/', async (req, res) => {
       const { data: customer } = await supabase
         .from('customers')
         .select('account_code')
+        .eq('tenant_id', req.user.tenantId)
         .eq('id', partner_id)
         .single()
       if (customer?.account_code) {
@@ -104,6 +107,7 @@ router.post('/', async (req, res) => {
       const { data: supplier } = await supabase
         .from('suppliers')
         .select('account_code')
+        .eq('tenant_id', req.user.tenantId)
         .eq('id', partner_id)
         .single()
       if (supplier?.account_code) {
@@ -139,7 +143,7 @@ router.post('/', async (req, res) => {
           lines,
           createdBy: req.user?.id,
         })
-        await supabase.from('payments').update({ journal_entry_id: entry.id }).eq('id', payment.id)
+        await supabase.from('payments').update({ journal_entry_id: entry.id }).eq('tenant_id', req.user.tenantId).eq('id', payment.id)
         payment.journal_entry_id = entry.id
       } catch (accErr) {
         console.error('Payment journal entry failed:', accErr.message)
@@ -157,7 +161,7 @@ router.post('/', async (req, res) => {
 // Update payment (only if not posted)
 router.put('/:id', async (req, res) => {
   try {
-    const { data: existing } = await supabase.from('payments').select('journal_entry_id').eq('id', req.params.id).single()
+    const { data: existing } = await supabase.from('payments').select('journal_entry_id').eq('tenant_id', req.user.tenantId).eq('id', req.params.id).single()
     if (existing?.journal_entry_id) {
       return res.status(400).json({ error: 'Cannot edit posted payment' })
     }
@@ -178,6 +182,7 @@ router.put('/:id', async (req, res) => {
         notes: notes || null,
         payment_date,
       })
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .select()
       .single()
@@ -194,12 +199,12 @@ router.put('/:id', async (req, res) => {
 // Delete payment (auto-reverses journal entry if posted)
 router.delete('/:id', async (req, res) => {
   try {
-    const { data: payment } = await supabase.from('payments').select('*').eq('id', req.params.id).single()
+    const { data: payment } = await supabase.from('payments').select('*').eq('tenant_id', req.user.tenantId).eq('id', req.params.id).single()
     if (!payment) {
       return res.status(404).json({ error: 'Payment not found' })
     }
 
-    const { error } = await supabase.from('payments').delete().eq('id', req.params.id)
+    const { error } = await supabase.from('payments').delete().eq('tenant_id', req.user.tenantId).eq('id', req.params.id)
     if (error) throw error
 
     // Auto-reverse the journal entry

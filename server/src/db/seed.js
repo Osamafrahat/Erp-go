@@ -1,7 +1,7 @@
 import supabase from './supabase.js'
 import bcrypt from 'bcryptjs'
 
-async function seed() {
+async function seed(tenantId) {
   console.log('Checking Supabase tables...')
 
   // Check if users table exists by trying to select
@@ -17,7 +17,8 @@ async function seed() {
 
 CREATE TABLE IF NOT EXISTS users (
   id BIGSERIAL PRIMARY KEY,
-  username TEXT NOT NULL UNIQUE,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+  username TEXT NOT NULL,
   password TEXT NOT NULL,
   full_name TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'CASHIER',
@@ -26,11 +27,13 @@ CREATE TABLE IF NOT EXISTS users (
   must_change_password BOOLEAN DEFAULT false,
   last_login TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(tenant_id, username)
 );
 
 CREATE TABLE IF NOT EXISTS categories (
   id BIGSERIAL PRIMARY KEY,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
@@ -38,6 +41,7 @@ CREATE TABLE IF NOT EXISTS categories (
 
 CREATE TABLE IF NOT EXISTS suppliers (
   id BIGSERIAL PRIMARY KEY,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   contact_person TEXT,
   email TEXT,
@@ -49,9 +53,10 @@ CREATE TABLE IF NOT EXISTS suppliers (
 
 CREATE TABLE IF NOT EXISTS products (
   id BIGSERIAL PRIMARY KEY,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
-  sku TEXT UNIQUE,
-  barcode TEXT UNIQUE,
+  sku TEXT,
+  barcode TEXT,
   category_id BIGINT REFERENCES categories(id) ON DELETE SET NULL,
   price NUMERIC NOT NULL DEFAULT 0,
   cost_price NUMERIC DEFAULT 0,
@@ -69,7 +74,8 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE TABLE IF NOT EXISTS orders (
   id BIGSERIAL PRIMARY KEY,
-  order_number TEXT NOT NULL UNIQUE,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+  order_number TEXT NOT NULL,
   subtotal NUMERIC NOT NULL DEFAULT 0,
   discount_amount NUMERIC DEFAULT 0,
   tax_amount NUMERIC DEFAULT 0,
@@ -81,13 +87,15 @@ CREATE TABLE IF NOT EXISTS orders (
   promotion_id BIGINT REFERENCES promotions(id),
   is_refunded BOOLEAN DEFAULT false,
   journal_entry_id BIGINT REFERENCES journal_entries(id),
-  client_order_id TEXT UNIQUE,
+  client_order_id TEXT,
   completed_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT now()
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(tenant_id, order_number)
 );
 
 CREATE TABLE IF NOT EXISTS order_items (
   id BIGSERIAL PRIMARY KEY,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
   order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   product_id BIGINT NOT NULL REFERENCES products(id),
   quantity NUMERIC NOT NULL DEFAULT 1,
@@ -98,6 +106,7 @@ CREATE TABLE IF NOT EXISTS order_items (
 
 CREATE TABLE IF NOT EXISTS payment_splits (
   id BIGSERIAL PRIMARY KEY,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
   order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   method TEXT NOT NULL,
   amount NUMERIC NOT NULL DEFAULT 0,
@@ -107,6 +116,7 @@ CREATE TABLE IF NOT EXISTS payment_splits (
 
 CREATE TABLE IF NOT EXISTS stock_movements (
   id BIGSERIAL PRIMARY KEY,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
   product_id BIGINT NOT NULL REFERENCES products(id),
   type TEXT NOT NULL,
   quantity NUMERIC NOT NULL,
@@ -118,7 +128,8 @@ CREATE TABLE IF NOT EXISTS stock_movements (
 
 CREATE TABLE IF NOT EXISTS promotions (
   id BIGSERIAL PRIMARY KEY,
-  code TEXT NOT NULL UNIQUE,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+  code TEXT NOT NULL,
   type TEXT NOT NULL,
   value NUMERIC NOT NULL DEFAULT 0,
   min_order_amount NUMERIC,
@@ -127,13 +138,16 @@ CREATE TABLE IF NOT EXISTS promotions (
   start_date TIMESTAMPTZ,
   end_date TIMESTAMPTZ,
   is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now()
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(tenant_id, code)
 );
 
 CREATE TABLE IF NOT EXISTS store_settings (
   id BIGSERIAL PRIMARY KEY,
-  "key" TEXT NOT NULL UNIQUE,
-  value TEXT
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+  "key" TEXT NOT NULL,
+  value TEXT,
+  UNIQUE(tenant_id, "key")
 );
 
 -- Indexes
@@ -146,19 +160,9 @@ CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id);
 CREATE INDEX IF NOT EXISTS idx_stock_movements_product ON stock_movements(product_id);
 CREATE INDEX IF NOT EXISTS idx_promotions_code ON promotions(code);
-
--- Default store settings
-INSERT INTO store_settings ("key", value) VALUES
-  ('store_name', 'My Store'),
-  ('store_address', ''),
-  ('store_phone', ''),
-  ('currency', 'EGP'),
-  ('currency_symbol', 'ج.م'),
-  ('tax_rate', '14'),
-  ('low_stock_threshold', '10'),
-  ('receipt_header', 'Thank you for your purchase!'),
-  ('receipt_footer', 'Come again!')
-ON CONFLICT ("key") DO NOTHING;
+CREATE INDEX IF NOT EXISTS idx_users_tenant ON users(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_products_tenant ON products(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_orders_tenant ON orders(tenant_id);
 
 -- Ensure customers has account_code column
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS account_code TEXT;
@@ -193,35 +197,39 @@ ALTER TABLE expenses ADD COLUMN IF NOT EXISTS method TEXT DEFAULT 'cash';
   }
 
   // Tables exist - check for admin user
-  const { data: existingAdmin } = await supabase
+  let adminQuery = supabase
     .from('users')
     .select('id')
     .eq('username', 'admin')
-    .single()
+  if (tenantId) adminQuery = adminQuery.eq('tenant_id', tenantId)
+  const { data: existingAdmin } = await adminQuery.single()
 
   if (!existingAdmin) {
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash('admin123', salt)
 
+    const adminUser = {
+      username: 'admin',
+      password: hashedPassword,
+      full_name: 'Administrator',
+      role: 'MANAGER',
+      permissions: [
+        'dashboard_view', 'pos_access', 'inventory_view', 'inventory_edit',
+        'reports_view', 'suppliers_view', 'suppliers_edit',
+        'promotions_view', 'promotions_edit', 'settings_view',
+        'settings_edit', 'user_manage', 'customers_view', 'customers_edit',
+        'expenses_view', 'expenses_edit', 'refunds_view', 'refunds_edit',
+        'employees_view', 'employees_edit', 'accounting_view', 'accounting_edit',
+        'accounting_post', 'hr_view', 'hr_edit', 'services_view', 'services_edit'
+      ],
+      is_active: true,
+      must_change_password: true
+    }
+    if (tenantId) adminUser.tenant_id = tenantId
+
     const { error: insertError } = await supabase
       .from('users')
-      .insert({
-        username: 'admin',
-        password: hashedPassword,
-        full_name: 'Administrator',
-        role: 'MANAGER',
-        permissions: [
-          'dashboard_view', 'pos_access', 'inventory_view', 'inventory_edit',
-          'reports_view', 'suppliers_view', 'suppliers_edit',
-          'promotions_view', 'promotions_edit', 'settings_view',
-          'settings_edit', 'user_manage', 'customers_view', 'customers_edit',
-          'expenses_view', 'expenses_edit', 'refunds_view', 'refunds_edit',
-          'employees_view', 'employees_edit', 'accounting_view', 'accounting_edit',
-          'accounting_post', 'hr_view', 'hr_edit', 'services_view', 'services_edit'
-        ],
-        is_active: true,
-        must_change_password: true
-      })
+      .insert(adminUser)
 
     if (insertError) {
       console.error('Error creating admin user:', insertError)
@@ -245,16 +253,19 @@ ALTER TABLE expenses ADD COLUMN IF NOT EXISTS method TEXT DEFAULT 'cash';
   ]
 
   for (const setting of defaultSettings) {
+    const settingData = tenantId ? { ...setting, tenant_id: tenantId } : setting
     await supabase
       .from('store_settings')
-      .upsert(setting, { onConflict: 'key' })
+      .upsert(settingData, { onConflict: 'key' })
   }
 
   // Backfill account_code for existing customers
-  const { data: customersWithoutCode } = await supabase
+  let customerQuery = supabase
     .from('customers')
     .select('id')
     .is('account_code', null)
+  if (tenantId) customerQuery = customerQuery.eq('tenant_id', tenantId)
+  const { data: customersWithoutCode } = await customerQuery
 
   if (customersWithoutCode && customersWithoutCode.length > 0) {
     for (const cust of customersWithoutCode) {
@@ -269,4 +280,6 @@ ALTER TABLE expenses ADD COLUMN IF NOT EXISTS method TEXT DEFAULT 'cash';
   console.log('Seed completed successfully!')
 }
 
-seed().catch(console.error)
+// Support both CLI usage and programmatic usage
+const tenantIdArg = process.argv[2] || null
+seed(tenantIdArg).catch(console.error)

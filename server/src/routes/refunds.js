@@ -23,6 +23,7 @@ router.get('/', async (req, res, next) => {
         orders(order_number, total),
         users(full_name)
       `)
+      .eq('tenant_id', req.user.tenantId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -46,6 +47,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', order_id)
       .single()
 
@@ -71,6 +73,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
       const { data: existingRefunds } = await supabase
         .from('refunds')
         .select('amount')
+        .eq('tenant_id', req.user.tenantId)
         .eq('order_id', order_id)
 
       const totalRefunded = (existingRefunds || []).reduce((sum, r) => sum + parseFloat(r.amount), 0)
@@ -90,6 +93,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
       const { data: products } = await supabase
         .from('products')
         .select('id, is_refundable, name')
+        .eq('tenant_id', req.user.tenantId)
         .in('id', productIds)
 
       const nonRefundable = (products || []).filter(p => p.is_refundable === false)
@@ -102,6 +106,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
       const { data: orderItems } = await supabase
         .from('order_items')
         .select('product_id')
+        .eq('tenant_id', req.user.tenantId)
         .eq('order_id', order_id)
 
       if (orderItems && orderItems.length > 0) {
@@ -109,6 +114,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
         const { data: products } = await supabase
           .from('products')
           .select('id, is_refundable, name')
+          .eq('tenant_id', req.user.tenantId)
           .in('id', productIds)
 
         const nonRefundable = (products || []).filter(p => p.is_refundable === false)
@@ -123,6 +129,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
     const { data: refund, error: refundError } = await supabase
       .from('refunds')
       .insert({
+        tenant_id: req.user.tenantId,
         order_id,
         amount,
         reason,
@@ -137,6 +144,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
     // Create refund_items records if item-level refund
     if (items && items.length > 0) {
       const refundItemsData = items.map(item => ({
+        tenant_id: req.user.tenantId,
         refund_id: refund.id,
         order_item_id: item.order_item_id,
         product_id: item.product_id,
@@ -163,6 +171,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
         const { data: orderItem } = await supabase
           .from('order_items')
           .select('product_id')
+          .eq('tenant_id', req.user.tenantId)
           .eq('id', item.order_item_id)
           .single()
 
@@ -170,6 +179,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
           const { data: product } = await supabase
             .from('products')
             .select('stock_quantity')
+            .eq('tenant_id', req.user.tenantId)
             .eq('id', orderItem.product_id)
             .single()
 
@@ -180,12 +190,14 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
                 stock_quantity: product.stock_quantity + item.quantity,
                 updated_at: new Date().toISOString()
               })
+              .eq('tenant_id', req.user.tenantId)
               .eq('id', orderItem.product_id)
           }
 
           await supabase
             .from('stock_movements')
             .insert({
+              tenant_id: req.user.tenantId,
               product_id: orderItem.product_id,
               type: 'refund',
               quantity: item.quantity,
@@ -199,6 +211,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
       const { data: allItems } = await supabase
         .from('order_items')
         .select('*')
+        .eq('tenant_id', req.user.tenantId)
         .eq('order_id', order_id)
 
       if (allItems) {
@@ -206,6 +219,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
           const { data: product } = await supabase
             .from('products')
             .select('stock_quantity')
+            .eq('tenant_id', req.user.tenantId)
             .eq('id', item.product_id)
             .single()
 
@@ -216,12 +230,14 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
                 stock_quantity: product.stock_quantity + item.quantity,
                 updated_at: new Date().toISOString()
               })
+              .eq('tenant_id', req.user.tenantId)
               .eq('id', item.product_id)
           }
 
           await supabase
             .from('stock_movements')
             .insert({
+              tenant_id: req.user.tenantId,
               product_id: item.product_id,
               type: 'refund',
               quantity: item.quantity,
@@ -237,6 +253,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
       const { data: allRefunds } = await supabase
         .from('refunds')
         .select('amount')
+        .eq('tenant_id', req.user.tenantId)
         .eq('order_id', order_id)
 
       const totalRefunded = (allRefunds || []).reduce((sum, r) => sum + parseFloat(r.amount), 0)
@@ -244,12 +261,14 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
         await supabase
           .from('orders')
           .update({ is_refunded: true, payment_status: 'refunded' })
+          .eq('tenant_id', req.user.tenantId)
           .eq('id', order_id)
       }
     } else {
       await supabase
         .from('orders')
         .update({ is_refunded: true, payment_status: 'refunded' })
+        .eq('tenant_id', req.user.tenantId)
         .eq('id', order_id)
     }
 
@@ -285,6 +304,7 @@ router.get('/:id', [
     const { data, error } = await supabase
       .from('refunds')
       .select('*, orders(order_number, total), users(full_name)')
+      .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
 
@@ -296,6 +316,7 @@ router.get('/:id', [
     const { data: refundItems } = await supabase
       .from('refund_items')
       .select('*, products(name)')
+      .eq('tenant_id', req.user.tenantId)
       .eq('refund_id', data.id)
 
     res.json({ ...data, items: refundItems || [] })

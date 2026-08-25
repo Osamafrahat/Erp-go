@@ -5,12 +5,13 @@ import { sendPromotionWhatsApp, sendCustomWhatsApp } from '../services/whatsappS
 
 const router = Router()
 
-async function getStoreName() {
+async function getStoreName(tenantId) {
   try {
     const { data } = await supabase
       .from('store_settings')
       .select('value')
       .eq('key', 'storeName')
+      .eq('tenant_id', tenantId)
       .single()
     return data?.value || 'Store'
   } catch {
@@ -18,13 +19,14 @@ async function getStoreName() {
   }
 }
 
-async function processPromotionSend(promoId, { send_email, send_whatsapp }) {
+async function processPromotionSend(promoId, { send_email, send_whatsapp, tenantId }) {
   console.log(`[BG] === Starting background send for promo_id: ${promoId} ===`)
   try {
     const { data: promo, error: promoError } = await supabase
       .from('promotions')
       .select('*')
       .eq('id', promoId)
+      .eq('tenant_id', tenantId)
       .single()
 
     if (promoError || !promo) {
@@ -33,13 +35,14 @@ async function processPromotionSend(promoId, { send_email, send_whatsapp }) {
     }
     console.log(`[BG] Step 1 OK: promo=${promo.code}`)
 
-    const storeName = await getStoreName()
+    const storeName = await getStoreName(tenantId)
     const results = { email: [], whatsapp: [] }
 
     if (send_email) {
       const { data: emailCustomers, error: emailErr } = await supabase
         .from('customers')
         .select('id, name, email, phone')
+        .eq('tenant_id', tenantId)
         .eq('is_active', true)
         .not('email', 'is', null)
 
@@ -58,6 +61,7 @@ async function processPromotionSend(promoId, { send_email, send_whatsapp }) {
       const { data: whatsappCustomers, error: waErr } = await supabase
         .from('customers')
         .select('id, name, email, phone')
+        .eq('tenant_id', tenantId)
         .eq('is_active', true)
         .not('phone', 'is', null)
 
@@ -108,7 +112,8 @@ router.post('/promotion', (req, res) => {
 
     processPromotionSend(numericId, {
       send_email: send_email && emailConfigured,
-      send_whatsapp
+      send_whatsapp,
+      tenantId: req.user?.tenantId
     }).catch(err => {
       console.error('[BG] Background send error:', err.message)
     })
