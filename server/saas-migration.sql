@@ -224,12 +224,12 @@ DROP POLICY IF EXISTS "tenant_isolation" ON tenants;
 CREATE POLICY "tenant_isolation" ON tenants
   FOR ALL
   USING (
-    id = current_setting('app.current_tenant')::bigint
+    id = current_setting('app.current_tenant', true)::bigint
     OR current_setting('app.current_tenant', true) IS NULL
     OR current_setting('app.current_tenant', true) = ''
   )
   WITH CHECK (
-    id = current_setting('app.current_tenant')::bigint
+    id = current_setting('app.current_tenant', true)::bigint
     OR current_setting('app.current_tenant', true) IS NULL
     OR current_setting('app.current_tenant', true) = ''
   );
@@ -248,8 +248,8 @@ DROP POLICY IF EXISTS "Allow all" ON tenant_payments;
 DROP POLICY IF EXISTS "tenant_isolation" ON tenant_payments;
 CREATE POLICY "tenant_isolation" ON tenant_payments
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 -- Core tables
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
@@ -257,48 +257,48 @@ DROP POLICY IF EXISTS "Allow all" ON categories;
 DROP POLICY IF EXISTS "tenant_isolation" ON categories;
 CREATE POLICY "tenant_isolation" ON categories
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON suppliers;
 DROP POLICY IF EXISTS "tenant_isolation" ON suppliers;
 CREATE POLICY "tenant_isolation" ON suppliers
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON products;
 DROP POLICY IF EXISTS "tenant_isolation" ON products;
 CREATE POLICY "tenant_isolation" ON products
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON customers;
 DROP POLICY IF EXISTS "tenant_isolation" ON customers;
 CREATE POLICY "tenant_isolation" ON customers
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON employees;
 DROP POLICY IF EXISTS "tenant_isolation" ON employees;
 CREATE POLICY "tenant_isolation" ON employees
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON users;
 DROP POLICY IF EXISTS "tenant_isolation" ON users;
 CREATE POLICY "tenant_isolation" ON users
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 -- Accounting tables
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
@@ -306,48 +306,48 @@ DROP POLICY IF EXISTS "Allow all" ON accounts;
 DROP POLICY IF EXISTS "tenant_isolation" ON accounts;
 CREATE POLICY "tenant_isolation" ON accounts
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE fiscal_periods ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON fiscal_periods;
 DROP POLICY IF EXISTS "tenant_isolation" ON fiscal_periods;
 CREATE POLICY "tenant_isolation" ON fiscal_periods
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE journal_entries ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON journal_entries;
 DROP POLICY IF EXISTS "tenant_isolation" ON journal_entries;
 CREATE POLICY "tenant_isolation" ON journal_entries
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE journal_entry_lines ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON journal_entry_lines;
 DROP POLICY IF EXISTS "tenant_isolation" ON journal_entry_lines;
 CREATE POLICY "tenant_isolation" ON journal_entry_lines
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON payments;
 DROP POLICY IF EXISTS "tenant_isolation" ON payments;
 CREATE POLICY "tenant_isolation" ON payments
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE account_balances ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON account_balances;
 DROP POLICY IF EXISTS "tenant_isolation" ON account_balances;
 CREATE POLICY "tenant_isolation" ON account_balances
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 -- Promotions, orders, sales
 ALTER TABLE promotions ENABLE ROW LEVEL SECURITY;
@@ -355,40 +355,40 @@ DROP POLICY IF EXISTS "Allow all" ON promotions;
 DROP POLICY IF EXISTS "tenant_isolation" ON promotions;
 CREATE POLICY "tenant_isolation" ON promotions
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON orders;
 DROP POLICY IF EXISTS "tenant_isolation" ON orders;
 CREATE POLICY "tenant_isolation" ON orders
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON order_items;
 DROP POLICY IF EXISTS "tenant_isolation" ON order_items;
 CREATE POLICY "tenant_isolation" ON order_items
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE payment_splits ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON payment_splits;
 DROP POLICY IF EXISTS "tenant_isolation" ON payment_splits;
 CREATE POLICY "tenant_isolation" ON payment_splits
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE stock_movements ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON stock_movements;
 DROP POLICY IF EXISTS "tenant_isolation" ON stock_movements;
 CREATE POLICY "tenant_isolation" ON stock_movements
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 -- Refunds
 ALTER TABLE refunds ENABLE ROW LEVEL SECURITY;
@@ -396,16 +396,16 @@ DROP POLICY IF EXISTS "Allow all" ON refunds;
 DROP POLICY IF EXISTS "tenant_isolation" ON refunds;
 CREATE POLICY "tenant_isolation" ON refunds
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE refund_items ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON refund_items;
 DROP POLICY IF EXISTS "tenant_isolation" ON refund_items;
 CREATE POLICY "tenant_isolation" ON refund_items
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 -- Expenses, settings, activity
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
@@ -413,24 +413,24 @@ DROP POLICY IF EXISTS "Allow all" ON expenses;
 DROP POLICY IF EXISTS "tenant_isolation" ON expenses;
 CREATE POLICY "tenant_isolation" ON expenses
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON store_settings;
 DROP POLICY IF EXISTS "tenant_isolation" ON store_settings;
 CREATE POLICY "tenant_isolation" ON store_settings
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON activity_log;
 DROP POLICY IF EXISTS "tenant_isolation" ON activity_log;
 CREATE POLICY "tenant_isolation" ON activity_log
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 -- Team chat
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
@@ -439,8 +439,8 @@ DROP POLICY IF EXISTS "Allow all" ON messages;
 DROP POLICY IF EXISTS "tenant_isolation" ON messages;
 CREATE POLICY "tenant_isolation" ON messages
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 -- HR tables
 ALTER TABLE attendance ENABLE ROW LEVEL SECURITY;
@@ -448,80 +448,80 @@ DROP POLICY IF EXISTS "Allow all" ON attendance;
 DROP POLICY IF EXISTS "tenant_isolation" ON attendance;
 CREATE POLICY "tenant_isolation" ON attendance
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE leave_types ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON leave_types;
 DROP POLICY IF EXISTS "tenant_isolation" ON leave_types;
 CREATE POLICY "tenant_isolation" ON leave_types
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE leave_requests ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON leave_requests;
 DROP POLICY IF EXISTS "tenant_isolation" ON leave_requests;
 CREATE POLICY "tenant_isolation" ON leave_requests
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE leave_balances ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON leave_balances;
 DROP POLICY IF EXISTS "tenant_isolation" ON leave_balances;
 CREATE POLICY "tenant_isolation" ON leave_balances
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE payroll ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON payroll;
 DROP POLICY IF EXISTS "tenant_isolation" ON payroll;
 CREATE POLICY "tenant_isolation" ON payroll
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE payroll_items ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON payroll_items;
 DROP POLICY IF EXISTS "tenant_isolation" ON payroll_items;
 CREATE POLICY "tenant_isolation" ON payroll_items
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE shifts ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON shifts;
 DROP POLICY IF EXISTS "tenant_isolation" ON shifts;
 CREATE POLICY "tenant_isolation" ON shifts
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE employee_shifts ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON employee_shifts;
 DROP POLICY IF EXISTS "tenant_isolation" ON employee_shifts;
 CREATE POLICY "tenant_isolation" ON employee_shifts
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE performance_reviews ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON performance_reviews;
 DROP POLICY IF EXISTS "tenant_isolation" ON performance_reviews;
 CREATE POLICY "tenant_isolation" ON performance_reviews
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE review_criteria ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON review_criteria;
 DROP POLICY IF EXISTS "tenant_isolation" ON review_criteria;
 CREATE POLICY "tenant_isolation" ON review_criteria
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 -- Services & subscriptions
 ALTER TABLE service_plans ENABLE ROW LEVEL SECURITY;
@@ -529,32 +529,32 @@ DROP POLICY IF EXISTS "Allow all" ON service_plans;
 DROP POLICY IF EXISTS "tenant_isolation" ON service_plans;
 CREATE POLICY "tenant_isolation" ON service_plans
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE services ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON services;
 DROP POLICY IF EXISTS "tenant_isolation" ON services;
 CREATE POLICY "tenant_isolation" ON services
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON subscriptions;
 DROP POLICY IF EXISTS "tenant_isolation" ON subscriptions;
 CREATE POLICY "tenant_isolation" ON subscriptions
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 ALTER TABLE subscription_payments ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all" ON subscription_payments;
 DROP POLICY IF EXISTS "tenant_isolation" ON subscription_payments;
 CREATE POLICY "tenant_isolation" ON subscription_payments
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant')::bigint)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant')::bigint);
+  USING (tenant_id = current_setting('app.current_tenant', true)::bigint)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::bigint);
 
 -- ============================================================
 -- 8. SEED DEFAULT SUBSCRIPTION PLANS
