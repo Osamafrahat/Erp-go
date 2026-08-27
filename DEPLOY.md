@@ -336,30 +336,25 @@ sudo certbot renew
 
 ---
 
-## Alternative: Render + Vercel (Cloud)
+## Alternative: Fly.io + Vercel (Cloud)
 
 If you prefer cloud hosting without managing a VPS:
 
-### Server (Render)
+### Server (Fly.io)
 1. Push code to GitHub
-2. Go to [render.com](https://render.com) → New → Web Service → Deploy from GitHub
-3. Select the repo and branch (master)
-4. Set environment in Render dashboard (Settings → Environment):
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `JWT_SECRET`
-   - `SUPABASE_SERVICE_KEY` (optional)
-   - `FRONTEND_URL` = `https://your-app.vercel.app`
-   - `STRIPE_SECRET_KEY` (if using billing)
-5. Copy the Render public URL (e.g. `https://erp-go.onrender.com`)
+2. Install Fly CLI: `curl -L https://fly.io/install.sh | sh`
+3. Login: `fly auth login`
+4. Launch: `fly launch` (from project root — auto-detects `fly.toml`)
+5. Set secrets: `fly secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... JWT_SECRET=... FRONTEND_URL=https://your-app.vercel.app`
+6. Deploy: `fly deploy`
 
-> **Note:** Render uses `render.yaml` (Blueprint) for configuration. You can also connect your repo and Render will auto-detect it.
+> **Note:** Fly.io uses `fly.toml` for configuration. The existing `server/Dockerfile` is used directly.
 
 ### Client (Vercel)
 1. Go to [vercel.com](https://vercel.com) → Import Git Repository
 2. Set environment variable:
-   - `VITE_API_URL` = `https://erp-go.onrender.com/api`
+   - `VITE_API_URL` = `https://erp-go.fly.dev/api`
 3. Deploy
 
 ### Database (Supabase)
-Both Render and Vercel connect to the same Supabase database. Run the SQL migrations from Step 6 in your Supabase SQL Editor.
+Both Fly.io and Vercel connect to the same Supabase database. Run the SQL migrations from Step 6 in your Supabase SQL Editor.

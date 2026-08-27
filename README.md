@@ -286,15 +286,15 @@ docker compose up -d --build
 # Access at http://localhost
 ```
 
-### Render Deployment
+### Fly.io Deployment
 
-The project includes `render.yaml` for Render deployment:
+The project includes `fly.toml` for Fly.io deployment:
 
 1. Push to GitHub
-2. Create new Render Web Service → Deploy from GitHub repo
-3. Render auto-detects `render.yaml` and builds the server
-4. Add environment variables in Render dashboard
-5. Deploy
+2. Install Fly CLI and login
+3. Run `fly launch` from project root
+4. Set secrets with `fly secrets set`
+5. Run `fly deploy`
 
 Client can be deployed separately to Vercel (already has `vercel.json`).
 
@@ -426,7 +426,7 @@ store-management/
 │   └── package.json
 │
 ├── docker-compose.yml                # Docker orchestration
-├── render.yaml                      # Render deployment config
+├── fly.toml                         # Fly.io deployment config
 ├── .env.docker.example               # Docker env template
 ├── reset_data.sql                    # Data reset script
 ├── README.md
