@@ -5,7 +5,13 @@ import { authenticateToken } from '../middleware/auth.js'
 
 const router = Router()
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+let _stripe = null
+function getStripe() {
+  if (!_stripe && process.env.STRIPE_SECRET_KEY) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+  }
+  return _stripe
+}
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost'
 
 const PLAN_SLUG_MAP = {
@@ -57,7 +63,7 @@ router.get('/current', authenticateToken, async (req, res) => {
     let subscription = null
     if (tenant.stripe_subscription_id) {
       try {
-        subscription = await stripe.subscriptions.retrieve(tenant.stripe_subscription_id)
+        subscription = await getStripe().subscriptions.retrieve(tenant.stripe_subscription_id)
       } catch {
         subscription = null
       }
@@ -104,6 +110,7 @@ router.get('/current', authenticateToken, async (req, res) => {
 // POST /api/billing/checkout - Create Stripe checkout session (auth required)
 router.post('/checkout', authenticateToken, async (req, res) => {
   try {
+    if (!getStripe()) return res.status(503).json({ error: 'Stripe not configured' })
     const { planSlug } = req.body
     if (!planSlug || !PLAN_SLUG_MAP[planSlug]) {
       return res.status(400).json({ error: 'Invalid plan. Must be "pro" or "enterprise".' })
@@ -131,7 +138,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
     let customerId = tenant.stripe_customer_id
 
     if (!customerId) {
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         name: tenant.name,
         email: user.email,
         metadata: {
@@ -146,7 +153,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
         .eq('id', tenant.id)
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
@@ -167,6 +174,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
 // POST /api/billing/portal - Create Stripe customer portal session (auth required)
 router.post('/portal', authenticateToken, async (req, res) => {
   try {
+    if (!getStripe()) return res.status(503).json({ error: 'Stripe not configured' })
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
       .select('stripe_customer_id')
@@ -177,7 +185,7 @@ router.post('/portal', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'No billing account found. Subscribe to a plan first.' })
     }
 
-    const session = await stripe.billingPortal.sessions.create({
+    const session = await getStripe().billingPortal.sessions.create({
       customer: tenant.stripe_customer_id,
       return_url: `${FRONTEND_URL}/billing`,
     })
@@ -193,6 +201,11 @@ export async function stripeWebhookHandler(req, res) {
   const sig = req.headers['stripe-signature']
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
+  if (!getStripe()) {
+    console.error('[Stripe] STRIPE_SECRET_KEY not configured')
+    return res.status(500).json({ error: 'Stripe not configured' })
+  }
+
   if (!webhookSecret) {
     console.error('[Stripe] STRIPE_WEBHOOK_SECRET not configured')
     return res.status(500).json({ error: 'Webhook secret not configured' })
@@ -200,7 +213,7 @@ export async function stripeWebhookHandler(req, res) {
 
   let event
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret)
+    event = getStripe().webhooks.constructEvent(req.body, sig, webhookSecret)
   } catch (err) {
     console.error('[Stripe] Webhook signature verification failed:', err.message)
     return res.status(400).json({ error: `Webhook Error: ${err.message}` })
@@ -214,7 +227,7 @@ export async function stripeWebhookHandler(req, res) {
         const subscriptionId = session.subscription
         if (!tenantId || !subscriptionId) break
 
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+        const subscription = await getStripe().subscriptions.retrieve(subscriptionId)
         const priceId = subscription.items.data[0]?.price?.id
 
         let tier = 'pro'
