@@ -127,47 +127,80 @@ ALTER TABLE subscription_payments ADD COLUMN IF NOT EXISTS tenant_id BIGINT REFE
 
 -- users: username must be unique per tenant, not globally
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_username_key;
-ALTER TABLE users ADD CONSTRAINT users_tenant_username_unique UNIQUE (tenant_id, username);
+DO $$ BEGIN
+  ALTER TABLE users ADD CONSTRAINT users_tenant_username_unique UNIQUE (tenant_id, username);
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- products: SKU unique per tenant
 ALTER TABLE products DROP CONSTRAINT IF EXISTS products_sku_key;
-ALTER TABLE products ADD CONSTRAINT products_tenant_sku_unique UNIQUE (tenant_id, sku);
+DO $$ BEGIN
+  ALTER TABLE products ADD CONSTRAINT products_tenant_sku_unique UNIQUE (tenant_id, sku);
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- products: barcode unique per tenant
 ALTER TABLE products DROP CONSTRAINT IF EXISTS products_barcode_key;
-ALTER TABLE products ADD CONSTRAINT products_tenant_barcode_unique UNIQUE (tenant_id, barcode);
+DO $$ BEGIN
+  ALTER TABLE products ADD CONSTRAINT products_tenant_barcode_unique UNIQUE (tenant_id, barcode);
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- store_settings: key unique per tenant
 ALTER TABLE store_settings DROP CONSTRAINT IF EXISTS store_settings_key_key;
-ALTER TABLE store_settings ADD CONSTRAINT store_settings_tenant_key_unique UNIQUE (tenant_id, "key");
+DO $$ BEGIN
+  ALTER TABLE store_settings ADD CONSTRAINT store_settings_tenant_key_unique UNIQUE (tenant_id, "key");
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- orders: order_number unique per tenant
 ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_order_number_key;
-ALTER TABLE orders ADD CONSTRAINT orders_tenant_order_number_unique UNIQUE (tenant_id, order_number);
+DO $$ BEGIN
+  ALTER TABLE orders ADD CONSTRAINT orders_tenant_order_number_unique UNIQUE (tenant_id, order_number);
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- orders: client_order_id unique per tenant
 ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_client_order_id_key;
-ALTER TABLE orders ADD CONSTRAINT orders_tenant_client_order_id_unique UNIQUE (tenant_id, client_order_id);
+DO $$ BEGIN
+  ALTER TABLE orders ADD CONSTRAINT orders_tenant_client_order_id_unique UNIQUE (tenant_id, client_order_id);
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- journal_entries: entry_number unique per tenant
 ALTER TABLE journal_entries DROP CONSTRAINT IF EXISTS journal_entries_entry_number_key;
-ALTER TABLE journal_entries ADD CONSTRAINT journal_entries_tenant_entry_number_unique UNIQUE (tenant_id, entry_number);
+DO $$ BEGIN
+  ALTER TABLE journal_entries ADD CONSTRAINT journal_entries_tenant_entry_number_unique UNIQUE (tenant_id, entry_number);
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- payments: payment_number unique per tenant
 ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_payment_number_key;
-ALTER TABLE payments ADD CONSTRAINT payments_tenant_payment_number_unique UNIQUE (tenant_id, payment_number);
+DO $$ BEGIN
+  ALTER TABLE payments ADD CONSTRAINT payments_tenant_payment_number_unique UNIQUE (tenant_id, payment_number);
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- promotions: code unique per tenant
 ALTER TABLE promotions DROP CONSTRAINT IF EXISTS promotions_code_key;
-ALTER TABLE promotions ADD CONSTRAINT promotions_tenant_code_unique UNIQUE (tenant_id, code);
+DO $$ BEGIN
+  ALTER TABLE promotions ADD CONSTRAINT promotions_tenant_code_unique UNIQUE (tenant_id, code);
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- suppliers: account_code - make per-tenant (drop global unique)
 ALTER TABLE suppliers DROP CONSTRAINT IF EXISTS suppliers_account_code_key;
-ALTER TABLE suppliers ADD CONSTRAINT suppliers_tenant_account_code_unique UNIQUE (tenant_id, account_code);
+DO $$ BEGIN
+  ALTER TABLE suppliers ADD CONSTRAINT suppliers_tenant_account_code_unique UNIQUE (tenant_id, account_code);
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- accounts: code unique per tenant
 ALTER TABLE accounts DROP CONSTRAINT IF EXISTS accounts_code_key;
-ALTER TABLE accounts ADD CONSTRAINT accounts_tenant_code_unique UNIQUE (tenant_id, code);
+DO $$ BEGIN
+  ALTER TABLE accounts ADD CONSTRAINT accounts_tenant_code_unique UNIQUE (tenant_id, code);
+EXCEPTION WHEN duplicate_table THEN NULL;
+END $$;
 
 -- account_balances: already has UNIQUE(account_id, period_id), keep as-is
 -- (account_id is already tenant-scoped via the accounts table FK)
