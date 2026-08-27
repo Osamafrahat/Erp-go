@@ -9,7 +9,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const { data: tenant, error } = await supabase
       .from('tenants')
-      .select('id, name, logo_url, address, phone, email, plan, subscription_status, subscription_tier, max_products, max_users, max_orders_monthly, created_at')
+      .select('id, name, logo_url, address, phone, email, subscription_status, subscription_tier, max_products, max_users, max_orders_monthly, created_at')
       .eq('id', req.user.tenantId)
       .single()
     if (error || !tenant) return res.status(404).json({ error: 'Tenant not found' })
@@ -71,7 +71,7 @@ router.get('/usage', authenticateToken, async (req, res) => {
   try {
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('plan, subscription_tier, max_products, max_users, max_orders_monthly')
+      .select('subscription_tier, max_products, max_users, max_orders_monthly')
       .eq('id', req.user.tenantId)
       .single()
     if (tenantError || !tenant) return res.status(404).json({ error: 'Tenant not found' })
@@ -92,7 +92,7 @@ router.get('/usage', authenticateToken, async (req, res) => {
       .eq('tenant_id', req.user.tenantId)
       .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
 
-    const tier = tenant.subscription_tier || tenant.plan || 'free'
+    const tier = tenant.subscription_tier || 'free'
     const limits = {
       free: { max_products: 100, max_users: 3, max_orders_monthly: 1000 },
       pro: { max_products: 1000, max_users: 50, max_orders_monthly: 100000 },

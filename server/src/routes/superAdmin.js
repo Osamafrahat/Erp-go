@@ -113,7 +113,6 @@ router.put('/tenants/:id', async (req, res) => {
     if (subscription_status !== undefined) updateData.subscription_status = subscription_status
     if (subscription_tier !== undefined) {
       updateData.subscription_tier = subscription_tier
-      updateData.plan = subscription_tier
     }
     if (max_products !== undefined) updateData.max_products = max_products
     if (max_users !== undefined) updateData.max_users = max_users

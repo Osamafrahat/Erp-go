@@ -152,7 +152,8 @@ router.post('/signup', [
       .insert({
         name: storeName,
         slug,
-        plan: 'free',
+        subscription_tier: 'free',
+        subscription_status: 'trialing',
         created_at: now,
       })
       .select('id')
@@ -371,7 +372,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
     if (user.tenant_id) {
       const { data: tenantData } = await supabase
         .from('tenants')
-        .select('id, name, slug, plan, created_at')
+        .select('id, name, slug, subscription_tier, subscription_status, created_at')
         .eq('id', user.tenant_id)
         .single()
       tenant = tenantData
@@ -408,7 +409,7 @@ router.put('/profile', authenticateToken, [
     if (user.tenant_id) {
       const { data: tenantData } = await supabase
         .from('tenants')
-        .select('id, name, slug, plan, created_at')
+        .select('id, name, slug, subscription_tier, subscription_status, created_at')
         .eq('id', user.tenant_id)
         .single()
       tenant = tenantData

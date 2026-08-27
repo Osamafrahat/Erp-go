@@ -166,7 +166,7 @@ export function checkTenantLimits(resource) {
     try {
       const { data: tenant } = await supabase
         .from('tenants')
-        .select('plan')
+        .select('subscription_tier')
         .eq('id', req.user.tenantId)
         .single()
 
@@ -174,7 +174,7 @@ export function checkTenantLimits(resource) {
         return res.status(403).json({ error: 'Tenant not found' })
       }
 
-      const plan = tenant.plan || 'free'
+      const plan = tenant.subscription_tier || 'free'
       const limit = LIMITS[resource]?.[plan] ?? Infinity
 
       if (limit === Infinity) {

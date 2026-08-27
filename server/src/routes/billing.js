@@ -39,7 +39,7 @@ router.get('/current', authenticateToken, async (req, res) => {
   try {
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('id, name, plan, subscription_status, subscription_tier, stripe_customer_id, stripe_subscription_id, max_products, max_users, max_orders_monthly')
+      .select('id, name, subscription_status, subscription_tier, stripe_customer_id, stripe_subscription_id, max_products, max_users, max_orders_monthly')
       .eq('id', req.user.tenantId)
       .single()
     if (tenantError || !tenant) return res.status(404).json({ error: 'Tenant not found' })
@@ -81,7 +81,7 @@ router.get('/current', authenticateToken, async (req, res) => {
       tenant: {
         id: tenant.id,
         name: tenant.name,
-        plan: tenant.subscription_tier || tenant.plan || 'free',
+        plan: tenant.subscription_tier || 'free',
         subscription_status: tenant.subscription_status || 'active',
         max_products: tenant.max_products,
         max_users: tenant.max_users,
@@ -244,7 +244,6 @@ export async function stripeWebhookHandler(req, res) {
             stripe_subscription_id: subscriptionId,
             subscription_status: 'active',
             subscription_tier: tier,
-            plan: tier,
             ...tierLimits[tier],
             updated_at: new Date().toISOString(),
           })
@@ -284,10 +283,8 @@ export async function stripeWebhookHandler(req, res) {
           const newPriceId = subscription.items.data[0]?.price?.id
           if (newPriceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) {
             updateData.subscription_tier = 'enterprise'
-            updateData.plan = 'enterprise'
           } else {
             updateData.subscription_tier = 'pro'
-            updateData.plan = 'pro'
           }
         }
 
@@ -314,7 +311,6 @@ export async function stripeWebhookHandler(req, res) {
           .from('tenants')
           .update({
             subscription_status: 'cancelled',
-            plan: 'free',
             subscription_tier: 'free',
             stripe_subscription_id: null,
             max_products: 100,
