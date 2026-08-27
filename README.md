@@ -286,14 +286,14 @@ docker compose up -d --build
 # Access at http://localhost
 ```
 
-### Railway Deployment
+### Render Deployment
 
-The project includes `railway.json` for Railway deployment:
+The project includes `render.yaml` for Render deployment:
 
 1. Push to GitHub
-2. Create new Railway project → Deploy from GitHub repo
-3. Railway auto-detects `railway.json` and builds the server
-4. Add environment variables in Railway dashboard
+2. Create new Render Web Service → Deploy from GitHub repo
+3. Render auto-detects `render.yaml` and builds the server
+4. Add environment variables in Render dashboard
 5. Deploy
 
 Client can be deployed separately to Vercel (already has `vercel.json`).
@@ -426,7 +426,7 @@ store-management/
 │   └── package.json
 │
 ├── docker-compose.yml                # Docker orchestration
-├── railway.json                      # Railway deployment config
+├── render.yaml                      # Render deployment config
 ├── .env.docker.example               # Docker env template
 ├── reset_data.sql                    # Data reset script
 ├── README.md
