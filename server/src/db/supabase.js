@@ -9,7 +9,11 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1)
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey)
+// Use service key for server-side (bypasses RLS). Tenant isolation is handled
+// by JWT auth + setTenantContext middleware, not RLS.
+const supabase = serviceKey
+  ? createClient(supabaseUrl, serviceKey)
+  : createClient(supabaseUrl, supabaseKey)
 
 // Storage client with service key (full access) — falls back to anon key
 const supabaseStorage = serviceKey
