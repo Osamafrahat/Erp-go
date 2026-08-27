@@ -47,7 +47,7 @@ export default function SignupPage() {
     setError('')
 
     if (!isPasswordValid) {
-      setError('Password does not meet requirements')
+      setError(t('signup.errorRequirements') || 'Password does not meet requirements')
       return
     }
 
@@ -65,11 +65,11 @@ export default function SignupPage() {
       if (result.success) {
         navigate('/')
       } else {
-        setError('Account created but login failed. Please sign in.')
+        setError(t('signup.errorLoginFailed') || 'Account created but login failed. Please sign in.')
         navigate('/login')
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Signup failed. Please try again.')
+      setError(err.response?.data?.error || (t('signup.errorSignupFailed') || 'Signup failed. Please try again.'))
     } finally {
       setLoading(false)
     }
@@ -115,7 +115,7 @@ export default function SignupPage() {
                   onChange={(e) => setStoreName(e.target.value)}
                   required
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                  placeholder="My Awesome Store"
+                  placeholder={t('signup.storeNamePlaceholder') || 'My Awesome Store'}
                 />
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function SignupPage() {
                   onChange={(e) => setFullName(e.target.value)}
                   required
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                  placeholder="John Doe"
+                  placeholder={t('signup.fullNamePlaceholder') || 'John Doe'}
                 />
               </div>
             </div>
@@ -149,7 +149,7 @@ export default function SignupPage() {
                   onChange={(e) => setUsername(e.target.value)}
                   required
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                  placeholder="johndoe"
+                  placeholder={t('signup.usernamePlaceholder') || 'johndoe'}
                 />
               </div>
             </div>
@@ -172,10 +172,10 @@ export default function SignupPage() {
               {password && (
                 <div className="mt-2 grid grid-cols-2 gap-1">
                   {[
-                    { key: 'length', label: '8+ characters' },
-                    { key: 'upper', label: 'Uppercase' },
-                    { key: 'lower', label: 'Lowercase' },
-                    { key: 'digit', label: 'Digit' },
+                    { key: 'length', label: t('signup.reqLength') || '8+ characters' },
+                    { key: 'upper', label: t('signup.reqUpper') || 'Uppercase' },
+                    { key: 'lower', label: t('signup.reqLower') || 'Lowercase' },
+                    { key: 'digit', label: t('signup.reqDigit') || 'Digit' },
                   ].map(({ key, label }) => (
                     <div key={key} className="flex items-center gap-1 text-xs">
                       <CheckCircle className={`w-3 h-3 ${checks[key] ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'}`} />
@@ -199,7 +199,7 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                  placeholder="john@example.com"
+                  placeholder={t('signup.emailPlaceholder') || 'john@example.com'}
                 />
               </div>
             </div>

@@ -3,65 +3,67 @@ import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { Check, X, Star, Zap, Crown } from 'lucide-react'
 
-const tiers = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    period: '/mo',
-    icon: Star,
-    color: 'gray',
-    popular: false,
-    features: [
-      { text: '50 Products', included: true },
-      { text: '2 Users', included: true },
-      { text: '100 Orders/month', included: true },
-      { text: 'Basic Reports', included: true },
-      { text: 'POS System', included: true },
-      { text: 'Inventory Tracking', included: false },
-      { text: 'Promotions', included: false },
-      { text: 'Priority Support', included: false },
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 29,
-    period: '/mo',
-    icon: Zap,
-    color: 'primary',
-    popular: true,
-    features: [
-      { text: '500 Products', included: true },
-      { text: '20 Users', included: true },
-      { text: 'Unlimited Orders', included: true },
-      { text: 'Advanced Reports', included: true },
-      { text: 'POS System', included: true },
-      { text: 'Inventory Tracking', included: true },
-      { text: 'Promotions', included: true },
-      { text: 'Priority Support', included: false },
-    ],
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 99,
-    period: '/mo',
-    icon: Crown,
-    color: 'yellow',
-    popular: false,
-    features: [
-      { text: 'Unlimited Products', included: true },
-      { text: 'Unlimited Users', included: true },
-      { text: 'Unlimited Orders', included: true },
-      { text: 'Advanced Reports', included: true },
-      { text: 'POS System', included: true },
-      { text: 'Inventory Tracking', included: true },
-      { text: 'Promotions', included: true },
-      { text: 'Priority Support', included: true },
-    ],
-  },
-]
+function getTiers(t) {
+  return [
+    {
+      id: 'free',
+      name: t('pricing.free') || 'Free',
+      price: 0,
+      period: t('pricing.perMonth') || '/mo',
+      icon: Star,
+      color: 'gray',
+      popular: false,
+      features: [
+        { text: t('pricing.freeProducts') || '50 Products', included: true },
+        { text: t('pricing.freeUsers') || '2 Users', included: true },
+        { text: t('pricing.freeOrders') || '100 Orders/month', included: true },
+        { text: t('pricing.basicReports') || 'Basic Reports', included: true },
+        { text: t('pricing.posSystem') || 'POS System', included: true },
+        { text: t('pricing.inventoryTracking') || 'Inventory Tracking', included: false },
+        { text: t('pricing.promotions') || 'Promotions', included: false },
+        { text: t('pricing.prioritySupport') || 'Priority Support', included: false },
+      ],
+    },
+    {
+      id: 'pro',
+      name: t('pricing.pro') || 'Pro',
+      price: 29,
+      period: t('pricing.perMonth') || '/mo',
+      icon: Zap,
+      color: 'primary',
+      popular: true,
+      features: [
+        { text: t('pricing.proProducts') || '500 Products', included: true },
+        { text: t('pricing.proUsers') || '20 Users', included: true },
+        { text: t('pricing.unlimitedOrders') || 'Unlimited Orders', included: true },
+        { text: t('pricing.advancedReports') || 'Advanced Reports', included: true },
+        { text: t('pricing.posSystem') || 'POS System', included: true },
+        { text: t('pricing.inventoryTracking') || 'Inventory Tracking', included: true },
+        { text: t('pricing.promotions') || 'Promotions', included: true },
+        { text: t('pricing.prioritySupport') || 'Priority Support', included: false },
+      ],
+    },
+    {
+      id: 'enterprise',
+      name: t('pricing.enterprise') || 'Enterprise',
+      price: 99,
+      period: t('pricing.perMonth') || '/mo',
+      icon: Crown,
+      color: 'yellow',
+      popular: false,
+      features: [
+        { text: t('pricing.unlimitedProducts') || 'Unlimited Products', included: true },
+        { text: t('pricing.unlimitedUsers') || 'Unlimited Users', included: true },
+        { text: t('pricing.unlimitedOrders') || 'Unlimited Orders', included: true },
+        { text: t('pricing.advancedReports') || 'Advanced Reports', included: true },
+        { text: t('pricing.posSystem') || 'POS System', included: true },
+        { text: t('pricing.inventoryTracking') || 'Inventory Tracking', included: true },
+        { text: t('pricing.promotions') || 'Promotions', included: true },
+        { text: t('pricing.prioritySupport') || 'Priority Support', included: true },
+      ],
+    },
+  ]
+}
 
 const colorMap = {
   gray: {
@@ -95,6 +97,7 @@ export default function PricingPage() {
   const { currentUser } = useUserStore()
   const navigate = useNavigate()
 
+  const tiers = getTiers(t)
   const currentPlan = currentUser?.subscription_tier || 'free'
 
   return (

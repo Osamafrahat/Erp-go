@@ -65,8 +65,8 @@ export default function SuperAdminPage() {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-gray-400">
         <Shield className="w-12 h-12 mb-3 opacity-50" />
-        <p className="text-lg font-medium">Access Denied</p>
-        <p className="text-sm">Super Admin role required</p>
+        <p className="text-lg font-medium">{t('admin.accessDenied') || 'Access Denied'}</p>
+        <p className="text-sm">{t('admin.roleRequired') || 'Super Admin role required'}</p>
       </div>
     )
   }
@@ -105,10 +105,10 @@ export default function SuperAdminPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Tenants', value: stats.total, icon: Building2, color: 'text-gray-600 dark:text-gray-400' },
-          { label: 'Active', value: stats.active, icon: CheckCircle, color: 'text-green-600 dark:text-green-400' },
-          { label: 'Trial', value: stats.trial, icon: AlertTriangle, color: 'text-blue-600 dark:text-blue-400' },
-          { label: 'MRR', value: `$${stats.revenue}`, icon: TrendingUp, color: 'text-primary-600 dark:text-primary-400' },
+          { label: t('admin.totalTenants') || 'Total Tenants', value: stats.total, icon: Building2, color: 'text-gray-600 dark:text-gray-400' },
+          { label: t('admin.active') || 'Active', value: stats.active, icon: CheckCircle, color: 'text-green-600 dark:text-green-400' },
+          { label: t('admin.trial') || 'Trial', value: stats.trial, icon: AlertTriangle, color: 'text-blue-600 dark:text-blue-400' },
+          { label: t('admin.mrr') || 'MRR', value: `$${stats.revenue}`, icon: TrendingUp, color: 'text-primary-600 dark:text-primary-400' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3">
@@ -130,7 +130,7 @@ export default function SuperAdminPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search tenants..."
+              placeholder={t('admin.searchPlaceholder') || 'Search tenants...'}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
             />
           </div>
@@ -140,13 +140,13 @@ export default function SuperAdminPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Tier</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Users</th>
-                <th className="px-4 py-3 font-medium">Products</th>
-                <th className="px-4 py-3 font-medium">Created</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
+                <th className="px-4 py-3 font-medium">{t('admin.colName') || 'Name'}</th>
+                <th className="px-4 py-3 font-medium">{t('admin.colTier') || 'Tier'}</th>
+                <th className="px-4 py-3 font-medium">{t('admin.colStatus') || 'Status'}</th>
+                <th className="px-4 py-3 font-medium">{t('admin.colUsers') || 'Users'}</th>
+                <th className="px-4 py-3 font-medium">{t('admin.colProducts') || 'Products'}</th>
+                <th className="px-4 py-3 font-medium">{t('admin.colCreated') || 'Created'}</th>
+                <th className="px-4 py-3 font-medium">{t('admin.colActions') || 'Actions'}</th>
               </tr>
             </thead>
             <tbody>
@@ -165,9 +165,9 @@ export default function SuperAdminPage() {
                       disabled={actionLoading === tenant.id}
                       className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${tierColors[tenant.tier] || tierColors.free}`}
                     >
-                      <option value="free">Free</option>
-                      <option value="pro">Pro</option>
-                      <option value="enterprise">Enterprise</option>
+                      <option value="free">{t('admin.free') || 'Free'}</option>
+                      <option value="pro">{t('admin.pro') || 'Pro'}</option>
+                      <option value="enterprise">{t('admin.enterprise') || 'Enterprise'}</option>
                     </select>
                   </td>
                   <td className="px-4 py-3">
@@ -200,7 +200,7 @@ export default function SuperAdminPage() {
                           : 'bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400'
                       } disabled:opacity-50`}
                     >
-                      {actionLoading === tenant.id ? '...' : tenant.status === 'active' ? 'Suspend' : 'Activate'}
+                      {actionLoading === tenant.id ? '...' : tenant.status === 'active' ? (t('admin.suspend') || 'Suspend') : (t('admin.activate') || 'Activate')}
                     </button>
                   </td>
                 </tr>
@@ -208,7 +208,7 @@ export default function SuperAdminPage() {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-gray-400 dark:text-gray-500">
-                    No tenants found
+                    {t('admin.noTenants') || 'No tenants found'}
                   </td>
                 </tr>
               )}

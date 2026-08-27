@@ -206,14 +206,14 @@ export default function Layout({ children }) {
   // -- Subscription --
   const subscriptionItems = []
   if (subscriptionTier === 'free') {
-    subscriptionItems.push({ name: 'Upgrade', href: '/pricing', icon: Crown })
+    subscriptionItems.push({ name: t('layout.upgrade') || 'Upgrade', href: '/pricing', icon: Crown })
   }
-  subscriptionItems.push({ name: 'Billing', href: '/billing', icon: CreditCard })
+  subscriptionItems.push({ name: t('layout.billing') || 'Billing', href: '/billing', icon: CreditCard })
   if (currentUser?.role === 'SUPER_ADMIN') {
-    subscriptionItems.push({ name: 'Super Admin', href: '/super-admin', icon: Shield })
+    subscriptionItems.push({ name: t('layout.superAdmin') || 'Super Admin', href: '/super-admin', icon: Shield })
   }
   if (subscriptionItems.length > 0) {
-    groups.push({ key: 'subscription', label: 'Subscription', items: subscriptionItems })
+    groups.push({ key: 'subscription', label: t('layout.groupSubscription') || 'Subscription', items: subscriptionItems })
   }
 
   const handleLogout = () => {
@@ -701,7 +701,7 @@ export default function Layout({ children }) {
                   return (
                     <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-800/40 transition-all duration-200">
                       <Sparkles className="w-4 h-4" />
-                      <span className="hidden sm:inline">Trial ({trialDaysLeft}d left)</span>
+                      <span className="hidden sm:inline">{t('layout.trialBadge') || 'Trial'} ({trialDaysLeft}d left)</span>
                     </Link>
                   )
                 }
@@ -709,7 +709,7 @@ export default function Layout({ children }) {
                   return (
                     <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800/40 transition-all duration-200">
                       <Crown className="w-4 h-4" />
-                      <span className="hidden sm:inline">Pro</span>
+                      <span className="hidden sm:inline">{t('layout.proBadge') || 'Pro'}</span>
                     </Link>
                   )
                 }
@@ -717,14 +717,14 @@ export default function Layout({ children }) {
                   return (
                     <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-all duration-200">
                       <Crown className="w-4 h-4" />
-                      <span className="hidden sm:inline">Enterprise</span>
+                      <span className="hidden sm:inline">{t('layout.enterpriseBadge') || 'Enterprise'}</span>
                     </Link>
                   )
                 }
                 return (
                   <Link to="/pricing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200">
-                    <span className="hidden sm:inline">Free</span>
-                    <span className="hidden sm:inline text-primary-600 dark:text-primary-400 font-semibold">Upgrade</span>
+                    <span className="hidden sm:inline">{t('layout.freeBadge') || 'Free'}</span>
+                    <span className="hidden sm:inline text-primary-600 dark:text-primary-400 font-semibold">{t('layout.upgrade') || 'Upgrade'}</span>
                   </Link>
                 )
               })()}

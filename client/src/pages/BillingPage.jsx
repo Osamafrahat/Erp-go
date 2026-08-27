@@ -5,17 +5,21 @@ import { useUserStore } from '../stores/userStore'
 import api from '../lib/api'
 import { CreditCard, Users, Package, ShoppingCart, Clock, ArrowUpRight, ExternalLink } from 'lucide-react'
 
-const tierLabels = { free: 'Free', pro: 'Pro', enterprise: 'Enterprise' }
+function getTierLabels(t) {
+  return { free: t('billing.free') || 'Free', pro: t('billing.pro') || 'Pro', enterprise: t('billing.enterprise') || 'Enterprise' }
+}
 const tierColors = {
   free: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
   pro: 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300',
   enterprise: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
 }
-const statusLabels = {
-  active: 'Active',
-  trialing: 'Trial',
-  cancelled: 'Cancelled',
-  past_due: 'Past Due',
+function getStatusLabels(t) {
+  return {
+    active: t('billing.active') || 'Active',
+    trialing: t('billing.trial') || 'Trial',
+    cancelled: t('billing.cancelled') || 'Cancelled',
+    past_due: t('billing.pastDue') || 'Past Due',
+  }
 }
 const statusColors = {
   active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
@@ -97,6 +101,8 @@ export default function BillingPage() {
 
   const tier = billing?.tier || 'free'
   const status = billing?.status || 'active'
+  const tierLabels = getTierLabels(t)
+  const statusLabels = getStatusLabels(t)
   const trialEnds = billing?.trialEndsAt ? new Date(billing.trialEndsAt) : null
   const trialDaysLeft = trialEnds ? Math.max(0, Math.ceil((trialEnds - Date.now()) / (1000 * 60 * 60 * 24))) : 0
 
@@ -116,7 +122,7 @@ export default function BillingPage() {
           <div>
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {tierLabels[tier]} Plan
+                {tierLabels[tier]} {t('billing.plan') || 'Plan'}
               </h2>
               <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${tierColors[tier]}`}>
                 {tierLabels[tier]}
@@ -127,7 +133,7 @@ export default function BillingPage() {
             </div>
             {tier !== 'free' && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                ${tier === 'pro' ? '29' : '99'}/month
+                ${tier === 'pro' ? (t('billing.pricePro') || '$29') : (t('billing.priceEnterprise') || '$99')}/{t('billing.perMonth') || 'month'}
               </p>
             )}
           </div>
@@ -197,10 +203,10 @@ export default function BillingPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                  <th className="pb-2 font-medium">Date</th>
-                  <th className="pb-2 font-medium">Amount</th>
-                  <th className="pb-2 font-medium">Status</th>
-                  <th className="pb-2 font-medium">Invoice</th>
+                  <th className="pb-2 font-medium">{t('billing.date') || 'Date'}</th>
+                  <th className="pb-2 font-medium">{t('billing.amount') || 'Amount'}</th>
+                  <th className="pb-2 font-medium">{t('billing.status') || 'Status'}</th>
+                  <th className="pb-2 font-medium">{t('billing.invoice') || 'Invoice'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,7 +220,7 @@ export default function BillingPage() {
                       </span>
                     </td>
                     <td className="py-2.5 text-primary-600 dark:text-primary-400">
-                      <a href={p.invoiceUrl} target="_blank" rel="noreferrer" className="hover:underline">View</a>
+                      <a href={p.invoiceUrl} target="_blank" rel="noreferrer" className="hover:underline">{t('billing.view') || 'View'}</a>
                     </td>
                   </tr>
                 ))}
