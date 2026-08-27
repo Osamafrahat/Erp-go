@@ -143,7 +143,7 @@ export default function PricingPage() {
 
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">{tier.name}</h3>
                 <div className="mt-2 mb-6">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-white">${tier.price}</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-white">{tier.price > 0 ? `${tier.price} ج.م` : 'Free'}</span>
                   <span className="text-gray-500 dark:text-gray-400">{tier.period}</span>
                 </div>
 
@@ -173,6 +173,37 @@ export default function PricingPage() {
               </div>
             )
           })}
+        </div>
+
+        <div className="mt-12 text-center">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            {t('pricing.paymentMethodsTitle') || 'Accepted Payment Methods'}
+          </h2>
+          <div className="flex flex-wrap justify-center gap-6 text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">💳</span>
+              <span>{t('pricing.visaMastercard') || 'Visa / Mastercard (International)'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">📱</span>
+              <span>{t('pricing.vodafoneCash') || 'Vodafone Cash'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">📱</span>
+              <span>{t('pricing.orangeMoney') || 'Orange Money'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">📱</span>
+              <span>{t('pricing.etisalatCash') || 'Etisalat Cash'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">🏪</span>
+              <span>{t('pricing.fawry') || 'Fawry (Cash Payment)'}</span>
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-500">
+            {t('pricing.allPricesEGP') || 'All prices are in Egyptian Pounds (EGP)'}
+          </p>
         </div>
       </div>
     </div>

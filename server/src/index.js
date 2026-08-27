@@ -45,6 +45,7 @@ import servicesRouter from './routes/services.js'
 import servicePlansRouter from './routes/servicePlans.js'
 import subscriptionsRouter from './routes/subscriptions.js'
 import billingRouter, { stripeWebhookHandler } from './routes/billing.js'
+import paymobRouter from './routes/paymob.js'
 import tenantRouter from './routes/tenant.js'
 import superAdminRouter from './routes/superAdmin.js'
 
@@ -163,6 +164,7 @@ app.use('/api/services', authenticateToken, setTenantContext, activityLogger, se
 app.use('/api/service-plans', authenticateToken, setTenantContext, activityLogger, servicePlansRouter)
 app.use('/api/subscriptions', authenticateToken, setTenantContext, activityLogger, subscriptionsRouter)
 app.use('/api/billing', billingRouter)
+app.use('/api/billing/paymob', paymobRouter)
 app.use('/api/tenant', authenticateToken, setTenantContext, tenantRouter)
 app.use('/api/super-admin', authenticateToken, superAdminRouter)
 

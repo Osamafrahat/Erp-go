@@ -356,4 +356,18 @@ export const superAdminApi = {
   getActivity: (params) => api.get('/super-admin/activity', { params }),
 }
 
+// Billing API
+export const billingApi = {
+  getPlans: () => api.get('/billing/plans'),
+  getCurrent: () => api.get('/billing/current'),
+  checkout: (data) => api.post('/billing/checkout', data),
+  portal: () => api.post('/billing/portal'),
+}
+
+// Paymob API
+export const paymobApi = {
+  createOrder: (data) => api.post('/billing/paymob/order', data),
+  pay: (data) => api.post('/billing/paymob/pay', data),
+}
+
 export default api
