@@ -342,4 +342,18 @@ export const subscriptionsApi = {
   recordPayment: (id, data) => api.post(`/subscriptions/${id}/payments`, data),
 }
 
+// Super Admin API
+export const superAdminApi = {
+  getStats: () => api.get('/super-admin/stats'),
+  getTenants: (params) => api.get('/super-admin/tenants', { params }),
+  getTenant: (id) => api.get(`/super-admin/tenants/${id}`),
+  createTenant: (data) => api.post('/super-admin/tenants', data),
+  updateTenant: (id, data) => api.put(`/super-admin/tenants/${id}`, data),
+  deleteTenant: (id) => api.delete(`/super-admin/tenants/${id}`),
+  impersonate: (tenantId) => api.post(`/super-admin/tenants/${tenantId}/impersonate`),
+  getPlans: () => api.get('/super-admin/plans'),
+  updatePlan: (id, data) => api.put(`/super-admin/plans/${id}`, data),
+  getActivity: (params) => api.get('/super-admin/activity', { params }),
+}
+
 export default api
