@@ -561,9 +561,15 @@ CREATE POLICY "tenant_isolation" ON subscription_payments
 -- ============================================================
 INSERT INTO subscription_plans (name, slug, price_monthly, price_yearly, max_products, max_users, max_orders_monthly, features) VALUES
   ('Free', 'free', 0, 0, 50, 2, 100, '["basic_pos","inventory","reports"]'),
-  ('Pro', 'pro', 29, 290, 500, 20, -1, '["basic_pos","inventory","reports","accounting","hr","services","priority_support"]'),
-  ('Enterprise', 'enterprise', 99, 990, -1, -1, -1, '["basic_pos","inventory","reports","accounting","hr","services","priority_support","custom_integrations","dedicated_support"]')
-ON CONFLICT (slug) DO NOTHING;
+  ('Pro', 'pro', 599, 5990, 500, 15, -1, '["basic_pos","inventory","reports","accounting","hr","services","priority_support"]'),
+  ('Enterprise', 'enterprise', 1499, 14990, -1, -1, -1, '["basic_pos","inventory","reports","accounting","hr","services","priority_support","custom_integrations","dedicated_support"]')
+ON CONFLICT (slug) DO UPDATE SET
+  price_monthly = EXCLUDED.price_monthly,
+  price_yearly = EXCLUDED.price_yearly,
+  max_products = EXCLUDED.max_products,
+  max_users = EXCLUDED.max_users,
+  max_orders_monthly = EXCLUDED.max_orders_monthly,
+  features = EXCLUDED.features;
 
 -- ============================================================
 -- 9. ADD tenant_id INDEXES FOR EVERY TABLE

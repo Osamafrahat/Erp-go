@@ -234,7 +234,7 @@ export async function stripeWebhookHandler(req, res) {
         if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) tier = 'enterprise'
 
         const tierLimits = {
-          pro: { max_products: 1000, max_users: 50, max_orders_monthly: 100000 },
+          pro: { max_products: 500, max_users: 15, max_orders_monthly: Infinity },
           enterprise: { max_products: Infinity, max_users: Infinity, max_orders_monthly: Infinity },
         }
 
@@ -313,9 +313,9 @@ export async function stripeWebhookHandler(req, res) {
             subscription_status: 'cancelled',
             subscription_tier: 'free',
             stripe_subscription_id: null,
-            max_products: 100,
-            max_users: 3,
-            max_orders_monthly: 1000,
+            max_products: 50,
+            max_users: 2,
+            max_orders_monthly: 100,
             updated_at: new Date().toISOString(),
           })
           .eq('id', tenant.id)

@@ -27,14 +27,14 @@ function getTiers(t) {
     {
       id: 'pro',
       name: t('pricing.pro') || 'Pro',
-      price: 29,
+      price: 599,
       period: t('pricing.perMonth') || '/mo',
       icon: Zap,
       color: 'primary',
       popular: true,
       features: [
         { text: t('pricing.proProducts') || '500 Products', included: true },
-        { text: t('pricing.proUsers') || '20 Users', included: true },
+        { text: t('pricing.proUsers') || '15 Users', included: true },
         { text: t('pricing.unlimitedOrders') || 'Unlimited Orders', included: true },
         { text: t('pricing.advancedReports') || 'Advanced Reports', included: true },
         { text: t('pricing.posSystem') || 'POS System', included: true },
@@ -46,7 +46,7 @@ function getTiers(t) {
     {
       id: 'enterprise',
       name: t('pricing.enterprise') || 'Enterprise',
-      price: 99,
+      price: 1499,
       period: t('pricing.perMonth') || '/mo',
       icon: Crown,
       color: 'yellow',

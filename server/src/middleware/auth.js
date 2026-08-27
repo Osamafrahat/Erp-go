@@ -153,9 +153,9 @@ export function requireSuperAdmin(req, res, next) {
 
 export function checkTenantLimits(resource) {
   const LIMITS = {
-    products: { free: 100, starter: 1000, professional: 10000, enterprise: Infinity },
-    users: { free: 3, starter: 10, professional: 50, enterprise: Infinity },
-    orders: { free: 1000, starter: 10000, professional: 100000, enterprise: Infinity }
+    products: { free: 50, pro: 500, enterprise: Infinity },
+    users: { free: 2, pro: 15, enterprise: Infinity },
+    orders: { free: 100, pro: Infinity, enterprise: Infinity }
   }
 
   return async (req, res, next) => {
