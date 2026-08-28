@@ -311,31 +311,22 @@ router.get('/plans', async (req, res) => {
 })
 
 // PUT /api/super-admin/plans/:id - Update a subscription plan
-router.put('/plans/:id', [
-  body('price_monthly').optional().isFloat({ min: 0 }),
-  body('price_yearly').optional().isFloat({ min: 0 }),
-  body('max_products').optional().isInt(),
-  body('max_users').optional().isInt(),
-  body('max_orders_monthly').optional().isInt(),
-], async (req, res) => {
-  const errors = validationResult(req)
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ error: errors.array().map(e => e.msg).join(', ') })
-  }
-
+router.put('/plans/:id', async (req, res) => {
   try {
     const { price_monthly, price_yearly, max_products, max_users, max_orders_monthly, features } = req.body
     const updateData = {}
-    if (price_monthly !== undefined) updateData.price_monthly = price_monthly
-    if (price_yearly !== undefined) updateData.price_yearly = price_yearly
-    if (max_products !== undefined) updateData.max_products = max_products
-    if (max_users !== undefined) updateData.max_users = max_users
-    if (max_orders_monthly !== undefined) updateData.max_orders_monthly = max_orders_monthly
+    if (price_monthly !== undefined) updateData.price_monthly = Number(price_monthly)
+    if (price_yearly !== undefined) updateData.price_yearly = Number(price_yearly)
+    if (max_products !== undefined) updateData.max_products = Number(max_products)
+    if (max_users !== undefined) updateData.max_users = Number(max_users)
+    if (max_orders_monthly !== undefined) updateData.max_orders_monthly = Number(max_orders_monthly)
     if (features !== undefined) updateData.features = features
 
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ error: 'No fields to update' })
     }
+
+    console.log(`[SuperAdmin] Updating plan ${req.params.id}:`, updateData)
 
     const { data, error } = await supabase
       .from('subscription_plans')
@@ -343,7 +334,10 @@ router.put('/plans/:id', [
       .eq('id', req.params.id)
       .select('*')
       .single()
-    if (error) throw error
+    if (error) {
+      console.error('[SuperAdmin] Plan update error:', error)
+      throw error
+    }
 
     res.json(data)
   } catch (err) {

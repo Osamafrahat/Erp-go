@@ -117,6 +117,8 @@ router.post('/checkout', authenticateToken, async (req, res) => {
 // POST /api/billing/paymob/webhook - Handle Paymob callback
 router.post('/webhook', async (req, res) => {
   try {
+    console.log('[Paymob] Webhook received:', JSON.stringify(req.body).substring(0, 500))
+
     const hmacSecret = process.env.PAYMOB_HMAC_SECRET
     if (!hmacSecret) {
       console.error('[Paymob] HMAC secret not configured')
@@ -124,9 +126,8 @@ router.post('/webhook', async (req, res) => {
     }
 
     const body = req.body
-    console.log('[Paymob] Webhook received:', JSON.stringify(body).substring(0, 500))
 
-    if (body.hmac && hmacSecret) {
+    if (body.hmac) {
       const hmac = crypto.createHmac('sha512', hmacSecret)
       const sortedParams = Object.keys(body)
         .sort()
@@ -150,18 +151,16 @@ router.post('/webhook', async (req, res) => {
 
     const merchantOrderId = body.special_reference || body.order?.merchant_order_id || ''
     const paymentSuccess = body.success === true || body.success === 'true'
-    const paymentStatus = body.transaction?.status || body.obj?.order?.payment_status
 
-    console.log(`[Paymob] Payment callback: success=${paymentSuccess}, status=${paymentStatus}, order=${merchantOrderId}`)
+    console.log(`[Paymob] Webhook: success=${paymentSuccess}, order=${merchantOrderId}`)
 
     const tenantIdMatch = merchantOrderId.match(/tenant-(\d+)-/)
     const tenantId = tenantIdMatch?.[1]
     const planSlugMatch = merchantOrderId.match(/tenant-\d+-(\w+)-/)
-    const planSlug = planSlugMatch?.[1] || body.extras?.plan_slug
+    const planSlug = planSlugMatch?.[1]
 
     if (paymentSuccess && tenantId) {
       const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
-
       const { error: updateErr } = await supabase
         .from('tenants')
         .update({
@@ -175,27 +174,69 @@ router.post('/webhook', async (req, res) => {
         })
         .eq('id', tenantId)
 
-      if (updateErr) {
-        console.error('[Paymob] Failed to update tenant:', updateErr.message)
-      } else {
-        console.log(`[Paymob] Tenant ${tenantId} upgraded to ${plan.tier}`)
-      }
+      if (updateErr) console.error('[Paymob] Update error:', updateErr.message)
+      else console.log(`[Paymob] Tenant ${tenantId} upgraded to ${plan.tier}`)
 
-      await supabase
-        .from('tenant_payments')
-        .update({ status: 'paid' })
-        .eq('tenant_id', tenantId)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(1)
-
-    } else if (tenantId) {
-      console.log(`[Paymob] Payment failed for tenant ${tenantId}: ${paymentStatus}`)
+      await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
     }
 
     res.json({ received: true })
   } catch (err) {
     console.error('[Paymob] Webhook error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// GET /api/billing/paymob/verify - Verify payment after redirect
+router.get('/verify', authenticateToken, async (req, res) => {
+  try {
+    const { intention_id } = req.query
+    if (!intention_id) return res.status(400).json({ error: 'Missing intention_id' })
+
+    const secretKey = process.env.PAYMOB_SECRET_KEY
+    if (!secretKey) return res.status(503).json({ error: 'Paymob not configured' })
+
+    const paymobRes = await fetch(`${PAYMOB_BASE_URL}/v1/intention/${intention_id}/`, {
+      headers: { 'Authorization': `Token ${secretKey}` },
+    })
+    const intention = await paymobRes.json()
+
+    console.log(`[Paymob] Verify intention ${intention_id}: status=${intention.status}, payment_status=${intention.payment_status}`)
+
+    if (intention.status === 'PAYMENT_SUCCESS' || intention.payment_status === 'success' || intention.payment_status === 'paid') {
+      const merchantOrderId = intention.special_reference || ''
+      const tenantIdMatch = merchantOrderId.match(/tenant-(\d+)-/)
+      const tenantId = tenantIdMatch?.[1]
+      const planSlugMatch = merchantOrderId.match(/tenant-\d+-(\w+)-/)
+      const planSlug = planSlugMatch?.[1]
+
+      if (tenantId) {
+        const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
+        const { error: updateErr } = await supabase
+          .from('tenants')
+          .update({
+            subscription_status: 'active',
+            subscription_tier: plan.tier,
+            max_products: plan.max_products,
+            max_users: plan.max_users,
+            max_orders_monthly: plan.max_orders_monthly,
+            trial_ends_at: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', tenantId)
+
+        if (updateErr) console.error('[Paymob] Verify update error:', updateErr.message)
+        else console.log(`[Paymob] Verify: tenant ${tenantId} upgraded to ${plan.tier}`)
+
+        await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
+      }
+
+      return res.json({ paid: true, plan: planSlug || 'pro' })
+    }
+
+    res.json({ paid: false, status: intention.status || intention.payment_status })
+  } catch (err) {
+    console.error('[Paymob] Verify error:', err.message)
     res.status(500).json({ error: err.message })
   }
 })

@@ -283,6 +283,26 @@ router.post('/login', [
 
     const { password: _, ...userWithoutPassword } = user
 
+    // Fetch tenant data if user has a tenant_id
+    let tenantData = {}
+    if (user.tenant_id) {
+      const { data: tenant } = await supabase
+        .from('tenants')
+        .select('id, name, slug, subscription_tier, subscription_status, trial_ends_at')
+        .eq('id', user.tenant_id)
+        .single()
+      if (tenant) {
+        tenantData = {
+          tenant_id: tenant.id,
+          tenant_name: tenant.name,
+          tenant_slug: tenant.slug,
+          subscription_tier: tenant.subscription_tier,
+          subscription_status: tenant.subscription_status,
+          trial_ends_at: tenant.trial_ends_at,
+        }
+      }
+    }
+
     logActivity({
       user_id: user.id,
       user_name: user.full_name || user.username,
@@ -292,10 +312,55 @@ router.post('/login', [
       ip_address: req.ip || req.connection?.remoteAddress,
     })
 
-    res.json({ token, user: userWithoutPassword })
+    res.json({ token, user: userWithoutPassword, ...tenantData })
   } catch (err) {
     console.error('Login error:', err)
     res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// POST /api/auth/bootstrap-superadmin - Create super admin if not exists (no auth required, one-time setup)
+router.post('/bootstrap-superadmin', async (req, res) => {
+  try {
+    const BOOTSTRAP_KEY = req.headers['x-bootstrap-key']
+    if (BOOTSTRAP_KEY !== process.env.JWT_SECRET) {
+      return res.status(403).json({ error: 'Invalid bootstrap key' })
+    }
+
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('username', 'superadmin')
+      .single()
+
+    if (existing) {
+      return res.json({ message: 'Super admin already exists', id: existing.id })
+    }
+
+    const hashedPassword = await bcrypt.hash('SuperAdmin123!', 10)
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .insert({
+        username: 'superadmin',
+        password: hashedPassword,
+        full_name: 'Platform Super Admin',
+        email: 'admin@erp-go.com',
+        role: 'SUPER_ADMIN',
+        permissions: JSON.stringify(['all']),
+        is_active: true,
+        must_change_password: false,
+      })
+      .select('id, username, full_name, role')
+      .single()
+
+    if (error) throw error
+
+    console.log('[Auth] Super admin created:', user.id)
+    res.json({ message: 'Super admin created', user })
+  } catch (err) {
+    console.error('[Auth] Bootstrap error:', err.message)
+    res.status(500).json({ error: err.message })
   }
 })
 
