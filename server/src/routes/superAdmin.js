@@ -371,4 +371,94 @@ router.get('/activity', async (req, res) => {
   }
 })
 
+// GET /api/super-admin/payments - All payments across tenants
+router.get('/payments', async (req, res) => {
+  try {
+    const { limit = 50, status } = req.query
+    let query = supabase
+      .from('tenant_payments')
+      .select('*, tenant:tenant_id(name, slug, subscription_tier)')
+      .order('created_at', { ascending: false })
+      .limit(Number(limit))
+
+    if (status) query = query.eq('status', status)
+
+    const { data, error } = await query
+    if (error) throw error
+    res.json(data || [])
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// GET /api/super-admin/analytics - Revenue and growth analytics
+router.get('/analytics', async (req, res) => {
+  try {
+    const { period = '30d' } = req.query
+    const now = new Date()
+    let startDate
+
+    if (period === '7d') startDate = new Date(now - 7 * 24 * 60 * 60 * 1000)
+    else if (period === '90d') startDate = new Date(now - 90 * 24 * 60 * 60 * 1000)
+    else startDate = new Date(now - 30 * 24 * 60 * 60 * 1000)
+
+    const [
+      { data: payments },
+      { data: plans },
+      { data: tenants },
+      { data: recentTenants },
+    ] = await Promise.all([
+      supabase.from('tenant_payments').select('amount, currency, status, created_at, tenant_id'),
+      supabase.from('subscription_plans').select('slug, price_monthly, price_yearly'),
+      supabase.from('tenants').select('id, subscription_tier, subscription_status, created_at'),
+      supabase.from('tenants').select('id, name, subscription_tier, created_at').order('created_at', { ascending: false }).limit(5),
+    ])
+
+    const planMap = {}
+    for (const p of (plans || [])) planMap[p.slug] = p
+
+    const totalRevenue = (payments || [])
+      .filter(p => p.status === 'paid')
+      .reduce((sum, p) => sum + (p.amount || 0), 0)
+
+    const periodPayments = (payments || []).filter(p => {
+      const d = new Date(p.created_at)
+      return d >= startDate && p.status === 'paid'
+    })
+
+    const periodRevenue = periodPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
+
+    const dailyRevenue = {}
+    for (const p of periodPayments) {
+      const day = new Date(p.created_at).toISOString().split('T')[0]
+      dailyRevenue[day] = (dailyRevenue[day] || 0) + (p.amount || 0)
+    }
+
+    const tierCounts = { free: 0, pro: 0, enterprise: 0 }
+    for (const t of (tenants || [])) {
+      const tier = t.subscription_tier || 'free'
+      tierCounts[tier] = (tierCounts[tier] || 0) + 1
+    }
+
+    const estimatedMRR = (tenants || []).reduce((sum, t) => {
+      const plan = planMap[t.subscription_tier]
+      return sum + (plan?.price_monthly || 0)
+    }, 0)
+
+    res.json({
+      total_revenue: totalRevenue,
+      period_revenue: periodRevenue,
+      estimated_mrr: estimatedMRR,
+      total_tenants: (tenants || []).length,
+      tier_distribution: tierCounts,
+      daily_revenue: dailyRevenue,
+      recent_tenants: recentTenants || [],
+      total_payments: (payments || []).length,
+      successful_payments: (payments || []).filter(p => p.status === 'paid').length,
+    })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 export default router

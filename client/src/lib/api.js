@@ -354,6 +354,8 @@ export const superAdminApi = {
   getPlans: () => api.get('/super-admin/plans'),
   updatePlan: (id, data) => api.put(`/super-admin/plans/${id}`, data),
   getActivity: (params) => api.get('/super-admin/activity', { params }),
+  getPayments: (params) => api.get('/super-admin/payments', { params }),
+  getAnalytics: (params) => api.get('/super-admin/analytics', { params }),
 }
 
 // Billing API
