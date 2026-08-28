@@ -3,8 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { paymobApi, billingApi } from '../lib/api'
-import { Check, X, Star, Zap, Crown, CreditCard, Smartphone, Loader2 } from 'lucide-react'
+import { Check, X, Star, Zap, Crown, CreditCard, Smartphone, Loader2, ArrowDown } from 'lucide-react'
 import api from '../lib/api'
+
+const TIER_ORDER = { free: 0, pro: 1, enterprise: 2 }
 
 function getTiers(t, plans = []) {
   const planMap = {}
@@ -78,6 +80,8 @@ const colorMap = {
     iconBg: 'bg-gray-100 dark:bg-gray-700',
     iconColor: 'text-gray-600 dark:text-gray-300',
     button: 'bg-gray-600 hover:bg-gray-700 text-white',
+    buttonCurrent: 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed',
+    buttonDowngrade: 'bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400',
     check: 'text-gray-500',
   },
   primary: {
@@ -86,6 +90,8 @@ const colorMap = {
     iconBg: 'bg-primary-100 dark:bg-primary-800',
     iconColor: 'text-primary-600 dark:text-primary-400',
     button: 'bg-primary-600 hover:bg-primary-700 text-white',
+    buttonCurrent: 'bg-primary-300 dark:bg-primary-700 text-primary-500 dark:text-primary-400 cursor-not-allowed',
+    buttonDowngrade: 'bg-white dark:bg-gray-700 border border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400',
     check: 'text-primary-500',
   },
   yellow: {
@@ -94,6 +100,8 @@ const colorMap = {
     iconBg: 'bg-yellow-100 dark:bg-yellow-800',
     iconColor: 'text-yellow-600 dark:text-yellow-400',
     button: 'bg-yellow-600 hover:bg-yellow-700 text-white',
+    buttonCurrent: 'bg-yellow-300 dark:bg-yellow-700 text-yellow-600 dark:text-yellow-400 cursor-not-allowed',
+    buttonDowngrade: 'bg-white dark:bg-gray-700 border border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400',
     check: 'text-yellow-500',
   },
 }
@@ -109,6 +117,8 @@ export default function PricingPage() {
   const [verifyResult, setVerifyResult] = useState(null)
   const [plans, setPlans] = useState([])
   const [currentPlan, setCurrentPlan] = useState(currentUser?.subscription_tier || 'free')
+  const [showDowngradeConfirm, setShowDowngradeConfirm] = useState(null)
+  const [downgrading, setDowngrading] = useState(false)
 
   useEffect(() => {
     api.get('/billing/plans').then(({ data }) => setPlans(data || [])).catch(() => {})
@@ -137,18 +147,43 @@ export default function PricingPage() {
     }
   }, [searchParams])
 
-  const handlePay = async (tier) => {
-    if (tier.price === 0) {
-      navigate(`/signup?plan=${tier.id}`)
-      return
-    }
+  const handlePlanAction = (tier) => {
+    const currentOrder = TIER_ORDER[currentPlan] ?? 0
+    const targetOrder = TIER_ORDER[tier.id] ?? 0
 
+    // Same plan → do nothing
+    if (currentOrder === targetOrder) return
+
+    // Not logged in → go to signup
     if (!currentUser) {
       navigate(`/signup?plan=${tier.id}`)
       return
     }
 
-    setShowPayment(tier)
+    // Upgrade → open payment modal
+    if (targetOrder > currentOrder) {
+      setShowPayment(tier)
+      return
+    }
+
+    // Downgrade → show confirmation
+    setShowDowngradeConfirm(tier)
+  }
+
+  const handleDowngrade = async () => {
+    if (!showDowngradeConfirm) return
+    setDowngrading(true)
+    try {
+      await billingApi.downgrade({ planSlug: showDowngradeConfirm.id })
+      await refreshUser()
+      setCurrentPlan(showDowngradeConfirm.id)
+      setShowDowngradeConfirm(null)
+      navigate('/billing')
+    } catch (err) {
+      alert(err.response?.data?.error || 'Downgrade failed')
+    } finally {
+      setDowngrading(false)
+    }
   }
 
   const handlePaymob = async () => {
@@ -213,6 +248,23 @@ export default function PricingPage() {
             const colors = colorMap[tier.color]
             const Icon = tier.icon
             const isCurrent = currentPlan === tier.id
+            const isUpgrade = TIER_ORDER[tier.id] > TIER_ORDER[currentPlan]
+            const isDowngrade = TIER_ORDER[tier.id] < TIER_ORDER[currentPlan]
+
+            let buttonLabel, buttonClass, buttonDisabled
+            if (isCurrent) {
+              buttonLabel = t('pricing.currentPlan') || 'Current Plan'
+              buttonClass = colors.buttonCurrent
+              buttonDisabled = true
+            } else if (isDowngrade) {
+              buttonLabel = t('pricing.downgrade') || 'Downgrade'
+              buttonClass = colors.buttonDowngrade
+              buttonDisabled = false
+            } else {
+              buttonLabel = currentUser ? (t('pricing.upgrade') || 'Upgrade') : (t('pricing.getStarted') || 'Get Started')
+              buttonClass = colors.button
+              buttonDisabled = false
+            }
 
             return (
               <div
@@ -259,12 +311,12 @@ export default function PricingPage() {
                 </ul>
 
                 <button
-                  onClick={() => handlePay(tier)}
-                  className={`w-full py-2.5 rounded-lg font-medium transition-colors ${colors.button}`}
+                  onClick={() => handlePlanAction(tier)}
+                  disabled={buttonDisabled}
+                  className={`w-full py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${buttonClass}`}
                 >
-                  {isCurrent
-                    ? (t('pricing.currentPlan') || 'Current Plan')
-                    : (t('pricing.getStarted') || 'Get Started')}
+                  {isDowngrade && <ArrowDown className="w-4 h-4" />}
+                  {buttonLabel}
                 </button>
               </div>
             )
@@ -303,9 +355,17 @@ export default function PricingPage() {
         </div>
       </div>
 
+      {/* Payment Modal */}
       {showPayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { setShowPayment(null); setProcessing(false) }}>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => { setShowPayment(null); setProcessing(false) }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
               {t('pricing.payFor') || 'Pay for'} {showPayment.name}
             </h2>
@@ -336,13 +396,52 @@ export default function PricingPage() {
             <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
               {t('pricing.securePayment') || 'Secure payment processed by Paymob & Stripe'}
             </p>
+          </div>
+        </div>
+      )}
 
+      {/* Downgrade Confirmation Modal */}
+      {showDowngradeConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowDowngradeConfirm(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowPayment(null); setProcessing(false) }}
+              onClick={() => setShowDowngradeConfirm(null)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             >
               <X className="w-5 h-5" />
             </button>
+
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-4">
+                <ArrowDown className="w-6 h-6 text-orange-500" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                {t('pricing.downgradeTitle') || 'Downgrade Plan?'}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                {t('pricing.downgradeConfirm') || 'You will be moved to'} <strong>{showDowngradeConfirm.name}</strong>
+              </p>
+              <p className="text-sm text-orange-600 dark:text-orange-400 mb-6">
+                {t('pricing.downgradeWarning') || 'Your product/user limits will be reduced. Existing data will not be deleted.'}
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDowngradeConfirm(null)}
+                  className="flex-1 py-2.5 rounded-lg font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  {t('pricing.cancel') || 'Cancel'}
+                </button>
+                <button
+                  onClick={handleDowngrade}
+                  disabled={downgrading}
+                  className="flex-1 py-2.5 rounded-lg font-medium bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {downgrading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {t('pricing.confirmDowngrade') || 'Downgrade'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

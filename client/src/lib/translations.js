@@ -1838,6 +1838,13 @@ export const translations = {
     'billing.noSavedCards': 'No saved payment methods',
     'billing.addCardHint': 'Save a card after your next payment for easy renewal',
     'billing.expiresOn': 'Expires',
+    'pricing.downgrade': 'Downgrade',
+    'pricing.upgrade': 'Upgrade',
+    'pricing.downgradeTitle': 'Downgrade Plan?',
+    'pricing.downgradeConfirm': 'You will be moved to',
+    'pricing.downgradeWarning': 'Your product/user limits will be reduced. Existing data will not be deleted.',
+    'pricing.cancel': 'Cancel',
+    'pricing.confirmDowngrade': 'Downgrade',
   },
   ar: {
     // Dashboard
@@ -3669,6 +3676,13 @@ export const translations = {
     'billing.noSavedCards': 'لا توجد طرق دفع محفوظة',
     'billing.addCardHint': 'احفظ بطاقة بعد دفعتك القادمة للتجديد السهل',
     'billing.expiresOn': 'تنتهي في',
+    'pricing.downgrade': 'تخفيض',
+    'pricing.upgrade': 'ترقية',
+    'pricing.downgradeTitle': 'تخفيض الخطة؟',
+    'pricing.downgradeConfirm': 'ستنتقل إلى',
+    'pricing.downgradeWarning': 'سيتم تقليل حدود المنتجات/المستخدمين. لن يتم حذف البيانات الموجودة.',
+    'pricing.cancel': 'إلغاء',
+    'pricing.confirmDowngrade': 'تخفيض',
   },
 }
 

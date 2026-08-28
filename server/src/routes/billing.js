@@ -108,6 +108,52 @@ router.get('/current', authenticateToken, async (req, res) => {
   }
 })
 
+// POST /api/billing/downgrade - Downgrade to a lower plan (auth required)
+router.post('/downgrade', authenticateToken, async (req, res) => {
+  try {
+    const { planSlug } = req.body
+    if (!planSlug) return res.status(400).json({ error: 'Plan slug is required' })
+
+    const { data: tenant, error: tenantError } = await supabase
+      .from('tenants')
+      .select('id, subscription_tier')
+      .eq('id', req.user.tenantId)
+      .single()
+    if (tenantError || !tenant) return res.status(404).json({ error: 'Tenant not found' })
+
+    const currentTier = tenant.subscription_tier || 'free'
+    const tierOrder = { free: 0, pro: 1, enterprise: 2 }
+    if ((tierOrder[planSlug] || 0) >= (tierOrder[currentTier] || 0)) {
+      return res.status(400).json({ error: 'Can only downgrade to a lower plan' })
+    }
+
+    const { data: plan } = await supabase
+      .from('subscription_plans')
+      .select('max_products, max_users, max_orders_monthly')
+      .eq('slug', planSlug)
+      .single()
+
+    const limits = plan || { max_products: 50, max_users: 2, max_orders_monthly: 100 }
+
+    const { error: updateErr } = await supabase
+      .from('tenants')
+      .update({
+        subscription_tier: planSlug,
+        max_products: limits.max_products,
+        max_users: limits.max_users,
+        max_orders_monthly: limits.max_orders_monthly,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', tenant.id)
+    if (updateErr) throw updateErr
+
+    console.log(`[Billing] Tenant ${tenant.id} downgraded from ${currentTier} to ${planSlug}`)
+    res.json({ success: true, plan: planSlug })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // POST /api/billing/checkout - Create Stripe checkout session (auth required)
 router.post('/checkout', authenticateToken, async (req, res) => {
   try {
