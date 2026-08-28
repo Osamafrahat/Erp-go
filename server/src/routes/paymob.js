@@ -5,29 +5,23 @@ import { authenticateToken } from '../middleware/auth.js'
 
 const router = Router()
 
-const PAYMOB_API_URL = 'https://accept.paymob.com/api'
+const PAYMOB_BASE_URL = 'https://accept.paymob.com'
 
-async function paymobAuth() {
-  const apiKey = process.env.PAYMOB_API_KEY
-  if (!apiKey) throw new Error('PAYMOB_API_KEY not configured')
-
-  const res = await fetch(`${PAYMOB_API_URL}/auth/tokens`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ api_key: apiKey }),
-  })
-  const data = await res.json()
-  if (!data.token) throw new Error('Paymob auth failed')
-  return data.token
-}
-
-// POST /api/billing/paymob/order - Create Paymob order
-router.post('/order', authenticateToken, async (req, res) => {
+// POST /api/billing/paymob/checkout - Create intention and return client_secret
+router.post('/checkout', authenticateToken, async (req, res) => {
   try {
+    const secretKey = process.env.PAYMOB_SECRET_KEY
+    const publicKey = process.env.PAYMOB_PUBLIC_KEY
+    const cardIntegrationId = process.env.PAYMOB_CARD_INTEGRATION_ID
+    const webhookUrl = `${req.protocol}://${req.get('host')}/api/billing/paymob/webhook`
+    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/billing?paymob=success`
+
+    if (!secretKey || !publicKey || !cardIntegrationId) {
+      return res.status(503).json({ error: 'Paymob not fully configured. Missing keys.' })
+    }
+
     const { amount, planSlug } = req.body
     if (!amount || amount <= 0) return res.status(400).json({ error: 'Invalid amount' })
-
-    const token = await paymobAuth()
 
     const { data: tenant } = await supabase
       .from('tenants')
@@ -41,26 +35,29 @@ router.post('/order', authenticateToken, async (req, res) => {
       .eq('id', req.user.id)
       .single()
 
-    const res2 = await fetch(`${PAYMOB_API_URL}/ecommerce/orders`, {
+    const merchantOrderId = `tenant-${tenant?.id}-${Date.now()}`
+
+    const intentionRes = await fetch(`${PAYMOB_BASE_URL}/v1/intention/`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Token ${secretKey}`,
+      },
       body: JSON.stringify({
-        auth_token: token,
-        delivery_needed: false,
-        amount_cents: Math.round(amount * 100),
+        amount: Math.round(amount * 100),
         currency: 'EGP',
-        merchant_order_id: `${tenant?.id}-${Date.now()}`,
+        payment_methods: [Number(cardIntegrationId)],
         items: [
           {
             name: planSlug ? `${planSlug} subscription` : 'Subscription',
-            amount_cents: Math.round(amount * 100),
+            amount: Math.round(amount * 100),
             description: `Payment for ${planSlug || 'subscription'} plan`,
             quantity: 1,
           },
         ],
         billing_data: {
           first_name: user?.full_name?.split(' ')[0] || 'Customer',
-          last_name: user?.full_name?.split(' ').slice(1).join(' ') || '',
+          last_name: user?.full_name?.split(' ').slice(1).join(' ') || ' ',
           email: user?.email || '',
           phone_number: '+201000000000',
           apartment: 'N/A',
@@ -68,73 +65,46 @@ router.post('/order', authenticateToken, async (req, res) => {
           street: 'N/A',
           building: 'N/A',
           city: 'Cairo',
-          country: 'EG',
+          country: 'EGY',
           postal_code: '00000',
           state: 'Cairo',
         },
+        special_reference: merchantOrderId,
+        notification_url: webhookUrl,
+        redirection_url: redirectUrl,
       }),
     })
 
-    const orderData = await res2.json()
-    if (orderData.id) {
-      await supabase.from('tenant_payments').insert({
-        tenant_id: tenant.id,
-        stripe_invoice_id: null,
-        amount: Math.round(amount * 100),
-        currency: 'EGP',
-        status: 'pending',
-        payment_date: new Date().toISOString(),
-      })
+    const intentionData = await intentionRes.json()
+
+    if (!intentionData.client_secret) {
+      console.error('[Paymob] Intention creation failed:', intentionData)
+      return res.status(500).json({ error: intentionData.detail || 'Failed to create payment intention' })
     }
 
-    res.json({ order_id: orderData.id })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-})
-
-// POST /api/billing/paymob/pay - Get Paymob payment key
-router.post('/pay', authenticateToken, async (req, res) => {
-  try {
-    const { orderId, integrationId, billingData } = req.body
-    if (!orderId || !integrationId) return res.status(400).json({ error: 'Missing orderId or integrationId' })
-
-    const token = await paymobAuth()
-
-    const res2 = await fetch(`${PAYMOB_API_URL}/acceptance/payment_keys`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        auth_token: token,
-        amount_cents: req.body.amount_cents || 0,
-        currency: 'EGP',
-        order_id: orderId,
-        integration_id: integrationId,
-        billing_data: billingData || {
-          first_name: 'Customer',
-          last_name: '',
-          email: 'test@test.com',
-          phone_number: '+201000000000',
-          apartment: 'N/A',
-          floor: 'N/A',
-          street: 'N/A',
-          building: 'N/A',
-          city: 'Cairo',
-          country: 'EG',
-          postal_code: '00000',
-          state: 'Cairo',
-        },
-      }),
+    await supabase.from('tenant_payments').insert({
+      tenant_id: tenant.id,
+      stripe_invoice_id: null,
+      amount: Math.round(amount * 100),
+      currency: 'EGP',
+      status: 'pending',
+      payment_date: new Date().toISOString(),
     })
 
-    const data = await res2.json()
-    res.json({ token: data.token, iframUrl: data.iframe_url })
+    const checkoutUrl = `${PAYMOB_BASE_URL}/unifiedcheckout/?publicKey=${publicKey}&clientSecret=${intentionData.client_secret}`
+
+    res.json({
+      checkout_url: checkoutUrl,
+      client_secret: intentionData.client_secret,
+      intention_id: intentionData.id,
+    })
   } catch (err) {
+    console.error('[Paymob] Checkout error:', err.message)
     res.status(500).json({ error: err.message })
   }
 })
 
-// POST /api/billing/paymob/webhook - Handle Paymob webhook
+// POST /api/billing/paymob/webhook - Handle Paymob callback
 router.post('/webhook', async (req, res) => {
   try {
     const hmacSecret = process.env.PAYMOB_HMAC_SECRET
@@ -160,12 +130,12 @@ router.post('/webhook', async (req, res) => {
       return res.status(400).json({ error: 'Invalid HMAC' })
     }
 
-    const order = req.body
-    const paymentStatus = order.obj?.order?.payment_status
-    const merchantOrderId = order.obj?.order?.merchant_order_id
+    const transaction = req.body
+    const paymentStatus = transaction.success
+    const merchantOrderId = transaction.special_reference || transaction.order?.merchant_order_id
 
-    if (paymentStatus === 'SUCCESS') {
-      const tenantId = merchantOrderId?.split('-')[0]
+    if (paymentStatus === true || paymentStatus === 'true') {
+      const tenantId = merchantOrderId?.match(/tenant-(\d+)-/)?.[1]
       if (tenantId) {
         await supabase
           .from('tenants')
@@ -178,7 +148,7 @@ router.post('/webhook', async (req, res) => {
         console.log(`[Paymob] Payment successful for tenant ${tenantId}`)
       }
     } else {
-      console.log(`[Paymob] Payment status: ${paymentStatus}`)
+      console.log(`[Paymob] Payment failed: ${merchantOrderId}`)
     }
 
     res.json({ received: true })

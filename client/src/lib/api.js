@@ -366,8 +366,7 @@ export const billingApi = {
 
 // Paymob API
 export const paymobApi = {
-  createOrder: (data) => api.post('/billing/paymob/order', data),
-  pay: (data) => api.post('/billing/paymob/pay', data),
+  checkout: (data) => api.post('/billing/paymob/checkout', data),
 }
 
 export default api

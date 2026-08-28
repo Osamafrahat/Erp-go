@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
-import { Check, X, Star, Zap, Crown } from 'lucide-react'
+import { paymobApi, billingApi } from '../lib/api'
+import { Check, X, Star, Zap, Crown, CreditCard, Smartphone, Loader2 } from 'lucide-react'
 
 function getTiers(t) {
   return [
@@ -96,9 +98,56 @@ export default function PricingPage() {
   const { t } = useAppStore()
   const { currentUser } = useUserStore()
   const navigate = useNavigate()
+  const [showPayment, setShowPayment] = useState(null)
+  const [processing, setProcessing] = useState(false)
 
   const tiers = getTiers(t)
   const currentPlan = currentUser?.subscription_tier || 'free'
+
+  const handlePay = async (tier) => {
+    if (tier.price === 0) {
+      navigate(`/signup?plan=${tier.id}`)
+      return
+    }
+
+    if (!currentUser) {
+      navigate(`/signup?plan=${tier.id}`)
+      return
+    }
+
+    setShowPayment(tier)
+  }
+
+  const handlePaymob = async () => {
+    if (!showPayment) return
+    setProcessing(true)
+    try {
+      const { data } = await paymobApi.checkout({
+        amount: showPayment.price,
+        planSlug: showPayment.id,
+      })
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url
+      }
+    } catch (err) {
+      alert(err.response?.data?.error || 'Payment failed')
+      setProcessing(false)
+    }
+  }
+
+  const handleStripe = async () => {
+    if (!showPayment) return
+    setProcessing(true)
+    try {
+      const { data } = await billingApi.checkout({ planSlug: showPayment.id })
+      if (data.url) {
+        window.location.href = data.url
+      }
+    } catch (err) {
+      alert(err.response?.data?.error || 'Payment failed')
+      setProcessing(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
@@ -163,7 +212,7 @@ export default function PricingPage() {
                 </ul>
 
                 <button
-                  onClick={() => navigate(`/signup?plan=${tier.id}`)}
+                  onClick={() => handlePay(tier)}
                   className={`w-full py-2.5 rounded-lg font-medium transition-colors ${colors.button}`}
                 >
                   {isCurrent
@@ -181,24 +230,24 @@ export default function PricingPage() {
           </h2>
           <div className="flex flex-wrap justify-center gap-6 text-gray-600 dark:text-gray-400">
             <div className="flex items-center gap-2">
-              <span className="font-medium">💳</span>
-              <span>{t('pricing.visaMastercard') || 'Visa / Mastercard (International)'}</span>
+              <CreditCard className="w-5 h-5" />
+              <span>{t('pricing.visaMastercard') || 'Visa / Mastercard'}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-medium">📱</span>
+              <Smartphone className="w-5 h-5" />
               <span>{t('pricing.vodafoneCash') || 'Vodafone Cash'}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-medium">📱</span>
+              <Smartphone className="w-5 h-5" />
               <span>{t('pricing.orangeMoney') || 'Orange Money'}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-medium">📱</span>
+              <Smartphone className="w-5 h-5" />
               <span>{t('pricing.etisalatCash') || 'Etisalat Cash'}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-medium">🏪</span>
-              <span>{t('pricing.fawry') || 'Fawry (Cash Payment)'}</span>
+              <span className="text-lg">🏪</span>
+              <span>{t('pricing.fawry') || 'Fawry'}</span>
             </div>
           </div>
           <p className="mt-4 text-sm text-gray-500 dark:text-gray-500">
@@ -206,6 +255,50 @@ export default function PricingPage() {
           </p>
         </div>
       </div>
+
+      {showPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { setShowPayment(null); setProcessing(false) }}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+              {t('pricing.payFor') || 'Pay for'} {showPayment.name}
+            </h2>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+              {showPayment.price} ج.م{showPayment.period}
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={handlePaymob}
+                disabled={processing}
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
+                {t('pricing.payWithCard') || 'Pay with Card / Wallet / Fawry'}
+              </button>
+
+              <button
+                onClick={handleStripe}
+                disabled={processing}
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-[#635bff] hover:bg-[#5046e4] text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
+                {t('pricing.payWithStripe') || 'Pay with Stripe (International)'}
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
+              {t('pricing.securePayment') || 'Secure payment processed by Paymob & Stripe'}
+            </p>
+
+            <button
+              onClick={() => { setShowPayment(null); setProcessing(false) }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
