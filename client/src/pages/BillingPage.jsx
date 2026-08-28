@@ -28,8 +28,8 @@ const statusColors = {
   past_due: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
 }
 
-const SUPPORT_EMAIL = 'support@erp-go.com'
-const SUPPORT_WHATSAPP = '20155525213'
+const SUPPORT_EMAIL = 'osamaelmeddy1@gmail.com'
+const SUPPORT_WHATSAPP = '201555256213'
 
 function ContactSupportModal({ open, onClose, t, currentUser }) {
   const [subject, setSubject] = useState('')
