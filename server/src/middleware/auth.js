@@ -152,12 +152,6 @@ export function requireSuperAdmin(req, res, next) {
 }
 
 export function checkTenantLimits(resource) {
-  const LIMITS = {
-    products: { free: 50, pro: 500, enterprise: Infinity },
-    users: { free: 2, pro: 15, enterprise: Infinity },
-    orders: { free: 100, pro: Infinity, enterprise: Infinity }
-  }
-
   return async (req, res, next) => {
     if (!req.user?.tenantId) {
       return next()
@@ -166,7 +160,7 @@ export function checkTenantLimits(resource) {
     try {
       const { data: tenant } = await supabase
         .from('tenants')
-        .select('subscription_tier')
+        .select('subscription_tier, max_products, max_users, max_orders_monthly')
         .eq('id', req.user.tenantId)
         .single()
 
@@ -174,10 +168,15 @@ export function checkTenantLimits(resource) {
         return res.status(403).json({ error: 'Tenant not found' })
       }
 
-      const plan = tenant.subscription_tier || 'free'
-      const limit = LIMITS[resource]?.[plan] ?? Infinity
+      const limitMap = {
+        products: tenant.max_products,
+        users: tenant.max_users,
+        orders: tenant.max_orders_monthly,
+      }
 
-      if (limit === Infinity) {
+      const limit = limitMap[resource]
+
+      if (limit === undefined || limit === -1 || limit === Infinity) {
         return next()
       }
 
@@ -187,8 +186,9 @@ export function checkTenantLimits(resource) {
         .eq('tenant_id', req.user.tenantId)
 
       if (count >= limit) {
-        return res.status(403).json({ 
-          error: `${resource} limit reached for ${plan} plan`,
+        console.log(`[Limits] Tenant ${req.user.tenantId} hit ${resource} limit: ${count}/${limit} (${tenant.subscription_tier})`)
+        return res.status(403).json({
+          error: `${resource} limit reached for ${tenant.subscription_tier} plan`,
           limit,
           current: count,
           upgradeRequired: true

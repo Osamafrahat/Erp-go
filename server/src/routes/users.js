@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { body, param, validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
 import supabase from '../db/supabase.js'
-import { authenticateToken, requirePermission } from '../middleware/auth.js'
+import { authenticateToken, requirePermission, checkTenantLimits } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -79,7 +79,7 @@ router.get('/:id', [
 })
 
 // Create user
-router.post('/', authenticateToken, requirePermission('user_manage'), [
+router.post('/', authenticateToken, requirePermission('user_manage'), checkTenantLimits('users'), [
   body('username').trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
   body('password')
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')

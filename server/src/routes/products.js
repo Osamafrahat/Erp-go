@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { body, param, validationResult } from 'express-validator'
 import supabase from '../db/supabase.js'
-import { authenticateToken, requirePermission } from '../middleware/auth.js'
+import { authenticateToken, requirePermission, checkTenantLimits } from '../middleware/auth.js'
 import { sanitizeSearch } from '../helpers/search.js'
 
 const router = Router()
@@ -87,7 +87,7 @@ router.get('/barcode/:barcode', [
 })
 
 // Create product
-router.post('/', authenticateToken, requirePermission('inventory_edit'), [
+router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTenantLimits('products'), [
   body('name').trim().notEmpty().withMessage('Product name is required')
     .isLength({ max: 255 }).withMessage('Name too long'),
   body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),

@@ -1828,6 +1828,10 @@ export const translations = {
     'layout.freeBadge': 'Free',
     'login.noStore': "Don't have a store yet?",
     'login.createStore': 'Create Store',
+    'limits.title': 'Plan Limit Reached',
+    'limits.upgradeMessage': 'Upgrade your plan to continue adding more.',
+    'limits.upgradeNow': 'Upgrade Plan',
+    'limits.dismiss': 'Dismiss',
   },
   ar: {
     // Dashboard
@@ -3649,6 +3653,10 @@ export const translations = {
     'layout.freeBadge': 'مجاني',
     'login.noStore': 'ليس لديك متجر بعد؟',
     'login.createStore': 'إنشاء متجر',
+    'limits.title': 'تم الوصول لحد الخطة',
+    'limits.upgradeMessage': 'قم بترقية خطتك للمتابعة في الإضافة.',
+    'limits.upgradeNow': 'ترقية الخطة',
+    'limits.dismiss': 'تجاهل',
   },
 }
 

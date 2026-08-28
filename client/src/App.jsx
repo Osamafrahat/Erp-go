@@ -6,6 +6,7 @@ import Layout from './components/layout/Layout'
 import Toast from './components/Toast'
 import SessionTimeout from './components/SessionTimeout'
 import ForcePasswordChange from './components/ForcePasswordChange'
+import PlanLimitModal from './components/PlanLimitModal'
 import ErrorBoundary from './components/ErrorBoundary'
 
 const LoginPage = lazy(() => import('./pages/LoginPage'))
@@ -87,6 +88,7 @@ function App() {
           <ErrorBoundary>
             <Toast />
             <SessionTimeout />
+            <PlanLimitModal />
           </ErrorBoundary>
 
           {showForcePasswordChange && (

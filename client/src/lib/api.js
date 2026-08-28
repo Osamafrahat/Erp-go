@@ -47,6 +47,18 @@ api.interceptors.response.use(
     } catch { /* ignore */ }
 
     if ((status === 401 || status === 403) && !isLoginPage && !skipRedirect && !mustChangePw) {
+      const upgradeRequired = error.response?.data?.upgradeRequired
+      if (upgradeRequired) {
+        window.dispatchEvent(new CustomEvent('plan-limit-reached', {
+          detail: {
+            resource: error.response?.data?.error,
+            limit: error.response?.data?.limit,
+            current: error.response?.data?.current,
+          }
+        }))
+        return Promise.reject(error)
+      }
+
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user')
       localStorage.removeItem('user-storage')
