@@ -174,19 +174,34 @@ router.get('/verify', authenticateToken, async (req, res) => {
     if (!lookupId) return res.status(400).json({ error: 'Missing id' })
 
     const secretKey = process.env.PAYMOB_SECRET_KEY
+    const apiKey = process.env.PAYMOB_API_KEY
     if (!secretKey) return res.status(503).json({ error: 'Paymob not configured' })
 
     let paymentData = null
 
-    // Numeric ID = transaction ID from Paymob redirect
-    // pi_ prefix = intention ID
     if (lookupId.startsWith('pi_')) {
-      const paymobRes = await fetch(`${PAYMOB_BASE_URL}/v1/intention/element/${process.env.PAYMOB_PUBLIC_KEY}/${lookupId}/`)
+      // Intention ID — use element retrieve API (no auth needed)
+      const pubKey = process.env.PAYMOB_PUBLIC_KEY
+      const paymobRes = await fetch(`${PAYMOB_BASE_URL}/v1/intention/element/${pubKey}/${lookupId}/`)
       paymentData = await paymobRes.json()
+    } else if (apiKey) {
+      // Transaction ID — use management API (need auth token first)
+      const authRes = await fetch(`${PAYMOB_BASE_URL}/api/auth/tokens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: apiKey }),
+      })
+      const authData = await authRes.json()
+      const authToken = authData?.token
+
+      if (authToken) {
+        const txnRes = await fetch(`${PAYMOB_BASE_URL}/api/acceptance/transactions/${lookupId}?token=${authToken}`)
+        paymentData = await txnRes.json()
+      }
     } else {
-      // Transaction inquiry API
-      const paymobRes = await fetch(`${PAYMOB_BASE_URL}/api/acceptance/transactions/${lookupId}?token=${secretKey}`)
-      paymentData = await paymobRes.json()
+      // Fallback: try with secret key as token parameter
+      const txnRes = await fetch(`${PAYMOB_BASE_URL}/api/acceptance/transactions/${lookupId}?token=${secretKey}`)
+      paymentData = await txnRes.json()
     }
 
     console.log(`[Paymob] Verify ${lookupId}:`, JSON.stringify(paymentData).substring(0, 400))
@@ -194,8 +209,9 @@ router.get('/verify', authenticateToken, async (req, res) => {
     // Check success from various response shapes
     const isPaid = paymentData?.success === true
       || paymentData?.status === 'paid'
-      || paymentData?.payment_status === 'success'
       || paymentData?.status === 'successful'
+      || paymentData?.payment_status === 'success'
+      || paymentData?.pending === false && paymentData?.is_refunded === false
       || paymentData?.obj?.success === true
 
     // Extract merchant_order_id (our special_reference)
@@ -235,8 +251,8 @@ router.get('/verify', authenticateToken, async (req, res) => {
       return res.json({ paid: true, plan: planSlug || 'pro' })
     }
 
-    // Payment not yet complete or not found
-    res.json({ paid: false, status: paymentData?.status || paymentData?.pending === false ? 'completed' : 'pending' })
+    // Not paid or not found
+    res.json({ paid: false, status: paymentData?.status || (paymentData?.pending === false ? 'completed' : 'pending') })
   } catch (err) {
     console.error('[Paymob] Verify error:', err.message)
     res.status(500).json({ error: err.message })
