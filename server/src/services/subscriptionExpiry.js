@@ -9,6 +9,41 @@ const FREE_TIER_LIMITS = {
   max_orders_monthly: 100,
 }
 
+export async function runSchemaMigrations() {
+  console.log('[Migration] Checking schema...')
+  try {
+    // Check if subscription_expires_at column exists
+    const { data, error } = await supabase
+      .from('tenants')
+      .select('id')
+      .limit(1)
+
+    if (error) {
+      console.error('[Migration] Cannot query tenants table:', error.message)
+      return
+    }
+
+    // Try adding columns via raw SQL
+    const sqlStatements = [
+      'ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz',
+      'ALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text',
+    ]
+
+    for (const sql of sqlStatements) {
+      try {
+        const { error: e } = await supabase.rpc('exec_sql', { sql })
+        if (e) console.log(`[Migration] RPC exec_sql not available (${e.message}), manual migration may be needed`)
+      } catch {
+        // RPC function doesn't exist — columns must be added via SQL Editor
+      }
+    }
+
+    console.log('[Migration] Schema check complete')
+  } catch (err) {
+    console.error('[Migration] Error:', err.message)
+  }
+}
+
 export async function checkExpiredSubscriptions() {
   console.log('[SubscriptionExpiry] Running subscription expiry check...')
   try {

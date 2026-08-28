@@ -35,7 +35,7 @@ import etaRouter from './routes/eta.js'
 import { backupRouter } from './routes/backup.js'
 import { startBackupScheduler } from './services/backupScheduler.js'
 import { startAttendanceCron, runAutoClockOut } from './services/attendanceCron.js'
-import { startSubscriptionExpiryCron } from './services/subscriptionExpiry.js'
+import { startSubscriptionExpiryCron, runSchemaMigrations } from './services/subscriptionExpiry.js'
 import chatRouter from './routes/chat.js'
 import attendanceRouter from './routes/attendance.js'
 import leaveRouter from './routes/leave.js'
@@ -205,6 +205,7 @@ async function initAccounting() {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`)
   initAccounting()
+  runSchemaMigrations()
   startBackupScheduler()
   startAttendanceCron()
   startSubscriptionExpiryCron()
