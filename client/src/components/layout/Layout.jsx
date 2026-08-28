@@ -112,7 +112,9 @@ export default function Layout({ children }) {
   if (canAccess('/refunds')) {
     salesItems.push({ name: t('nav.refunds') || 'Refunds', href: '/refunds', icon: RotateCcw })
   }
-  salesItems.push({ name: t('nav.invoices') || 'Invoices', href: '/invoices', icon: FileText })
+  if (currentUser?.role !== 'SUPER_ADMIN') {
+    salesItems.push({ name: t('nav.invoices') || 'Invoices', href: '/invoices', icon: FileText })
+  }
   if (salesItems.length > 0) {
     groups.push({ key: 'sales', label: t('nav.groupSales') || 'Sales', items: salesItems })
   }
@@ -161,14 +163,20 @@ export default function Layout({ children }) {
     hrItems.push({ name: t('nav.employees') || 'Employees', href: '/employees', icon: Users })
     hrItems.push({ name: t('nav.attendance') || 'Attendance', href: '/hr/attendance', icon: Clock })
     hrItems.push({ name: t('nav.attendanceDashboard') || 'Attendance Dashboard', href: '/hr/attendance-dashboard', icon: BarChart3 })
-    hrItems.push({ name: t('nav.leave') || 'Leave', href: '/hr/leave', icon: Calendar })
+    if (currentUser?.role !== 'SUPER_ADMIN') {
+      hrItems.push({ name: t('nav.leave') || 'Leave', href: '/hr/leave', icon: Calendar })
+    }
     hrItems.push({ name: t('nav.payroll') || 'Payroll', href: '/hr/payroll', icon: DollarSign })
-    hrItems.push({ name: t('nav.shifts') || 'Shifts', href: '/hr/shifts', icon: Briefcase })
+    if (currentUser?.role !== 'SUPER_ADMIN') {
+      hrItems.push({ name: t('nav.shifts') || 'Shifts', href: '/hr/shifts', icon: Briefcase })
+    }
     hrItems.push({ name: t('nav.performance') || 'Performance', href: '/hr/performance', icon: Award })
   } else if (canAccess('/hr/shifts/view') || canAccess('/hr/leave/request')) {
     // Non-managers with basic HR access: shifts view (read-only) + leave request
-    hrItems.push({ name: t('nav.shifts') || 'Shifts', href: '/hr/shifts/view', icon: Briefcase })
-    hrItems.push({ name: t('nav.leave') || 'Leave', href: '/hr/leave/request', icon: Calendar })
+    if (currentUser?.role !== 'SUPER_ADMIN') {
+      hrItems.push({ name: t('nav.shifts') || 'Shifts', href: '/hr/shifts/view', icon: Briefcase })
+      hrItems.push({ name: t('nav.leave') || 'Leave', href: '/hr/leave/request', icon: Calendar })
+    }
   }
   if (hrItems.length > 0) {
     groups.push({ key: 'hr', label: t('nav.groupHR') || 'HR', items: hrItems })
