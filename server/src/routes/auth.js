@@ -511,4 +511,44 @@ router.post('/logout', authenticateToken, async (req, res) => {
   }
 })
 
+// GET /api/auth/me - Get current user with fresh tenant data
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, username, full_name, role, permissions, is_active, must_change_password, employee_id, tenant_id')
+      .eq('id', req.user.id)
+      .single()
+
+    if (error || !user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    let tenantData = {}
+    if (user.tenant_id) {
+      const { data: tenant } = await supabase
+        .from('tenants')
+        .select('id, name, slug, subscription_tier, subscription_status, trial_ends_at')
+        .eq('id', user.tenant_id)
+        .single()
+      if (tenant) {
+        tenantData = {
+          tenant_id: tenant.id,
+          tenant_name: tenant.name,
+          tenant_slug: tenant.slug,
+          subscription_tier: tenant.subscription_tier,
+          subscription_status: tenant.subscription_status,
+          trial_ends_at: tenant.trial_ends_at,
+        }
+      }
+    }
+
+    const { password: _, ...userWithoutPassword } = user
+    res.json({ user: userWithoutPassword, ...tenantData })
+  } catch (err) {
+    console.error('Get user error:', err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
 export { router as authRouter }

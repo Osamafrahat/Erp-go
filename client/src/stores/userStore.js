@@ -316,6 +316,33 @@ export const useUserStore = create(
         }
       },
 
+      // Refresh user data from server (e.g. after payment upgrade)
+      refreshUser: async () => {
+        try {
+          const { data } = await authApi.getMe()
+          const mappedUser = {
+            ...data.user,
+            fullName: data.user.full_name,
+          }
+          const tenantData = {
+            tenantId: data.tenant_id ?? null,
+            tenantName: data.tenant_name ?? null,
+            subscriptionTier: data.subscription_tier ?? 'free',
+            subscriptionStatus: data.subscription_status ?? null,
+            trialEndsAt: data.trial_ends_at ?? null,
+          }
+          if (tenantData.tenantId) {
+            localStorage.setItem('tenant_id', tenantData.tenantId)
+          }
+          set({
+            currentUser: mappedUser,
+            ...tenantData,
+          })
+        } catch (err) {
+          console.error('Failed to refresh user:', err)
+        }
+      },
+
       // Check if must change password
       mustChangePassword: () => {
         const { currentUser } = get()

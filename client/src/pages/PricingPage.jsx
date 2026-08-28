@@ -96,7 +96,7 @@ const colorMap = {
 
 export default function PricingPage() {
   const { t } = useAppStore()
-  const { currentUser } = useUserStore()
+  const { currentUser, refreshUser } = useUserStore()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [showPayment, setShowPayment] = useState(null)
@@ -113,10 +113,11 @@ export default function PricingPage() {
     if (intentionId && !verifying && !verifyResult) {
       setVerifying(true)
       paymobApi.verify(intentionId)
-        .then(({ data }) => {
+        .then(async ({ data }) => {
           setVerifyResult(data)
           if (data.paid) {
-            window.location.href = '/?upgraded=true'
+            await refreshUser()
+            navigate('/?upgraded=true')
           }
         })
         .catch(() => setVerifyResult({ paid: false }))
