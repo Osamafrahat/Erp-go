@@ -116,7 +116,7 @@ export default function PricingPage() {
         .then(({ data }) => {
           setVerifyResult(data)
           if (data.paid) {
-            window.location.href = '/pricing?upgraded=true'
+            window.location.href = '/?upgraded=true'
           }
         })
         .catch(() => setVerifyResult({ paid: false }))
