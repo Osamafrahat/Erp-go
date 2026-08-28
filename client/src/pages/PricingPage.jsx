@@ -108,13 +108,16 @@ export default function PricingPage() {
   const [verifying, setVerifying] = useState(false)
   const [verifyResult, setVerifyResult] = useState(null)
   const [plans, setPlans] = useState([])
+  const [currentPlan, setCurrentPlan] = useState(currentUser?.subscription_tier || 'free')
 
   useEffect(() => {
     api.get('/billing/plans').then(({ data }) => setPlans(data || [])).catch(() => {})
+    api.get('/billing/current').then(({ data }) => {
+      if (data?.tenant?.plan) setCurrentPlan(data.tenant.plan)
+    }).catch(() => {})
   }, [])
 
   const tiers = getTiers(t, plans)
-  const currentPlan = currentUser?.subscription_tier || 'free'
 
   // Verify payment after Paymob redirect
   useEffect(() => {
