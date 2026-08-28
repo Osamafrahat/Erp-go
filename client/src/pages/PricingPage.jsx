@@ -109,8 +109,8 @@ export default function PricingPage() {
 
   // Verify payment after Paymob redirect
   useEffect(() => {
-    const intentionId = searchParams.get('intention_id')
-    if (intentionId) {
+    const intentionId = searchParams.get('intention_id') || searchParams.get('id')
+    if (intentionId && !verifying && !verifyResult) {
       setVerifying(true)
       paymobApi.verify(intentionId)
         .then(({ data }) => {

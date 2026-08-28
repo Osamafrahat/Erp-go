@@ -20,7 +20,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
     const cardIntegrationId = process.env.PAYMOB_CARD_INTEGRATION_ID
     const walletIntegrationId = process.env.PAYMOB_WALLET_INTEGRATION_ID
     const webhookUrl = 'https://erp-go-crimson-wind-2087.fly.dev/api/billing/paymob/webhook'
-    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/billing?paymob=success`
+    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/pricing`
 
     if (!secretKey || !publicKey || !cardIntegrationId) {
       return res.status(503).json({ error: 'Paymob not fully configured. Missing keys.' })
