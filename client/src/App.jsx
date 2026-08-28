@@ -65,10 +65,14 @@ function App() {
   const loadSettings = useAppStore((s) => s.loadSettings)
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const mustChangePassword = useUserStore((s) => s.mustChangePassword)
+  const refreshUser = useUserStore((s) => s.refreshUser)
 
   useEffect(() => {
-    if (isAuthenticated) loadSettings()
-  }, [isAuthenticated, loadSettings])
+    if (isAuthenticated) {
+      loadSettings()
+      refreshUser()
+    }
+  }, [isAuthenticated, loadSettings, refreshUser])
 
   useEffect(() => {
     document.title = settings.storeName || 'Store POS'
