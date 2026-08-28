@@ -13,6 +13,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
     const secretKey = process.env.PAYMOB_SECRET_KEY
     const publicKey = process.env.PAYMOB_PUBLIC_KEY
     const cardIntegrationId = process.env.PAYMOB_CARD_INTEGRATION_ID
+    const walletIntegrationId = process.env.PAYMOB_WALLET_INTEGRATION_ID
     const webhookUrl = `${req.protocol}://${req.get('host')}/api/billing/paymob/webhook`
     const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/billing?paymob=success`
 
@@ -37,6 +38,9 @@ router.post('/checkout', authenticateToken, async (req, res) => {
 
     const merchantOrderId = `tenant-${tenant?.id}-${Date.now()}`
 
+    const paymentMethods = [Number(cardIntegrationId)]
+    if (walletIntegrationId) paymentMethods.push(Number(walletIntegrationId))
+
     const intentionRes = await fetch(`${PAYMOB_BASE_URL}/v1/intention/`, {
       method: 'POST',
       headers: {
@@ -46,7 +50,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
       body: JSON.stringify({
         amount: Math.round(amount * 100),
         currency: 'EGP',
-        payment_methods: [Number(cardIntegrationId)],
+        payment_methods: paymentMethods,
         items: [
           {
             name: planSlug ? `${planSlug} subscription` : 'Subscription',
@@ -57,7 +61,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
         ],
         billing_data: {
           first_name: user?.full_name?.split(' ')[0] || 'Customer',
-          last_name: user?.full_name?.split(' ').slice(1).join(' ') || ' ',
+          last_name: user?.full_name?.split(' ').slice(1).join(' ') || 'User',
           email: user?.email || '',
           phone_number: '+201000000000',
           apartment: 'N/A',
