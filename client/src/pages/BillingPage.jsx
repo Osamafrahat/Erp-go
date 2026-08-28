@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import api from '../lib/api'
-import { CreditCard, Users, Package, ShoppingCart, Clock, ArrowUpRight, ExternalLink, X, Mail, MessageCircle, Send, Loader2, CheckCircle } from 'lucide-react'
+import { CreditCard, Users, Package, ShoppingCart, Clock, ArrowUpRight, ExternalLink, X, Mail, MessageCircle, Send, Loader2, CheckCircle, AlertTriangle } from 'lucide-react'
 
 function getTierLabels(t) {
   return { free: t('billing.free') || 'Free', pro: t('billing.pro') || 'Pro', enterprise: t('billing.enterprise') || 'Enterprise' }
@@ -262,6 +262,22 @@ export default function BillingPage() {
             <Clock className="w-4 h-4 text-blue-500" />
             <span className="text-sm text-blue-700 dark:text-blue-300">
               {t('billing.trialEndsIn') || 'Trial ends in'} {trialDaysLeft} {t('billing.days') || 'days'}
+            </span>
+          </div>
+        )}
+
+        {billing?.tenant?.renewal_note && (
+          <div className="flex items-center gap-2 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg mb-4">
+            <AlertTriangle className="w-4 h-4 text-orange-500" />
+            <span className="text-sm text-orange-700 dark:text-orange-300">{billing.tenant.renewal_note}</span>
+          </div>
+        )}
+
+        {billing?.tenant?.subscription_expires_at && tier !== 'free' && (
+          <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg mb-4">
+            <Clock className="w-4 h-4 text-gray-400" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {t('billing.expiresOn') || 'Expires'} {new Date(billing.tenant.subscription_expires_at).toLocaleDateString()}
             </span>
           </div>
         )}

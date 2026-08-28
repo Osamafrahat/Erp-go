@@ -201,9 +201,32 @@ router.put('/tenants/:id', async (req, res) => {
     const updateData = { updated_at: new Date().toISOString() }
     if (subscription_status !== undefined) updateData.subscription_status = subscription_status
     if (subscription_tier !== undefined) updateData.subscription_tier = subscription_tier
-    if (max_products !== undefined) updateData.max_products = max_products
-    if (max_users !== undefined) updateData.max_users = max_users
-    if (max_orders_monthly !== undefined) updateData.max_orders_monthly = max_orders_monthly
+
+    // When tier changes, fetch limits from subscription_plans table unless explicitly overridden
+    if (subscription_tier !== undefined) {
+      const { data: plan } = await supabase
+        .from('subscription_plans')
+        .select('max_products, max_users, max_orders_monthly')
+        .eq('slug', subscription_tier)
+        .single()
+
+      if (plan) {
+        updateData.max_products = max_products !== undefined ? Number(max_products) : plan.max_products
+        updateData.max_users = max_users !== undefined ? Number(max_users) : plan.max_users
+        updateData.max_orders_monthly = max_orders_monthly !== undefined ? Number(max_orders_monthly) : plan.max_orders_monthly
+      } else {
+        // Fallback for free tier when no plan row exists
+        if (subscription_tier === 'free') {
+          updateData.max_products = max_products !== undefined ? Number(max_products) : 50
+          updateData.max_users = max_users !== undefined ? Number(max_users) : 2
+          updateData.max_orders_monthly = max_orders_monthly !== undefined ? Number(max_orders_monthly) : 100
+        }
+      }
+    } else {
+      if (max_products !== undefined) updateData.max_products = Number(max_products)
+      if (max_users !== undefined) updateData.max_users = Number(max_users)
+      if (max_orders_monthly !== undefined) updateData.max_orders_monthly = Number(max_orders_monthly)
+    }
 
     const { data, error } = await supabase
       .from('tenants')
@@ -213,6 +236,7 @@ router.put('/tenants/:id', async (req, res) => {
       .single()
     if (error) throw error
 
+    console.log(`[SuperAdmin] Tenant ${req.params.id} updated: tier=${subscription_tier || 'unchanged'}, limits=${updateData.max_products}/${updateData.max_users}/${updateData.max_orders_monthly}`)
     res.json(data)
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -372,6 +396,7 @@ router.get('/payments', async (req, res) => {
     let query = supabase
       .from('tenant_payments')
       .select('*, tenant:tenant_id(name, slug, subscription_tier)')
+      .order('payment_date', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .limit(Number(limit))
 

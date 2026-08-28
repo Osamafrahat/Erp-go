@@ -134,6 +134,8 @@ router.post('/webhook', async (req, res) => {
 
     if (paymentSuccess && tenantId) {
       const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 30)
       console.log(`[Paymob] Webhook upgrading tenant ${tenantId} to ${plan.tier}`)
 
       const { error: updateErr } = await supabase
@@ -144,6 +146,7 @@ router.post('/webhook', async (req, res) => {
           max_products: plan.max_products,
           max_users: plan.max_users,
           max_orders_monthly: plan.max_orders_monthly,
+          subscription_expires_at: expiresAt.toISOString(),
           trial_ends_at: null,
           updated_at: new Date().toISOString(),
         })
@@ -230,6 +233,8 @@ router.get('/verify', authenticateToken, async (req, res) => {
 
     if (isPaid && tenantId) {
       const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 30)
       const { error: updateErr } = await supabase
         .from('tenants')
         .update({
@@ -238,6 +243,7 @@ router.get('/verify', authenticateToken, async (req, res) => {
           max_products: plan.max_products,
           max_users: plan.max_users,
           max_orders_monthly: plan.max_orders_monthly,
+          subscription_expires_at: expiresAt.toISOString(),
           trial_ends_at: null,
           updated_at: new Date().toISOString(),
         })
@@ -246,7 +252,7 @@ router.get('/verify', authenticateToken, async (req, res) => {
       if (updateErr) console.error('[Paymob] Verify update error:', updateErr.message)
       else console.log(`[Paymob] Verify: tenant ${tenantId} upgraded to ${plan.tier}`)
 
-      await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
+      await supabase.from('tenant_payments').update({ status: 'paid', payment_date: new Date().toISOString() }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
 
       return res.json({ paid: true, plan: planSlug || 'pro' })
     }

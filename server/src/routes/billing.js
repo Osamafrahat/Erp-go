@@ -39,7 +39,7 @@ router.get('/current', authenticateToken, async (req, res) => {
   try {
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('id, name, subscription_status, subscription_tier, stripe_customer_id, stripe_subscription_id, max_products, max_users, max_orders_monthly')
+      .select('id, name, subscription_status, subscription_tier, stripe_customer_id, stripe_subscription_id, max_products, max_users, max_orders_monthly, subscription_expires_at, renewal_note')
       .eq('id', req.user.tenantId)
       .single()
     if (tenantError || !tenant) return res.status(404).json({ error: 'Tenant not found' })
@@ -86,6 +86,8 @@ router.get('/current', authenticateToken, async (req, res) => {
         max_products: tenant.max_products,
         max_users: tenant.max_users,
         max_orders_monthly: tenant.max_orders_monthly,
+        subscription_expires_at: tenant.subscription_expires_at || null,
+        renewal_note: tenant.renewal_note || null,
       },
       usage: {
         products: productCount || 0,

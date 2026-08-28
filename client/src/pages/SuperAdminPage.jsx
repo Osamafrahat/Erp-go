@@ -534,7 +534,7 @@ function PaymentsTab({ t }) {
                   <td className="px-4 py-3"><p className="text-gray-900 dark:text-white">{p.tenant?.name || 'Unknown'}</p><p className="text-xs text-gray-400">{p.tenant?.subscription_tier || ''}</p></td>
                   <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{(p.amount / 100).toLocaleString()} EGP</td>
                   <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-1 rounded-full ${p.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : p.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>{p.status}</span></td>
-                  <td className="px-4 py-3 text-gray-500">{p.created_at ? new Date(p.created_at).toLocaleString() : '—'}</td>
+                  <td className="px-4 py-3 text-gray-500">{p.payment_date ? new Date(p.payment_date).toLocaleString() : p.created_at ? new Date(p.created_at).toLocaleString() : '—'}</td>
                 </tr>
               ))}
             </tbody>

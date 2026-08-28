@@ -35,6 +35,7 @@ import etaRouter from './routes/eta.js'
 import { backupRouter } from './routes/backup.js'
 import { startBackupScheduler } from './services/backupScheduler.js'
 import { startAttendanceCron, runAutoClockOut } from './services/attendanceCron.js'
+import { startSubscriptionExpiryCron } from './services/subscriptionExpiry.js'
 import chatRouter from './routes/chat.js'
 import attendanceRouter from './routes/attendance.js'
 import leaveRouter from './routes/leave.js'
@@ -206,6 +207,7 @@ app.listen(PORT, '0.0.0.0', () => {
   initAccounting()
   startBackupScheduler()
   startAttendanceCron()
+  startSubscriptionExpiryCron()
 })
 
 export default app

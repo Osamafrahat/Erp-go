@@ -4,8 +4,12 @@ import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { paymobApi, billingApi } from '../lib/api'
 import { Check, X, Star, Zap, Crown, CreditCard, Smartphone, Loader2 } from 'lucide-react'
+import api from '../lib/api'
 
-function getTiers(t) {
+function getTiers(t, plans = []) {
+  const planMap = {}
+  for (const p of plans) planMap[p.slug] = p
+
   return [
     {
       id: 'free',
@@ -29,7 +33,7 @@ function getTiers(t) {
     {
       id: 'pro',
       name: t('pricing.pro') || 'Pro',
-      price: 599,
+      price: planMap.pro?.price_monthly ?? 599,
       period: t('pricing.perMonth') || '/mo',
       icon: Zap,
       color: 'primary',
@@ -48,7 +52,7 @@ function getTiers(t) {
     {
       id: 'enterprise',
       name: t('pricing.enterprise') || 'Enterprise',
-      price: 1499,
+      price: planMap.enterprise?.price_monthly ?? 1499,
       period: t('pricing.perMonth') || '/mo',
       icon: Crown,
       color: 'yellow',
@@ -103,8 +107,13 @@ export default function PricingPage() {
   const [processing, setProcessing] = useState(false)
   const [verifying, setVerifying] = useState(false)
   const [verifyResult, setVerifyResult] = useState(null)
+  const [plans, setPlans] = useState([])
 
-  const tiers = getTiers(t)
+  useEffect(() => {
+    api.get('/billing/plans').then(({ data }) => setPlans(data || [])).catch(() => {})
+  }, [])
+
+  const tiers = getTiers(t, plans)
   const currentPlan = currentUser?.subscription_tier || 'free'
 
   // Verify payment after Paymob redirect

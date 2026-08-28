@@ -205,12 +205,13 @@ export default function Layout({ children }) {
 
   // -- Subscription --
   const subscriptionItems = []
-  if (subscriptionTier === 'free') {
-    subscriptionItems.push({ name: t('layout.upgrade') || 'Upgrade', href: '/pricing', icon: Crown })
-  }
-  subscriptionItems.push({ name: t('layout.billing') || 'Billing', href: '/billing', icon: CreditCard })
   if (currentUser?.role === 'SUPER_ADMIN') {
     subscriptionItems.push({ name: t('layout.superAdmin') || 'Super Admin', href: '/super-admin', icon: Shield })
+  } else {
+    if (subscriptionTier === 'free') {
+      subscriptionItems.push({ name: t('layout.upgrade') || 'Upgrade', href: '/pricing', icon: Crown })
+    }
+    subscriptionItems.push({ name: t('layout.billing') || 'Billing', href: '/billing', icon: CreditCard })
   }
   if (subscriptionItems.length > 0) {
     groups.push({ key: 'subscription', label: t('layout.groupSubscription') || 'Subscription', items: subscriptionItems })
@@ -695,7 +696,7 @@ export default function Layout({ children }) {
               </div>
 
               {/* Subscription Badge */}
-              {(() => {
+              {currentUser?.role !== 'SUPER_ADMIN' && (() => {
                 const trialDaysLeft = isTrial() ? Math.ceil((new Date(trialEndsAt) - new Date()) / (1000 * 60 * 60 * 24)) : 0
                 if (isTrial()) {
                   return (
@@ -772,7 +773,7 @@ export default function Layout({ children }) {
           {children}
         </main>
       </div>
-      <ChatWidget />
+      {currentUser?.role !== 'SUPER_ADMIN' && <ChatWidget />}
     </div>
   )
 }
