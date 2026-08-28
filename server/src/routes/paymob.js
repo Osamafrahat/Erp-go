@@ -169,47 +169,48 @@ router.post('/webhook', async (req, res) => {
 // GET /api/billing/paymob/verify - Verify payment after redirect
 router.get('/verify', authenticateToken, async (req, res) => {
   try {
-    const { intention_id } = req.query
-    if (!intention_id) return res.status(400).json({ error: 'Missing intention_id' })
+    const { intention_id, id: txnId } = req.query
+    const lookupId = intention_id || txnId
+    if (!lookupId) return res.status(400).json({ error: 'Missing id' })
 
     const secretKey = process.env.PAYMOB_SECRET_KEY
     if (!secretKey) return res.status(503).json({ error: 'Paymob not configured' })
 
     let paymentData = null
 
-    // Paymob redirect may pass intention ID (pi_xxx) or transaction ID (number)
-    if (intention_id.startsWith('pi_')) {
-      const paymobRes = await fetch(`${PAYMOB_BASE_URL}/v1/intention/${intention_id}/`, {
-        headers: { 'Authorization': `Token ${secretKey}` },
-      })
+    // Numeric ID = transaction ID from Paymob redirect
+    // pi_ prefix = intention ID
+    if (lookupId.startsWith('pi_')) {
+      const paymobRes = await fetch(`${PAYMOB_BASE_URL}/v1/intention/element/${process.env.PAYMOB_PUBLIC_KEY}/${lookupId}/`)
       paymentData = await paymobRes.json()
-      console.log(`[Paymob] Verify intention ${intention_id}:`, JSON.stringify(paymentData).substring(0, 300))
     } else {
-      const paymobRes = await fetch(`${PAYMOB_BASE_URL}/v1/transactions/${intention_id}`, {
-        headers: { 'Authorization': `Token ${secretKey}` },
-      })
+      // Transaction inquiry API
+      const paymobRes = await fetch(`${PAYMOB_BASE_URL}/api/acceptance/transactions/${lookupId}?token=${secretKey}`)
       paymentData = await paymobRes.json()
-      console.log(`[Paymob] Verify transaction ${intention_id}:`, JSON.stringify(paymentData).substring(0, 300))
     }
 
-    const isPaid = paymentData?.success === true ||
-      paymentData?.payment_status === 'success' ||
-      paymentData?.payment_status === 'paid' ||
-      paymentData?.obj?.success === true ||
-      paymentData?.status === 'success'
+    console.log(`[Paymob] Verify ${lookupId}:`, JSON.stringify(paymentData).substring(0, 400))
 
-    // Extract merchant_order_id to find tenant
-    const merchantOrderId = paymentData?.special_reference ||
-      paymentData?.order?.merchant_order_id ||
-      paymentData?.obj?.special_reference ||
-      paymentData?.obj?.order?.merchant_order_id || ''
+    // Check success from various response shapes
+    const isPaid = paymentData?.success === true
+      || paymentData?.status === 'paid'
+      || paymentData?.payment_status === 'success'
+      || paymentData?.status === 'successful'
+      || paymentData?.obj?.success === true
+
+    // Extract merchant_order_id (our special_reference)
+    const merchantOrderId = paymentData?.order?.merchant_order_id
+      || paymentData?.merchant_order_id
+      || paymentData?.obj?.order?.merchant_order_id
+      || paymentData?.special_reference
+      || ''
+
+    console.log(`[Paymob] Verify: paid=${isPaid}, merchant_order_id=${merchantOrderId}`)
 
     const tenantIdMatch = merchantOrderId.match(/tenant-(\d+)-/)
     const tenantId = tenantIdMatch?.[1]
     const planSlugMatch = merchantOrderId.match(/tenant-\d+-(\w+)-/)
     const planSlug = planSlugMatch?.[1]
-
-    console.log(`[Paymob] Verify: paid=${isPaid}, order=${merchantOrderId}, tenant=${tenantId}, plan=${planSlug}`)
 
     if (isPaid && tenantId) {
       const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
@@ -234,7 +235,8 @@ router.get('/verify', authenticateToken, async (req, res) => {
       return res.json({ paid: true, plan: planSlug || 'pro' })
     }
 
-    res.json({ paid: false, status: paymentData?.status || paymentData?.payment_status || 'pending' })
+    // Payment not yet complete or not found
+    res.json({ paid: false, status: paymentData?.status || paymentData?.pending === false ? 'completed' : 'pending' })
   } catch (err) {
     console.error('[Paymob] Verify error:', err.message)
     res.status(500).json({ error: err.message })
