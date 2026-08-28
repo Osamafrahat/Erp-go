@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import api from '../lib/api'
-import { CreditCard, Users, Package, ShoppingCart, Clock, ArrowUpRight, ExternalLink, X, Mail, MessageCircle, Send, Loader2, CheckCircle, AlertTriangle } from 'lucide-react'
+import { CreditCard, Users, Package, ShoppingCart, Clock, ArrowUpRight, ExternalLink, X, Mail, MessageCircle, Send, Loader2, CheckCircle, AlertTriangle, Trash2, Shield } from 'lucide-react'
 
 function getTierLabels(t) {
   return { free: t('billing.free') || 'Free', pro: t('billing.pro') || 'Pro', enterprise: t('billing.enterprise') || 'Enterprise' }
@@ -177,6 +177,8 @@ export default function BillingPage() {
   const [billing, setBilling] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showSupport, setShowSupport] = useState(false)
+  const [savedCards, setSavedCards] = useState([])
+  const [deletingCard, setDeletingCard] = useState(null)
 
   useEffect(() => {
     const fetchBilling = async () => {
@@ -202,6 +204,22 @@ export default function BillingPage() {
     }
     fetchBilling()
   }, [currentUser])
+
+  useEffect(() => {
+    api.get('/billing/paymob/cards').then(({ data }) => setSavedCards(data || [])).catch(() => {})
+  }, [])
+
+  const handleDeleteCard = async (cardId) => {
+    setDeletingCard(cardId)
+    try {
+      await api.delete(`/billing/paymob/cards/${cardId}`)
+      setSavedCards(prev => prev.filter(c => c.id !== cardId))
+    } catch {
+      alert('Failed to delete card')
+    } finally {
+      setDeletingCard(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -322,6 +340,51 @@ export default function BillingPage() {
           )}
         </div>
       </div>
+
+      {tier !== 'free' && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {t('billing.savedCards') || 'Saved Payment Methods'}
+            </h3>
+            <Link to="/pricing" className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+              {t('billing.addCard') || '+ Add Card'}
+            </Link>
+          </div>
+          {savedCards.length > 0 ? (
+            <div className="space-y-3">
+              {savedCards.map(card => (
+                <div key={card.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {card.card_brand || 'Card'} •••• {card.card_last_four || '****'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {card.is_default ? (t('billing.default') || 'Default') : ''} {card.created_at ? new Date(card.created_at).toLocaleDateString() : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteCard(card.id)}
+                    disabled={deletingCard === card.id}
+                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {deletingCard === card.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-gray-400 dark:text-gray-500">
+              <Shield className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">{t('billing.noSavedCards') || 'No saved payment methods'}</p>
+              <p className="text-xs mt-1">{t('billing.addCardHint') || 'Save a card after your next payment for easy renewal'}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">

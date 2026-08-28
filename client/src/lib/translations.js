@@ -1832,6 +1832,12 @@ export const translations = {
     'limits.upgradeMessage': 'Upgrade your plan to continue adding more.',
     'limits.upgradeNow': 'Upgrade Plan',
     'limits.dismiss': 'Dismiss',
+    'billing.savedCards': 'Saved Payment Methods',
+    'billing.addCard': '+ Add Card',
+    'billing.default': 'Default',
+    'billing.noSavedCards': 'No saved payment methods',
+    'billing.addCardHint': 'Save a card after your next payment for easy renewal',
+    'billing.expiresOn': 'Expires',
   },
   ar: {
     // Dashboard
@@ -3657,6 +3663,12 @@ export const translations = {
     'limits.upgradeMessage': 'قم بترقية خطتك للمتابعة في الإضافة.',
     'limits.upgradeNow': 'ترقية الخطة',
     'limits.dismiss': 'تجاهل',
+    'billing.savedCards': 'طرق الدفع المحفوظة',
+    'billing.addCard': '+ إضافة بطاقة',
+    'billing.default': 'افتراضي',
+    'billing.noSavedCards': 'لا توجد طرق دفع محفوظة',
+    'billing.addCardHint': 'احفظ بطاقة بعد دفعتك القادمة للتجديد السهل',
+    'billing.expiresOn': 'تنتهي في',
   },
 }
 

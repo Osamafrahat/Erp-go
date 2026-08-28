@@ -265,4 +265,162 @@ router.get('/verify', authenticateToken, async (req, res) => {
   }
 })
 
+// GET /api/billing/paymob/cards - List saved payment methods
+router.get('/cards', authenticateToken, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('saved_payment_methods')
+      .select('id, provider, card_last_four, card_brand, is_default, created_at')
+      .eq('tenant_id', req.user.tenantId)
+      .order('is_default', { ascending: false })
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    res.json(data || [])
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/billing/paymob/cards - Save a new payment method token
+router.post('/cards', authenticateToken, async (req, res) => {
+  try {
+    const { token, card_last_four, card_brand, paymob_token_id } = req.body
+    if (!token) return res.status(400).json({ error: 'Token is required' })
+
+    const { data: existing } = await supabase
+      .from('saved_payment_methods')
+      .select('id')
+      .eq('tenant_id', req.user.tenantId)
+      .limit(1)
+
+    const isDefault = !existing || existing.length === 0
+
+    const { data, error } = await supabase
+      .from('saved_payment_methods')
+      .insert({
+        tenant_id: req.user.tenantId,
+        provider: 'paymob',
+        card_last_four: card_last_four || null,
+        card_brand: card_brand || null,
+        token,
+        paymob_token_id: paymob_token_id || null,
+        is_default: isDefault,
+      })
+      .select('id, provider, card_last_four, card_brand, is_default, created_at')
+      .single()
+
+    if (error) throw error
+    res.status(201).json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// DELETE /api/billing/paymob/cards/:id - Delete a saved payment method
+router.delete('/cards/:id', authenticateToken, async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('saved_payment_methods')
+      .delete()
+      .eq('id', req.params.id)
+      .eq('tenant_id', req.user.tenantId)
+
+    if (error) throw error
+    res.json({ message: 'Payment method deleted' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/billing/paymob/cards/:id/default - Set a card as default
+router.post('/cards/:id/default', authenticateToken, async (req, res) => {
+  try {
+    // Reset all defaults
+    await supabase
+      .from('saved_payment_methods')
+      .update({ is_default: false })
+      .eq('tenant_id', req.user.tenantId)
+
+    // Set new default
+    const { error } = await supabase
+      .from('saved_payment_methods')
+      .update({ is_default: true })
+      .eq('id', req.params.id)
+      .eq('tenant_id', req.user.tenantId)
+
+    if (error) throw error
+    res.json({ message: 'Default payment method updated' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/billing/paymob/renew - Auto-renew using saved card
+router.post('/renew', authenticateToken, async (req, res) => {
+  try {
+    const { planSlug } = req.body
+    if (!planSlug) return res.status(400).json({ error: 'Plan slug is required' })
+
+    const { data: card } = await supabase
+      .from('saved_payment_methods')
+      .select('*')
+      .eq('tenant_id', req.user.tenantId)
+      .eq('is_default', true)
+      .single()
+
+    if (!card) {
+      return res.status(400).json({ error: 'No saved payment method found. Please add a card first.' })
+    }
+
+    const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('id, name')
+      .eq('id', req.user.tenantId)
+      .single()
+
+    const secretKey = process.env.PAYMOB_SECRET_KEY
+    const cardIntegrationId = process.env.PAYMOB_CARD_INTEGRATION_ID
+
+    // Create a new payment using saved token
+    const intentionRes = await fetch(`${PAYMOB_BASE_URL}/v1/intention/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Token ${secretKey}`,
+      },
+      body: JSON.stringify({
+        amount: 0, // Amount will be overridden by token
+        currency: 'EGP',
+        payment_methods: [Number(cardIntegrationId)],
+        items: [{ name: `${planSlug} renewal`, amount: 0, quantity: 1 }],
+        billing_data: {
+          first_name: tenant?.name || 'Customer',
+          last_name: 'Renewal',
+          email: '',
+          phone_number: '+201000000000',
+          apartment: 'N/A', floor: 'N/A', street: 'N/A', building: 'N/A',
+          city: 'Cairo', country: 'EGY', postal_code: '00000', state: 'Cairo',
+        },
+        special_reference: `tenant-${tenant?.id}-${planSlug}-${Date.now()}`,
+      }),
+    })
+
+    const intentionData = await intentionRes.json()
+
+    if (!intentionData.client_secret) {
+      return res.status(500).json({ error: 'Failed to create renewal intention' })
+    }
+
+    res.json({
+      client_secret: intentionData.client_secret,
+      intention_id: intentionData.id,
+      message: 'Renewal intention created. Complete payment to renew.',
+    })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 export default router
