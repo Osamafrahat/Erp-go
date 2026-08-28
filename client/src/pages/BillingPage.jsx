@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import api from '../lib/api'
-import { CreditCard, Users, Package, ShoppingCart, Clock, ArrowUpRight, ExternalLink } from 'lucide-react'
+import { CreditCard, Users, Package, ShoppingCart, Clock, ArrowUpRight, ExternalLink, X, Mail, MessageCircle, Send, Loader2, CheckCircle } from 'lucide-react'
 
 function getTierLabels(t) {
   return { free: t('billing.free') || 'Free', pro: t('billing.pro') || 'Pro', enterprise: t('billing.enterprise') || 'Enterprise' }
@@ -26,6 +26,117 @@ const statusColors = {
   trialing: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
   cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
   past_due: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+}
+
+const SUPPORT_EMAIL = 'support@erp-go.com'
+const SUPPORT_WHATSAPP = '20155525213'
+
+function ContactSupportModal({ open, onClose, t, currentUser }) {
+  const [subject, setSubject] = useState('')
+  const [message, setMessage] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+
+  if (!open) return null
+
+  const handleSend = async () => {
+    if (!subject.trim() || !message.trim()) return
+    setSending(true)
+    try {
+      const body = `Support Request\nFrom: ${currentUser?.fullName || currentUser?.username || 'User'}\nSubject: ${subject}\n\n${message}`
+      window.open(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`[ERP-Go] ${subject}`)}&body=${encodeURIComponent(body)}`, '_blank')
+      setSent(true)
+      setTimeout(() => { setSent(false); onClose() }, 2000)
+    } catch {
+      window.open(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`[ERP-Go] ${subject}`)}&body=${encodeURIComponent(message)}`, '_blank')
+      setSent(true)
+      setTimeout(() => { setSent(false); onClose() }, 2000)
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const openWhatsApp = () => {
+    const text = `Hi, I need support with ERP-Go.\nUser: ${currentUser?.fullName || currentUser?.username || 'N/A'}\n`
+    window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(text)}`, '_blank')
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6 relative" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <X className="w-5 h-5" />
+        </button>
+
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+          {t('billing.contactSupport') || 'Contact Support'}
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          {t('billing.supportDesc') || 'How can we help you?'}
+        </p>
+
+        {sent ? (
+          <div className="text-center py-8">
+            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+            <p className="text-green-700 dark:text-green-300 font-medium">{t('billing.messageSent') || 'Message ready!'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('billing.checkEmail') || 'Check your email client to send.'}</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-3 mb-4">
+              <button
+                onClick={openWhatsApp}
+                className="w-full flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+              >
+                <MessageCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <div className="text-left">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t('billing.whatsapp') || 'WhatsApp'}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('billing.whatsappDesc') || 'Chat with us instantly'}</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => window.open(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[ERP-Go] Support Request')}`, '_blank')}
+                className="w-full flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+              >
+                <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="text-left">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t('billing.email') || 'Email'}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{SUPPORT_EMAIL}</p>
+                </div>
+              </button>
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t('billing.orSendDirectly') || 'Or send a message directly:'}</p>
+              <input
+                type="text"
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                placeholder={t('billing.subject') || 'Subject'}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm mb-2"
+              />
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                placeholder={t('billing.message') || 'Describe your issue...'}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm resize-none"
+              />
+              <button
+                onClick={handleSend}
+                disabled={!subject.trim() || !message.trim() || sending}
+                className="mt-2 w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+              >
+                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {t('billing.sendMessage') || 'Send Message'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function UsageBar({ label, used, max, icon: Icon }) {
@@ -65,6 +176,7 @@ export default function BillingPage() {
   const { currentUser } = useUserStore()
   const [billing, setBilling] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showSupport, setShowSupport] = useState(false)
 
   useEffect(() => {
     const fetchBilling = async () => {
@@ -186,6 +298,7 @@ export default function BillingPage() {
             </Link>
           ) : (
             <button
+              onClick={() => setShowSupport(true)}
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               {t('billing.contactSupport') || 'Contact Support'}
@@ -234,6 +347,7 @@ export default function BillingPage() {
           </div>
         )}
       </div>
+      <ContactSupportModal open={showSupport} onClose={() => setShowSupport(false)} t={t} currentUser={currentUser} />
     </div>
   )
 }
