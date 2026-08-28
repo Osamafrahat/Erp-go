@@ -25,8 +25,7 @@ router.get('/plans', async (req, res) => {
     const { data, error } = await supabase
       .from('subscription_plans')
       .select('*')
-      .eq('is_active', true)
-      .order('price', { ascending: true })
+      .order('price_monthly', { ascending: true })
     if (error) throw error
     res.json(data || [])
   } catch (err) {
