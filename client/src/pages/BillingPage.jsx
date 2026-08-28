@@ -99,8 +99,8 @@ export default function BillingPage() {
     )
   }
 
-  const tier = billing?.tier || 'free'
-  const status = billing?.status || 'active'
+  const tier = billing?.tenant?.plan || billing?.tier || 'free'
+  const status = billing?.tenant?.subscription_status || billing?.status || 'active'
   const tierLabels = getTierLabels(t)
   const statusLabels = getStatusLabels(t)
   const trialEnds = billing?.trialEndsAt ? new Date(billing.trialEndsAt) : null
@@ -157,20 +157,20 @@ export default function BillingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <UsageBar
             label={t('billing.products') || 'Products'}
-            used={billing?.productsUsed || 0}
-            max={billing?.productsMax ?? 50}
+            used={billing?.usage?.products || billing?.productsUsed || 0}
+            max={billing?.tenant?.max_products ?? billing?.productsMax ?? 50}
             icon={Package}
           />
           <UsageBar
             label={t('billing.users') || 'Users'}
-            used={billing?.usersUsed || 0}
-            max={billing?.usersMax ?? 2}
+            used={billing?.usage?.users || billing?.usersUsed || 0}
+            max={billing?.tenant?.max_users ?? billing?.usersMax ?? 2}
             icon={Users}
           />
           <UsageBar
             label={t('billing.ordersThisMonth') || 'Orders This Month'}
-            used={billing?.ordersThisMonth || 0}
-            max={billing?.ordersMax ?? 100}
+            used={billing?.usage?.orders_this_month || billing?.ordersThisMonth || 0}
+            max={billing?.tenant?.max_orders_monthly ?? billing?.ordersMax ?? -1}
             icon={ShoppingCart}
           />
         </div>
