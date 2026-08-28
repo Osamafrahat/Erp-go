@@ -369,6 +369,7 @@ export const billingApi = {
 // Paymob API
 export const paymobApi = {
   checkout: (data) => api.post('/billing/paymob/checkout', data),
+  verify: (intentionId) => api.get(`/billing/paymob/verify?intention_id=${intentionId}`),
 }
 
 export default api

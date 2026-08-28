@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { paymobApi, billingApi } from '../lib/api'
@@ -98,11 +98,31 @@ export default function PricingPage() {
   const { t } = useAppStore()
   const { currentUser } = useUserStore()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [showPayment, setShowPayment] = useState(null)
   const [processing, setProcessing] = useState(false)
+  const [verifying, setVerifying] = useState(false)
+  const [verifyResult, setVerifyResult] = useState(null)
 
   const tiers = getTiers(t)
   const currentPlan = currentUser?.subscription_tier || 'free'
+
+  // Verify payment after Paymob redirect
+  useEffect(() => {
+    const intentionId = searchParams.get('intention_id')
+    if (intentionId) {
+      setVerifying(true)
+      paymobApi.verify(intentionId)
+        .then(({ data }) => {
+          setVerifyResult(data)
+          if (data.paid) {
+            window.location.href = '/pricing?upgraded=true'
+          }
+        })
+        .catch(() => setVerifyResult({ paid: false }))
+        .finally(() => setVerifying(false))
+    }
+  }, [searchParams])
 
   const handlePay = async (tier) => {
     if (tier.price === 0) {
@@ -149,9 +169,23 @@ export default function PricingPage() {
     }
   }
 
+  const upgraded = searchParams.get('upgraded') === 'true'
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
       <div className="max-w-5xl mx-auto">
+        {verifying && (
+          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl flex items-center gap-3">
+            <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+            <span className="text-blue-800 dark:text-blue-200">{t('pricing.verifyingPayment') || 'Verifying your payment...'}</span>
+          </div>
+        )}
+
+        {upgraded && (
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl">
+            <p className="text-green-800 dark:text-green-200 font-medium">{t('pricing.upgradeSuccess') || 'Your plan has been upgraded successfully!'}</p>
+          </div>
+        )}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             {t('pricing.title') || 'Choose Your Plan'}
