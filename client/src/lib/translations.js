@@ -386,6 +386,8 @@ export const translations = {
     'common.noData': 'No data',
     'common.description': 'Description',
     'common.accessDenied': 'Access Denied',
+    'common.users': 'Users',
+    'common.orders': 'Orders',
 
     // Offline / Sync
     'offline.online': 'Online',
@@ -2264,6 +2266,8 @@ export const translations = {
     'common.noData': 'لا توجد بيانات',
     'common.description': 'الوصف',
     'common.accessDenied': ' الوصول مرفوض',
+    'common.users': 'المستخدمين',
+    'common.orders': 'الطلبات',
 
     // Offline / Sync
     'offline.online': 'متصل',
