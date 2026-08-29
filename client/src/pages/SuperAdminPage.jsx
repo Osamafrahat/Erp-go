@@ -667,29 +667,112 @@ function PlansTab({ t, showToast }) {
 function ActivityTab({ t }) {
   const [activities, setActivities] = useState([])
   const [loading, setLoading] = useState(true)
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 })
+  const [filterEntity, setFilterEntity] = useState('')
+  const [filterAction, setFilterAction] = useState('')
+  const [search, setSearch] = useState('')
+  const limit = 30
 
-  useEffect(() => {
-    superAdminApi.getActivity({ limit: 50 }).then(({ data }) => setActivities(data || [])).catch(() => {}).finally(() => setLoading(false))
-  }, [])
+  const fetchActivities = useCallback(async (page = 1) => {
+    setLoading(true)
+    const params = { page, limit }
+    if (filterEntity) params.entity_type = filterEntity
+    if (filterAction) params.action = filterAction
+    if (search) params.search = search
+    superAdminApi.getActivity(params).then(({ data }) => {
+      setActivities(data?.data || [])
+      setPagination(data?.pagination || { page: 1, totalPages: 1, total: 0 })
+    }).catch(() => {}).finally(() => setLoading(false))
+  }, [filterEntity, filterAction, search])
 
-  if (loading) return <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+  useEffect(() => { fetchActivities(1) }, [fetchActivities])
+
+  const actionColors = {
+    created: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    updated: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+    deleted: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+    upgraded: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+    downgraded: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+    expired: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+    logged_in: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+    signed_up: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
+    refunded: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-      {activities.length === 0 ? (
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <Activity className="w-4 h-4" />
+          <span>{pagination.total} {t('admin.totalActivities') || 'activities'}</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('common.search') || 'Search...'} className="text-sm px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-40" />
+          <select value={filterEntity} onChange={(e) => setFilterEntity(e.target.value)} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5">
+            <option value="">{t('admin.allEntities') || 'All Entities'}</option>
+            <option value="subscription">Subscription</option>
+            <option value="product">Product</option>
+            <option value="order">Order</option>
+            <option value="customer">Customer</option>
+            <option value="user">User</option>
+            <option value="employee">Employee</option>
+            <option value="auth">Auth</option>
+          </select>
+          <select value={filterAction} onChange={(e) => setFilterAction(e.target.value)} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5">
+            <option value="">{t('admin.allActions') || 'All Actions'}</option>
+            <option value="created">{t('admin.actionCreated') || 'Created'}</option>
+            <option value="updated">{t('admin.actionUpdated') || 'Updated'}</option>
+            <option value="deleted">{t('admin.actionDeleted') || 'Deleted'}</option>
+            <option value="upgraded">{t('admin.actionUpgraded') || 'Upgraded'}</option>
+            <option value="downgraded">{t('admin.actionDowngraded') || 'Downgraded'}</option>
+            <option value="expired">{t('admin.actionExpired') || 'Expired'}</option>
+            <option value="logged_in">{t('admin.actionLogin') || 'Login'}</option>
+          </select>
+        </div>
+      </div>
+      {loading ? (
+        <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+      ) : activities.length === 0 ? (
         <div className="p-8 text-center text-gray-400"><Activity className="w-8 h-8 mx-auto mb-2 opacity-50" /><p>{t('admin.noActivity') || 'No activity recorded'}</p></div>
       ) : (
-        <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
-          {activities.map((a) => (
-            <div key={a.id} className="px-4 py-3 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-900 dark:text-white">{a.action} {a.entity_type ? `— ${a.entity_type}` : ''}</p>
-                <p className="text-xs text-gray-400">{a.users?.username || 'System'} {a.entity_id ? `#${a.entity_id}` : ''}</p>
+        <>
+          <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
+            {activities.map((a) => (
+              <div key={a.id} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${actionColors[a.action] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
+                    {a.action}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm text-gray-900 dark:text-white truncate">
+                      {a.entity_name || a.entity_type}
+                      {a.details?.from_tier && a.details?.to_tier ? (
+                        <span className="text-gray-500 dark:text-gray-400"> — {a.details.from_tier} → {a.details.to_tier}</span>
+                      ) : a.entity_id ? (
+                        <span className="text-gray-500 dark:text-gray-400"> #{a.entity_id}</span>
+                      ) : null}
+                    </p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {a.users?.full_name || a.user_name || 'System'}
+                      {a.tenant_name ? <span className="ml-1 text-gray-300">• {a.tenant_name}</span> : null}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs text-gray-400 shrink-0 ml-4">{a.created_at ? new Date(a.created_at).toLocaleString() : '—'}</span>
               </div>
-              <span className="text-xs text-gray-400">{a.created_at ? new Date(a.created_at).toLocaleString() : '—'}</span>
+            ))}
+          </div>
+          {pagination.totalPages > 1 && (
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
+              <span className="text-gray-500">{t('admin.showing') || 'Showing'} {((pagination.page - 1) * limit) + 1}–{Math.min(pagination.page * limit, pagination.total)} {t('admin.of') || 'of'} {pagination.total}</span>
+              <div className="flex gap-1">
+                <button onClick={() => fetchActivities(pagination.page - 1)} disabled={pagination.page === 1} className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 text-gray-700 dark:text-gray-300">{t('common.previous') || 'Prev'}</button>
+                <span className="px-3 py-1 text-gray-500">{pagination.page}/{pagination.totalPages}</span>
+                <button onClick={() => fetchActivities(pagination.page + 1)} disabled={pagination.page === pagination.totalPages} className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 text-gray-700 dark:text-gray-300">{t('common.next') || 'Next'}</button>
+              </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   )

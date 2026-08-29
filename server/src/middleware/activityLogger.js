@@ -11,21 +11,22 @@ import supabase from '../db/supabase.js'
  * @param {string} params.entity_name - The display name of the entity
  * @param {object} params.details - Additional details (e.g., old/new values)
  * @param {string} params.ip_address - The IP address of the request
+ * @param {number} params.tenant_id - The tenant ID (required for webhook/cron contexts where RLS is not set)
  */
-export async function logActivity({ user_id, user_name, action, entity_type, entity_id, entity_name, details = {}, ip_address }) {
+export async function logActivity({ user_id, user_name, action, entity_type, entity_id, entity_name, details = {}, ip_address, tenant_id }) {
   try {
-    await supabase
-      .from('activity_log')
-      .insert([{
-        user_id,
-        user_name,
-        action,
-        entity_type,
-        entity_id: entity_id || null,
-        entity_name: entity_name || null,
-        details,
-        ip_address: ip_address || null,
-      }])
+    const entry = {
+      user_id,
+      user_name,
+      action,
+      entity_type,
+      entity_id: entity_id || null,
+      entity_name: entity_name || null,
+      details,
+      ip_address: ip_address || null,
+    }
+    if (tenant_id) entry.tenant_id = tenant_id
+    await supabase.from('activity_log').insert([entry])
   } catch (err) {
     console.error('Failed to log activity:', err)
   }

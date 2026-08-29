@@ -2,6 +2,7 @@ import { Router } from 'express'
 import crypto from 'crypto'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requireManager } from '../middleware/auth.js'
+import { logActivity } from '../middleware/activityLogger.js'
 
 const router = Router()
 
@@ -179,6 +180,13 @@ router.post('/webhook', async (req, res) => {
         expiresAt.setDate(expiresAt.getDate() + expiryDays)
         console.log(`[Paymob] Webhook upgrading tenant ${tenantId} to ${plan.tier} (${billingPeriod})`)
 
+        // Get current tier for activity logging
+        const { data: currentTenant } = await supabase
+          .from('tenants')
+          .select('subscription_tier, name')
+          .eq('id', tenantId)
+          .single()
+
         const { error: updateErr } = await supabase
           .from('tenants')
           .update({
@@ -195,6 +203,19 @@ router.post('/webhook', async (req, res) => {
 
         if (updateErr) console.error('[Paymob] Webhook update error:', updateErr.message)
         else console.log(`[Paymob] Webhook: tenant ${tenantId} upgraded to ${plan.tier}`)
+
+        // Log subscription tier change
+        if (currentTenant && plan.tier !== currentTenant.subscription_tier) {
+          await logActivity({
+            user_name: 'System',
+            action: 'upgraded',
+            entity_type: 'subscription',
+            entity_id: tenantId,
+            entity_name: currentTenant.name,
+            details: { from_tier: currentTenant.subscription_tier, to_tier: plan.tier, billing_period: billingPeriod, source: 'paymob_webhook' },
+            tenant_id: tenantId,
+          })
+        }
 
         const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('description', merchantOrderId).eq('status', 'pending').limit(1)
         if (payErr) console.error('[Paymob] Webhook payment update error:', payErr.message)
@@ -334,6 +355,14 @@ router.get('/verify', authenticateToken, requireManager, async (req, res) => {
       const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + expiryDays)
+
+      // Get current tier for activity logging
+      const { data: currentTenant } = await supabase
+        .from('tenants')
+        .select('subscription_tier, name')
+        .eq('id', tenantId)
+        .single()
+
       const { error: updateErr } = await supabase
         .from('tenants')
         .update({
@@ -350,6 +379,19 @@ router.get('/verify', authenticateToken, requireManager, async (req, res) => {
 
       if (updateErr) console.error('[Paymob] Verify update error:', updateErr.message)
       else console.log(`[Paymob] Verify: tenant ${tenantId} upgraded to ${plan.tier}`)
+
+      // Log subscription tier change
+      if (currentTenant && plan.tier !== currentTenant.subscription_tier) {
+        await logActivity({
+          user_name: 'System',
+          action: 'upgraded',
+          entity_type: 'subscription',
+          entity_id: tenantId,
+          entity_name: currentTenant.name,
+          details: { from_tier: currentTenant.subscription_tier, to_tier: plan.tier, billing_period: billingPeriod, source: 'paymob_verify' },
+          tenant_id: tenantId,
+        })
+      }
 
       const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('description', merchantOrderId).eq('status', 'pending').limit(1)
       if (payErr) console.error('[Paymob] Verify payment update error:', payErr.message)

@@ -1,5 +1,6 @@
 import cron from 'node-cron'
 import supabase from '../db/supabase.js'
+import { logActivity } from '../middleware/activityLogger.js'
 
 let expiryCheckJob = null
 
@@ -85,6 +86,15 @@ export async function checkExpiredSubscriptions() {
         console.error(`[SubscriptionExpiry] Failed to downgrade tenant ${tenant.id}:`, updateErr.message)
       } else {
         console.log(`[SubscriptionExpiry] Tenant ${tenant.id} (${tenant.name}) downgraded to free (was ${tenant.subscription_tier})`)
+        await logActivity({
+          user_name: 'System',
+          action: 'expired',
+          entity_type: 'subscription',
+          entity_id: tenant.id,
+          entity_name: tenant.name,
+          details: { from_tier: tenant.subscription_tier, to_tier: 'free', reason: 'subscription_expired' },
+          tenant_id: tenant.id,
+        })
       }
     }
   } catch (err) {

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import Stripe from 'stripe'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requireManager } from '../middleware/auth.js'
+import { logActivity } from '../middleware/activityLogger.js'
 
 const router = Router()
 
@@ -162,6 +163,18 @@ router.post('/downgrade', authenticateToken, requireManager, async (req, res) =>
       })
       .eq('id', tenant.id)
     if (updateErr) throw updateErr
+
+    // Log downgrade
+    await logActivity({
+      user_id: req.user.id,
+      user_name: req.user.full_name || req.user.username,
+      action: 'downgraded',
+      entity_type: 'subscription',
+      entity_id: tenant.id,
+      entity_name: tenant.name,
+      details: { from_tier: currentTier, to_tier: planSlug },
+      tenant_id: tenant.id,
+    })
 
     console.log(`[Billing] Tenant ${tenant.id} downgraded from ${currentTier} to ${planSlug}`)
     res.json({ success: true, plan: planSlug })

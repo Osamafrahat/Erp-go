@@ -3,6 +3,7 @@ import crypto from 'crypto'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requireSuperAdmin, generateToken } from '../middleware/auth.js'
 import { body, validationResult } from 'express-validator'
+import { logActivity } from '../middleware/activityLogger.js'
 
 const router = Router()
 
@@ -197,6 +198,14 @@ router.post('/tenants', [
 router.put('/tenants/:id', async (req, res) => {
   try {
     const { subscription_status, subscription_tier, max_products, max_users, max_orders_monthly } = req.body
+    const tenantId = Number(req.params.id)
+
+    // Get current tier for activity logging
+    const { data: currentTenant } = await supabase
+      .from('tenants')
+      .select('subscription_tier, name')
+      .eq('id', tenantId)
+      .single()
 
     const updateData = { updated_at: new Date().toISOString() }
     if (subscription_status !== undefined) updateData.subscription_status = subscription_status
@@ -215,7 +224,6 @@ router.put('/tenants/:id', async (req, res) => {
         updateData.max_users = max_users !== undefined ? Number(max_users) : plan.max_users
         updateData.max_orders_monthly = max_orders_monthly !== undefined ? Number(max_orders_monthly) : plan.max_orders_monthly
       } else {
-        // Fallback for free tier when no plan row exists
         if (subscription_tier === 'free') {
           updateData.max_products = max_products !== undefined ? Number(max_products) : 50
           updateData.max_users = max_users !== undefined ? Number(max_users) : 2
@@ -231,12 +239,28 @@ router.put('/tenants/:id', async (req, res) => {
     const { data, error } = await supabase
       .from('tenants')
       .update(updateData)
-      .eq('id', req.params.id)
+      .eq('id', tenantId)
       .select('*')
       .single()
     if (error) throw error
 
-    console.log(`[SuperAdmin] Tenant ${req.params.id} updated: tier=${subscription_tier || 'unchanged'}, limits=${updateData.max_products}/${updateData.max_users}/${updateData.max_orders_monthly}`)
+    // Log subscription tier change
+    if (subscription_tier && currentTenant && subscription_tier !== currentTenant.subscription_tier) {
+      const tierOrder = { free: 0, pro: 1, enterprise: 2 }
+      const isUpgrade = (tierOrder[subscription_tier] || 0) > (tierOrder[currentTenant.subscription_tier] || 0)
+      await logActivity({
+        user_id: req.user.id,
+        user_name: req.user.full_name || req.user.username,
+        action: isUpgrade ? 'upgraded' : 'downgraded',
+        entity_type: 'subscription',
+        entity_id: tenantId,
+        entity_name: currentTenant.name,
+        details: { from_tier: currentTenant.subscription_tier, to_tier: subscription_tier },
+        tenant_id: tenantId,
+      })
+    }
+
+    console.log(`[SuperAdmin] Tenant ${tenantId} updated: tier=${subscription_tier || 'unchanged'}, limits=${updateData.max_products}/${updateData.max_users}/${updateData.max_orders_monthly}`)
     res.json(data)
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -372,18 +396,42 @@ router.put('/plans/:id', async (req, res) => {
 // GET /api/super-admin/activity - Recent activity across all tenants
 router.get('/activity', async (req, res) => {
   try {
-    const { limit = 50, tenant_id } = req.query
+    const { limit = 50, page = 1, tenant_id, entity_type, action, search } = req.query
+    const offset = (Math.max(1, Number(page)) - 1) * Number(limit)
+
     let query = supabase
-      .from('activities')
-      .select('*, users:user_id(username, full_name)')
+      .from('activity_log')
+      .select('*, users:user_id(username, full_name)', { count: 'exact' })
       .order('created_at', { ascending: false })
-      .limit(Number(limit))
 
     if (tenant_id) query = query.eq('tenant_id', tenant_id)
+    if (entity_type) query = query.eq('entity_type', entity_type)
+    if (action) query = query.eq('action', action)
+    if (search) query = query.or(`user_name.ilike.%${search}%,entity_name.ilike.%${search}%,action.ilike.%${search}%`)
 
-    const { data, error } = await query
+    const { data, error, count } = await query.range(offset, offset + Number(limit) - 1)
     if (error) throw error
-    res.json(data || [])
+
+    // Enrich with tenant names
+    const tenantIds = [...new Set((data || []).map(a => a.tenant_id).filter(Boolean))]
+    let tenantMap = {}
+    if (tenantIds.length > 0) {
+      const { data: tenants } = await supabase
+        .from('tenants')
+        .select('id, name')
+        .in('id', tenantIds)
+      for (const t of (tenants || [])) tenantMap[t.id] = t.name
+    }
+
+    const enriched = (data || []).map(a => ({
+      ...a,
+      tenant_name: tenantMap[a.tenant_id] || null,
+    }))
+
+    res.json({
+      data: enriched,
+      pagination: { page: Number(page), limit: Number(limit), total: count || 0, totalPages: Math.ceil((count || 0) / Number(limit)) },
+    })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
