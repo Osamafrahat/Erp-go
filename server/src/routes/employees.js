@@ -3,6 +3,7 @@ import { body, param, validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requireManager, requirePermission } from '../middleware/auth.js'
+import { checkTenantLimits } from '../middleware/limits.js'
 
 const router = Router()
 
@@ -110,6 +111,37 @@ router.post('/', authenticateToken, requirePermission('employees_edit'), [
     // Auto-create user account if requested
     let user = null
     if (create_user && username) {
+      // Check user limit before creating
+      const { data: tenant } = await supabase
+        .from('tenants')
+        .select('subscription_tier, max_users')
+        .eq('id', req.user.tenantId)
+        .single()
+
+      const plan = tenant?.subscription_tier || 'free'
+      let userLimit = tenant?.max_users
+      if (userLimit === null || userLimit === undefined) {
+        const defaults = { free: 2, pro: 15, enterprise: -1 }
+        userLimit = defaults[plan] ?? -1
+      }
+      userLimit = Number(userLimit)
+
+      if (userLimit > 0) {
+        const { count: userCount } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', req.user.tenantId)
+
+        if ((userCount || 0) >= userLimit) {
+          return res.status(403).json({
+            error: `users limit reached for ${plan} plan`,
+            limit: userLimit,
+            current: userCount || 0,
+            upgradeRequired: true,
+          })
+        }
+      }
+
       const validRole = ['MANAGER','SALES_MANAGER','CASHIER','INVENTORY_CLERK','ACCOUNTANT','HR_MANAGER'].includes(user_role) ? user_role : 'CASHIER'
 
       // Check username uniqueness per tenant
