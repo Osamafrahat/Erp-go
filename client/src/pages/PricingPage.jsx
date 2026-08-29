@@ -8,16 +8,23 @@ import api from '../lib/api'
 
 const TIER_ORDER = { free: 0, pro: 1, enterprise: 2 }
 
-function getTiers(t, plans = []) {
+function getTiers(t, plans = [], billingPeriod = 'monthly') {
   const planMap = {}
   for (const p of plans) planMap[p.slug] = p
+
+  const getPrice = (slug) => {
+    const plan = planMap[slug]
+    if (!plan) return null
+    return billingPeriod === 'yearly' ? (plan.price_yearly ?? null) : plan.price_monthly
+  }
 
   return [
     {
       id: 'free',
       name: t('pricing.free') || 'Free',
       price: 0,
-      period: t('pricing.perMonth') || '/mo',
+      yearlyPrice: 0,
+      period: billingPeriod === 'yearly' ? (t('pricing.perYear') || '/yr') : (t('pricing.perMonth') || '/mo'),
       icon: Star,
       color: 'gray',
       popular: false,
@@ -35,8 +42,10 @@ function getTiers(t, plans = []) {
     {
       id: 'pro',
       name: t('pricing.pro') || 'Pro',
-      price: planMap.pro?.price_monthly ?? 599,
-      period: t('pricing.perMonth') || '/mo',
+      price: getPrice('pro') ?? 599,
+      yearlyPrice: planMap.pro?.price_yearly ?? 5990,
+      period: billingPeriod === 'yearly' ? (t('pricing.perYear') || '/yr') : (t('pricing.perMonth') || '/mo'),
+      monthlyEquiv: billingPeriod === 'yearly' ? Math.round((planMap.pro?.price_yearly ?? 5990) / 12) : null,
       icon: Zap,
       color: 'primary',
       popular: true,
@@ -54,8 +63,10 @@ function getTiers(t, plans = []) {
     {
       id: 'enterprise',
       name: t('pricing.enterprise') || 'Enterprise',
-      price: planMap.enterprise?.price_monthly ?? 1499,
-      period: t('pricing.perMonth') || '/mo',
+      price: getPrice('enterprise') ?? 1499,
+      yearlyPrice: planMap.enterprise?.price_yearly ?? 14990,
+      period: billingPeriod === 'yearly' ? (t('pricing.perYear') || '/yr') : (t('pricing.perMonth') || '/mo'),
+      monthlyEquiv: billingPeriod === 'yearly' ? Math.round((planMap.enterprise?.price_yearly ?? 14990) / 12) : null,
       icon: Crown,
       color: 'yellow',
       popular: false,
@@ -119,6 +130,7 @@ export default function PricingPage() {
   const [currentPlan, setCurrentPlan] = useState(currentUser?.subscription_tier || 'free')
   const [showDowngradeConfirm, setShowDowngradeConfirm] = useState(null)
   const [downgrading, setDowngrading] = useState(false)
+  const [billingPeriod, setBillingPeriod] = useState('monthly')
 
   useEffect(() => {
     api.get('/billing/plans').then(({ data }) => setPlans(data || [])).catch(() => {})
@@ -127,7 +139,7 @@ export default function PricingPage() {
     }).catch(() => {})
   }, [])
 
-  const tiers = getTiers(t, plans)
+  const tiers = getTiers(t, plans, billingPeriod)
 
   // Verify payment after Paymob redirect
   useEffect(() => {
@@ -193,6 +205,7 @@ export default function PricingPage() {
       const { data } = await paymobApi.checkout({
         amount: showPayment.price,
         planSlug: showPayment.id,
+        billingPeriod,
       })
       if (data.checkout_url) {
         window.location.href = data.checkout_url
@@ -241,6 +254,32 @@ export default function PricingPage() {
           <p className="mt-3 text-lg text-gray-600 dark:text-gray-400">
             {t('pricing.subtitle') || 'Scale your business with the right tools'}
           </p>
+
+          <div className="mt-6 inline-flex items-center gap-3 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+            <button
+              onClick={() => setBillingPeriod('monthly')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                billingPeriod === 'monthly'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              {t('pricing.monthly') || 'Monthly'}
+            </button>
+            <button
+              onClick={() => setBillingPeriod('yearly')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all relative ${
+                billingPeriod === 'yearly'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              {t('pricing.yearly') || 'Yearly'}
+              <span className="absolute -top-2 -right-4 text-[10px] font-bold text-green-600 dark:text-green-400">
+                {t('pricing.save') || 'Save 17%'}
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -291,8 +330,13 @@ export default function PricingPage() {
 
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">{tier.name}</h3>
                 <div className="mt-2 mb-6">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-white">{tier.price > 0 ? `${tier.price} ج.م` : 'Free'}</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-white">{tier.price > 0 ? `${tier.price.toLocaleString()} ج.م` : 'Free'}</span>
                   <span className="text-gray-500 dark:text-gray-400">{tier.period}</span>
+                  {tier.monthlyEquiv && billingPeriod === 'yearly' && (
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                      ({tier.monthlyEquiv.toLocaleString()} ج.م/{t('pricing.perMonth') || 'mo'})
+                    </p>
+                  )}
                 </div>
 
                 <ul className="space-y-3 flex-1 mb-6">
@@ -369,9 +413,17 @@ export default function PricingPage() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
               {t('pricing.payFor') || 'Pay for'} {showPayment.name}
             </h2>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              {showPayment.price} ج.م{showPayment.period}
+            <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+              {showPayment.price.toLocaleString()} ج.م{showPayment.period}
             </p>
+            {billingPeriod === 'yearly' && showPayment.monthlyEquiv && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
+                ({showPayment.monthlyEquiv.toLocaleString()} ج.م/{t('pricing.perMonth') || 'mo'})
+              </p>
+            )}
+            {billingPeriod === 'monthly' && (
+              <div className="mb-6" />
+            )}
 
             <div className="space-y-3">
               <button

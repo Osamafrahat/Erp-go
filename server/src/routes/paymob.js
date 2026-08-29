@@ -26,8 +26,10 @@ router.post('/checkout', authenticateToken, async (req, res) => {
       return res.status(503).json({ error: 'Paymob not fully configured. Missing keys.' })
     }
 
-    const { amount, planSlug } = req.body
+    const { amount, planSlug, billingPeriod } = req.body
     if (!amount || amount <= 0) return res.status(400).json({ error: 'Invalid amount' })
+
+    const period = billingPeriod === 'yearly' ? 'yearly' : 'monthly'
 
     const { data: tenant } = await supabase
       .from('tenants')
@@ -41,7 +43,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
       .eq('id', req.user.id)
       .single()
 
-    const merchantOrderId = `tenant-${tenant?.id}-${planSlug || 'unknown'}-${Date.now()}`
+    const merchantOrderId = `tenant-${tenant?.id}-${planSlug || 'unknown'}-${period}-${Date.now()}`
 
     const paymentMethods = [Number(cardIntegrationId)]
     if (walletIntegrationId) paymentMethods.push(Number(walletIntegrationId))
@@ -130,12 +132,15 @@ router.post('/webhook', async (req, res) => {
     const tenantId = tenantIdMatch?.[1]
     const planSlugMatch = merchantOrderId.match(/tenant-\d+-(\w+)-/)
     const planSlug = planSlugMatch?.[1]
+    const periodMatch = merchantOrderId.match(/tenant-\d+-\w+-(yearly|monthly)-/)
+    const billingPeriod = periodMatch?.[1] || 'monthly'
+    const expiryDays = billingPeriod === 'yearly' ? 365 : 30
 
     if (paymentSuccess && tenantId) {
       const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
       const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + 30)
-      console.log(`[Paymob] Webhook upgrading tenant ${tenantId} to ${plan.tier}`)
+      expiresAt.setDate(expiresAt.getDate() + expiryDays)
+      console.log(`[Paymob] Webhook upgrading tenant ${tenantId} to ${plan.tier} (${billingPeriod})`)
 
       const { error: updateErr } = await supabase
         .from('tenants')
@@ -230,11 +235,14 @@ router.get('/verify', authenticateToken, async (req, res) => {
     const tenantId = tenantIdMatch?.[1]
     const planSlugMatch = merchantOrderId.match(/tenant-\d+-(\w+)-/)
     const planSlug = planSlugMatch?.[1]
+    const periodMatch = merchantOrderId.match(/tenant-\d+-\w+-(yearly|monthly)-/)
+    const billingPeriod = periodMatch?.[1] || 'monthly'
+    const expiryDays = billingPeriod === 'yearly' ? 365 : 30
 
     if (isPaid && tenantId) {
       const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
       const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + 30)
+      expiresAt.setDate(expiresAt.getDate() + expiryDays)
       const { error: updateErr } = await supabase
         .from('tenants')
         .update({

@@ -1845,6 +1845,10 @@ export const translations = {
     'pricing.downgradeWarning': 'Your product/user limits will be reduced. Existing data will not be deleted.',
     'pricing.cancel': 'Cancel',
     'pricing.confirmDowngrade': 'Downgrade',
+    'pricing.monthly': 'Monthly',
+    'pricing.yearly': 'Yearly',
+    'pricing.perYear': '/yr',
+    'pricing.save': 'Save 17%',
   },
   ar: {
     // Dashboard
@@ -3683,6 +3687,10 @@ export const translations = {
     'pricing.downgradeWarning': 'سيتم تقليل حدود المنتجات/المستخدمين. لن يتم حذف البيانات الموجودة.',
     'pricing.cancel': 'إلغاء',
     'pricing.confirmDowngrade': 'تخفيض',
+    'pricing.monthly': 'شهري',
+    'pricing.yearly': 'سنوي',
+    'pricing.perYear': '/سنوياً',
+    'pricing.save': 'وفّر 17%',
   },
 }
 
