@@ -80,6 +80,7 @@ router.get('/current', authenticateToken, requireManager, async (req, res) => {
       .from('tenant_payments')
       .select('id, amount, currency, status, description, created_at')
       .eq('tenant_id', tenant.id)
+      .eq('status', 'paid')
       .order('created_at', { ascending: false })
       .limit(20)
 

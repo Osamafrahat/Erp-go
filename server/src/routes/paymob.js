@@ -104,7 +104,7 @@ router.post('/checkout', authenticateToken, requireManager, async (req, res) => 
     if (!existingPayment || existingPayment.length === 0) {
       const { error: insertErr } = await supabase.from('tenant_payments').insert({
         tenant_id: tenant.id,
-        amount: Math.round(amount * 100),
+        amount: amount,
         currency: 'EGP',
         status: 'pending',
         description: merchantOrderId,

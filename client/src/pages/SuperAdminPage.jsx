@@ -546,14 +546,13 @@ function TenantDetailModal({ t, tenantId, onClose }) {
 function PaymentsTab({ t }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('paid')
 
   useEffect(() => {
     setLoading(true)
-    superAdminApi.getPayments({ limit: 50, status: filter || undefined }).then(({ data }) => {
+    superAdminApi.getPayments({ limit: 50, status: 'paid' }).then(({ data }) => {
       setPayments(data || [])
     }).catch(() => {}).finally(() => setLoading(false))
-  }, [filter])
+  }, [])
 
   if (loading) return <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
 
@@ -561,12 +560,6 @@ function PaymentsTab({ t }) {
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <h3 className="font-medium text-gray-900 dark:text-white">{t('billing.paymentHistory') || 'Payment History'}</h3>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5">
-          <option value="">{t('admin.allStatuses') || 'All Statuses'}</option>
-          <option value="paid">{t('admin.paid') || 'Paid'}</option>
-          <option value="pending">{t('admin.pending') || 'Pending'}</option>
-          <option value="failed">{t('admin.failed') || 'Failed'}</option>
-        </select>
       </div>
       {payments.length === 0 ? (
         <div className="p-8 text-center text-gray-400"><CreditCard className="w-8 h-8 mx-auto mb-2 opacity-50" /><p>{t('admin.noPayments') || 'No payments recorded'}</p></div>
@@ -585,7 +578,7 @@ function PaymentsTab({ t }) {
               {payments.map((p) => (
                 <tr key={p.id} className="border-b border-gray-100 dark:border-gray-700/50">
                   <td className="px-4 py-3"><p className="text-gray-900 dark:text-white">{p.tenant?.name || (t('admin.unknown') || 'Unknown')}</p><p className="text-xs text-gray-400">{p.tenant?.subscription_tier || ''}</p></td>
-                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{(p.amount / 100).toLocaleString()} ج.م</td>
+                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{(p.amount || 0).toLocaleString()} ج.م</td>
                   <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-1 rounded-full ${p.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : p.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>{p.status}</span></td>
                   <td className="px-4 py-3 text-gray-500">{p.created_at ? new Date(p.created_at).toLocaleString() : '—'}</td>
                 </tr>
