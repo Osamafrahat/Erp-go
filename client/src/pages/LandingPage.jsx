@@ -59,7 +59,7 @@ function PricingCard({ name, price, period, desc, features, cta, highlighted, ct
 }
 
 export default function LandingPage() {
-  const { t } = useAppStore()
+  const { t, language, setLanguage } = useAppStore()
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
 
   const features = [
@@ -111,11 +111,25 @@ export default function LandingPage() {
               <a href="#features" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('landing.features') || 'Features'}</a>
               <a href="#pricing" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('landing.pricing') || 'Pricing'}</a>
               <Link to="/login" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('users.signIn') || 'Login'}</Link>
+              <button
+                onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary-300 dark:hover:border-primary-600 transition-colors"
+              >
+                <Globe className="w-4 h-4" />
+                {language === 'en' ? 'عربي' : 'EN'}
+              </button>
               <Link to={isAuthenticated ? '/dashboard' : '/login'} className="px-5 py-2 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors">
                 {t('landing.startFree') || 'Start Free Trial'}
               </Link>
             </div>
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center gap-2">
+              <button
+                onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg"
+              >
+                <Globe className="w-3.5 h-3.5" />
+                {language === 'en' ? 'عربي' : 'EN'}
+              </button>
               <Link to={isAuthenticated ? '/dashboard' : '/login'} className="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors">
                 {t('landing.startFree') || 'Start'}
               </Link>
