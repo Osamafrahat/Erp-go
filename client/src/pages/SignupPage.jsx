@@ -63,7 +63,7 @@ export default function SignupPage() {
 
       const result = await login(username, password)
       if (result.success) {
-        navigate('/')
+        navigate('/dashboard')
       } else {
         setError(t('signup.errorLoginFailed') || 'Account created but login failed. Please sign in.')
         navigate('/login')

@@ -145,7 +145,7 @@ export default function PricingPage() {
           setVerifyResult(data)
           if (data.paid) {
             await refreshUser()
-            navigate('/?upgraded=true')
+            navigate('/dashboard?upgraded=true')
           }
         })
         .catch(() => setVerifyResult({ paid: false }))

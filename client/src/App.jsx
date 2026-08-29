@@ -9,6 +9,7 @@ import ForcePasswordChange from './components/ForcePasswordChange'
 import PlanLimitModal from './components/PlanLimitModal'
 import ErrorBoundary from './components/ErrorBoundary'
 
+const LandingPage = lazy(() => import('./pages/LandingPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const POSPage = lazy(() => import('./pages/POSPage'))
@@ -98,17 +99,18 @@ function App() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <Routes>
+                <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={
-                  isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+                  isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
                 } />
                 <Route path="/signup" element={
-                  isAuthenticated ? <Navigate to="/" replace /> : <SignupPage />
+                  isAuthenticated ? <Navigate to="/dashboard" replace /> : <SignupPage />
                 } />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/billing" element={<ProtectedRoute><Layout><BillingPage /></Layout></ProtectedRoute>} />
                 <Route path="/super-admin" element={<ProtectedRoute><Layout><SuperAdminPage /></Layout></ProtectedRoute>} />
 
-                <Route path="/" element={<ProtectedRoute><Layout><DashboardPage /></Layout></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><Layout><DashboardPage /></Layout></ProtectedRoute>} />
                 <Route path="/pos" element={<ProtectedRoute><Layout><POSPage /></Layout></ProtectedRoute>} />
                 <Route path="/inventory" element={<ProtectedRoute><Layout><InventoryPage /></Layout></ProtectedRoute>} />
                 <Route path="/reports" element={<ProtectedRoute><Layout><ReportsPage /></Layout></ProtectedRoute>} />
@@ -141,7 +143,7 @@ function App() {
                 <Route path="/service-plans" element={<ProtectedRoute><Layout><ServicePlansPage /></Layout></ProtectedRoute>} />
                 <Route path="/subscriptions" element={<ProtectedRoute><Layout><SubscriptionsPage /></Layout></ProtectedRoute>} />
 
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />} />
               </Routes>
             </Suspense>
           </ErrorBoundary>

@@ -87,7 +87,7 @@ export default function Layout({ children }) {
   groups.push({
     key: 'dashboard',
     items: [
-      { name: t('nav.dashboard'), href: '/', icon: LayoutDashboard },
+      { name: t('nav.dashboard'), href: '/dashboard', icon: LayoutDashboard },
     ]
   })
 
