@@ -385,6 +385,7 @@ export const translations = {
     'common.endDate': 'End Date',
     'common.noData': 'No data',
     'common.description': 'Description',
+    'common.accessDenied': 'Access Denied',
 
     // Offline / Sync
     'offline.online': 'Online',
@@ -2238,6 +2239,7 @@ export const translations = {
     'common.endDate': 'تاريخ النهاية',
     'common.noData': 'لا توجد بيانات',
     'common.description': 'الوصف',
+    'common.accessDenied': ' الوصول مرفوض',
 
     // Offline / Sync
     'offline.online': 'متصل',
