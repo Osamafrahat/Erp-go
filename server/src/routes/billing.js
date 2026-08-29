@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import Stripe from 'stripe'
 import supabase from '../db/supabase.js'
-import { authenticateToken } from '../middleware/auth.js'
+import { authenticateToken, requireManager } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -34,7 +34,7 @@ router.get('/plans', async (req, res) => {
 })
 
 // GET /api/billing/current - Get current tenant subscription (auth required)
-router.get('/current', authenticateToken, async (req, res) => {
+router.get('/current', authenticateToken, requireManager, async (req, res) => {
   try {
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
@@ -109,7 +109,7 @@ router.get('/current', authenticateToken, async (req, res) => {
 })
 
 // POST /api/billing/downgrade - Downgrade to a lower plan (auth required)
-router.post('/downgrade', authenticateToken, async (req, res) => {
+router.post('/downgrade', authenticateToken, requireManager, async (req, res) => {
   try {
     const { planSlug } = req.body
     if (!planSlug) return res.status(400).json({ error: 'Plan slug is required' })
@@ -155,7 +155,7 @@ router.post('/downgrade', authenticateToken, async (req, res) => {
 })
 
 // POST /api/billing/checkout - Create Stripe checkout session (auth required)
-router.post('/checkout', authenticateToken, async (req, res) => {
+router.post('/checkout', authenticateToken, requireManager, async (req, res) => {
   try {
     if (!getStripe()) return res.status(503).json({ error: 'Stripe not configured' })
     const { planSlug } = req.body
@@ -219,7 +219,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
 })
 
 // POST /api/billing/portal - Create Stripe customer portal session (auth required)
-router.post('/portal', authenticateToken, async (req, res) => {
+router.post('/portal', authenticateToken, requireManager, async (req, res) => {
   try {
     if (!getStripe()) return res.status(503).json({ error: 'Stripe not configured' })
     const { data: tenant, error: tenantError } = await supabase

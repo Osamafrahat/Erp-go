@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import crypto from 'crypto'
 import supabase from '../db/supabase.js'
-import { authenticateToken } from '../middleware/auth.js'
+import { authenticateToken, requireManager } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -13,7 +13,7 @@ const PLAN_MAP = {
 }
 
 // POST /api/billing/paymob/checkout - Create intention and return client_secret
-router.post('/checkout', authenticateToken, async (req, res) => {
+router.post('/checkout', authenticateToken, requireManager, async (req, res) => {
   try {
     const secretKey = process.env.PAYMOB_SECRET_KEY
     const publicKey = process.env.PAYMOB_PUBLIC_KEY
@@ -175,7 +175,7 @@ router.post('/webhook', async (req, res) => {
 })
 
 // GET /api/billing/paymob/verify - Verify payment after redirect
-router.get('/verify', authenticateToken, async (req, res) => {
+router.get('/verify', authenticateToken, requireManager, async (req, res) => {
   try {
     const { intention_id, id: txnId } = req.query
     const lookupId = intention_id || txnId
@@ -275,7 +275,7 @@ router.get('/verify', authenticateToken, async (req, res) => {
 })
 
 // GET /api/billing/paymob/cards - List saved payment methods
-router.get('/cards', authenticateToken, async (req, res) => {
+router.get('/cards', authenticateToken, requireManager, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('saved_payment_methods')
@@ -292,7 +292,7 @@ router.get('/cards', authenticateToken, async (req, res) => {
 })
 
 // POST /api/billing/paymob/cards - Save a new payment method token
-router.post('/cards', authenticateToken, async (req, res) => {
+router.post('/cards', authenticateToken, requireManager, async (req, res) => {
   try {
     const { token, card_last_four, card_brand, paymob_token_id } = req.body
     if (!token) return res.status(400).json({ error: 'Token is required' })
@@ -343,7 +343,7 @@ router.delete('/cards/:id', authenticateToken, async (req, res) => {
 })
 
 // POST /api/billing/paymob/cards/:id/default - Set a card as default
-router.post('/cards/:id/default', authenticateToken, async (req, res) => {
+router.post('/cards/:id/default', authenticateToken, requireManager, async (req, res) => {
   try {
     // Reset all defaults
     await supabase
@@ -366,7 +366,7 @@ router.post('/cards/:id/default', authenticateToken, async (req, res) => {
 })
 
 // POST /api/billing/paymob/renew - Auto-renew using saved card
-router.post('/renew', authenticateToken, async (req, res) => {
+router.post('/renew', authenticateToken, requireManager, async (req, res) => {
   try {
     const { planSlug } = req.body
     if (!planSlug) return res.status(400).json({ error: 'Plan slug is required' })

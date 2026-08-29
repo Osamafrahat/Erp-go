@@ -180,6 +180,16 @@ export default function BillingPage() {
   const [savedCards, setSavedCards] = useState([])
   const [deletingCard, setDeletingCard] = useState(null)
 
+  if (currentUser?.role !== 'MANAGER' && currentUser?.role !== 'SUPER_ADMIN') {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <Shield className="w-12 h-12 text-gray-400" />
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('common.accessDenied') || 'Access Denied'}</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t('billing.managerOnly') || 'Only managers can access billing.'}</p>
+      </div>
+    )
+  }
+
   useEffect(() => {
     const fetchBilling = async () => {
       try {

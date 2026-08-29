@@ -219,7 +219,9 @@ export default function Layout({ children }) {
     if (subscriptionTier === 'free') {
       subscriptionItems.push({ name: t('layout.upgrade') || 'Upgrade', href: '/pricing', icon: Crown })
     }
-    subscriptionItems.push({ name: t('layout.billing') || 'Billing', href: '/billing', icon: CreditCard })
+    if (currentUser?.role === 'MANAGER') {
+      subscriptionItems.push({ name: t('layout.billing') || 'Billing', href: '/billing', icon: CreditCard })
+    }
   }
   if (subscriptionItems.length > 0) {
     groups.push({ key: 'subscription', label: t('layout.groupSubscription') || 'Subscription', items: subscriptionItems })
