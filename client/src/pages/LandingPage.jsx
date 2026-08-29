@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
+import api from '../lib/api'
 import {
   ShoppingCart, Package, Users, BarChart3, UserCheck, Layers,
   Check, ArrowRight, Zap, Shield, Globe, Star, ChevronRight, Store
@@ -63,6 +64,16 @@ export default function LandingPage() {
   const { t, language, setLanguage } = useAppStore()
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const [openModal, setOpenModal] = useState(null)
+  const [plans, setPlans] = useState([])
+
+  useEffect(() => {
+    api.get('/billing/plans').then(({ data }) => setPlans(data || [])).catch(() => {})
+  }, [])
+
+  const planMap = {}
+  for (const p of plans) planMap[p.slug] = p
+
+  const fmt = (v) => v === -1 || v === Infinity || v === null ? (t('pricing.unlimited') || 'Unlimited') : v?.toLocaleString()
 
   const features = [
     { icon: ShoppingCart, title: t('landing.pos') || 'Point of Sale', desc: t('landing.posDesc') || 'Fast checkout with receipt printing, multiple payment methods, and real-time inventory updates.', color: 'bg-primary-600' },
@@ -74,25 +85,25 @@ export default function LandingPage() {
   ]
 
   const freeFeatures = [
-    t('landing.freeF1') || 'Up to 50 products',
-    t('landing.freeF2') || '2 team members',
-    t('landing.freeF3') || '100 orders/month',
+    `${fmt(planMap.free?.max_products)} ${t('pricing.products') || 'Products'}`,
+    `${fmt(planMap.free?.max_users)} ${t('pricing.users') || 'Users'}`,
+    `${fmt(planMap.free?.max_orders_monthly)} ${t('pricing.ordersPerMonth') || 'Orders/month'}`,
     t('landing.freeF4') || 'Basic POS & inventory',
     t('landing.freeF5') || 'Email support',
   ]
 
   const proFeatures = [
-    t('landing.proF1') || 'Up to 500 products',
-    t('landing.proF2') || '15 team members',
-    t('landing.proF3') || 'Unlimited orders',
+    `${fmt(planMap.pro?.max_products)} ${t('pricing.products') || 'Products'}`,
+    `${fmt(planMap.pro?.max_users)} ${t('pricing.users') || 'Users'}`,
+    `${fmt(planMap.pro?.max_orders_monthly)} ${t('pricing.ordersPerMonth') || 'Orders/month'}`,
     t('landing.proF4') || 'Advanced reports & accounting',
     t('landing.proF5') || 'Priority support',
   ]
 
   const enterpriseFeatures = [
-    t('landing.entF1') || 'Unlimited products',
-    t('landing.entF2') || 'Unlimited team members',
-    t('landing.entF3') || 'Unlimited orders',
+    `${fmt(planMap.enterprise?.max_products)} ${t('pricing.products') || 'Products'}`,
+    `${fmt(planMap.enterprise?.max_users)} ${t('pricing.users') || 'Users'}`,
+    `${fmt(planMap.enterprise?.max_orders_monthly)} ${t('pricing.ordersPerMonth') || 'Orders/month'}`,
     t('landing.entF4') || 'Full HR, payroll & accounting',
     t('landing.entF5') || 'Dedicated support',
   ]
@@ -261,7 +272,7 @@ export default function LandingPage() {
             />
             <PricingCard
               name="Pro"
-              price="599 EGP"
+              price={`${(planMap.pro?.price_monthly ?? 599).toLocaleString()} EGP`}
               period={t('landing.perMonth') || '/month'}
               desc={t('landing.proDesc') || 'For growing stores that need more power.'}
               features={proFeatures}
@@ -271,7 +282,7 @@ export default function LandingPage() {
             />
             <PricingCard
               name="Enterprise"
-              price="1,499 EGP"
+              price={`${(planMap.enterprise?.price_monthly ?? 1499).toLocaleString()} EGP`}
               period={t('landing.perMonth') || '/month'}
               desc={t('landing.entDesc') || 'For large operations with advanced needs.'}
               features={enterpriseFeatures}

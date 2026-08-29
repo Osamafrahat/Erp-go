@@ -8,6 +8,8 @@ import api from '../lib/api'
 
 const TIER_ORDER = { free: 0, pro: 1, enterprise: 2 }
 
+function fmt(v) { return v === -1 || v === Infinity || v === null ? '∞' : v?.toLocaleString() }
+
 function getTiers(t, plans = [], billingPeriod = 'monthly') {
   const planMap = {}
   for (const p of plans) planMap[p.slug] = p
@@ -17,6 +19,10 @@ function getTiers(t, plans = [], billingPeriod = 'monthly') {
     if (!plan) return null
     return billingPeriod === 'yearly' ? (plan.price_yearly ?? null) : plan.price_monthly
   }
+
+  const prod = (slug) => { const v = planMap[slug]?.max_products; return v === -1 || v === Infinity ? (t('pricing.unlimited') || 'Unlimited') : fmt(v) }
+  const users = (slug) => { const v = planMap[slug]?.max_users; return v === -1 || v === Infinity ? (t('pricing.unlimited') || 'Unlimited') : fmt(v) }
+  const orders = (slug) => { const v = planMap[slug]?.max_orders_monthly; return v === -1 || v === Infinity ? (t('pricing.unlimited') || 'Unlimited') : fmt(v) }
 
   return [
     {
@@ -29,9 +35,9 @@ function getTiers(t, plans = [], billingPeriod = 'monthly') {
       color: 'gray',
       popular: false,
       features: [
-        { text: t('pricing.freeProducts') || '50 Products', included: true },
-        { text: t('pricing.freeUsers') || '2 Users', included: true },
-        { text: t('pricing.freeOrders') || '100 Orders/month', included: true },
+        { text: `${prod('free')} ${t('pricing.products') || 'Products'}`, included: true },
+        { text: `${users('free')} ${t('pricing.users') || 'Users'}`, included: true },
+        { text: `${orders('free')} ${t('pricing.ordersPerMonth') || 'Orders/month'}`, included: true },
         { text: t('pricing.basicReports') || 'Basic Reports', included: true },
         { text: t('pricing.posSystem') || 'POS System', included: true },
         { text: t('pricing.prioritySupport') || 'Priority Support', included: false },
@@ -48,9 +54,9 @@ function getTiers(t, plans = [], billingPeriod = 'monthly') {
       color: 'primary',
       popular: true,
       features: [
-        { text: t('pricing.proProducts') || '500 Products', included: true },
-        { text: t('pricing.proUsers') || '15 Users', included: true },
-        { text: t('pricing.unlimitedOrders') || 'Unlimited Orders', included: true },
+        { text: `${prod('pro')} ${t('pricing.products') || 'Products'}`, included: true },
+        { text: `${users('pro')} ${t('pricing.users') || 'Users'}`, included: true },
+        { text: `${orders('pro')} ${t('pricing.ordersPerMonth') || 'Orders/month'}`, included: true },
         { text: t('pricing.advancedReports') || 'Advanced Reports', included: true },
         { text: t('pricing.posSystem') || 'POS System', included: true },
         { text: t('pricing.prioritySupport') || 'Priority Support', included: false },
@@ -67,9 +73,9 @@ function getTiers(t, plans = [], billingPeriod = 'monthly') {
       color: 'yellow',
       popular: false,
       features: [
-        { text: t('pricing.unlimitedProducts') || 'Unlimited Products', included: true },
-        { text: t('pricing.unlimitedUsers') || 'Unlimited Users', included: true },
-        { text: t('pricing.unlimitedOrders') || 'Unlimited Orders', included: true },
+        { text: `${prod('enterprise')} ${t('pricing.products') || 'Products'}`, included: true },
+        { text: `${users('enterprise')} ${t('pricing.users') || 'Users'}`, included: true },
+        { text: `${orders('enterprise')} ${t('pricing.ordersPerMonth') || 'Orders/month'}`, included: true },
         { text: t('pricing.advancedReports') || 'Advanced Reports', included: true },
         { text: t('pricing.posSystem') || 'POS System', included: true },
         { text: t('pricing.prioritySupport') || 'Priority Support', included: true },
