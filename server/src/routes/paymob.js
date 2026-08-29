@@ -94,13 +94,23 @@ router.post('/checkout', authenticateToken, requireManager, async (req, res) => 
       return res.status(500).json({ error: intentionData.detail || 'Failed to create payment intention' })
     }
 
-    const { error: insertErr } = await supabase.from('tenant_payments').insert({
-      tenant_id: tenant.id,
-      amount: Math.round(amount * 100),
-      currency: 'EGP',
-      status: 'pending',
-    })
-    if (insertErr) console.error('[Paymob] Failed to insert pending payment:', insertErr.message)
+    // Dedup: skip if this order already has a payment record
+    const { data: existingPayment } = await supabase
+      .from('tenant_payments')
+      .select('id')
+      .eq('description', merchantOrderId)
+      .limit(1)
+
+    if (!existingPayment || existingPayment.length === 0) {
+      const { error: insertErr } = await supabase.from('tenant_payments').insert({
+        tenant_id: tenant.id,
+        amount: Math.round(amount * 100),
+        currency: 'EGP',
+        status: 'pending',
+        description: merchantOrderId,
+      })
+      if (insertErr) console.error('[Paymob] Failed to insert pending payment:', insertErr.message)
+    }
 
     const checkoutUrl = `${PAYMOB_BASE_URL}/unifiedcheckout/?publicKey=${publicKey}&clientSecret=${intentionData.client_secret}`
 
@@ -186,7 +196,7 @@ router.post('/webhook', async (req, res) => {
         if (updateErr) console.error('[Paymob] Webhook update error:', updateErr.message)
         else console.log(`[Paymob] Webhook: tenant ${tenantId} upgraded to ${plan.tier}`)
 
-        const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
+        const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('description', merchantOrderId).eq('status', 'pending').limit(1)
         if (payErr) console.error('[Paymob] Webhook payment update error:', payErr.message)
 
         // Save card token from webhook
@@ -341,7 +351,7 @@ router.get('/verify', authenticateToken, requireManager, async (req, res) => {
       if (updateErr) console.error('[Paymob] Verify update error:', updateErr.message)
       else console.log(`[Paymob] Verify: tenant ${tenantId} upgraded to ${plan.tier}`)
 
-      const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
+      const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('description', merchantOrderId).eq('status', 'pending').limit(1)
       if (payErr) console.error('[Paymob] Verify payment update error:', payErr.message)
 
       if (cardToken && tenantId) {
