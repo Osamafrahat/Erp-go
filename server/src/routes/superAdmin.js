@@ -395,8 +395,7 @@ router.get('/payments', async (req, res) => {
     const { limit = 50, status } = req.query
     let query = supabase
       .from('tenant_payments')
-      .select('*, tenant:tenant_id(name, slug, subscription_tier)')
-      .order('payment_date', { ascending: false, nullsFirst: false })
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(Number(limit))
 
@@ -404,7 +403,24 @@ router.get('/payments', async (req, res) => {
 
     const { data, error } = await query
     if (error) throw error
-    res.json(data || [])
+
+    // Enrich with tenant names
+    const tenantIds = [...new Set((data || []).map(p => p.tenant_id).filter(Boolean))]
+    let tenantMap = {}
+    if (tenantIds.length > 0) {
+      const { data: tenants } = await supabase
+        .from('tenants')
+        .select('id, name, slug, subscription_tier')
+        .in('id', tenantIds)
+      for (const t of (tenants || [])) tenantMap[t.id] = t
+    }
+
+    const enriched = (data || []).map(p => ({
+      ...p,
+      tenant: tenantMap[p.tenant_id] || null,
+    }))
+
+    res.json(enriched)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

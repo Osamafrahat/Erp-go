@@ -92,14 +92,13 @@ router.post('/checkout', authenticateToken, async (req, res) => {
       return res.status(500).json({ error: intentionData.detail || 'Failed to create payment intention' })
     }
 
-    await supabase.from('tenant_payments').insert({
+    const { error: insertErr } = await supabase.from('tenant_payments').insert({
       tenant_id: tenant.id,
-      stripe_invoice_id: null,
       amount: Math.round(amount * 100),
       currency: 'EGP',
       status: 'pending',
-      payment_date: new Date().toISOString(),
     })
+    if (insertErr) console.error('[Paymob] Failed to insert pending payment:', insertErr.message)
 
     const checkoutUrl = `${PAYMOB_BASE_URL}/unifiedcheckout/?publicKey=${publicKey}&clientSecret=${intentionData.client_secret}`
 
@@ -155,7 +154,8 @@ router.post('/webhook', async (req, res) => {
       if (updateErr) console.error('[Paymob] Webhook update error:', updateErr.message)
       else console.log(`[Paymob] Webhook: tenant ${tenantId} upgraded to ${plan.tier}`)
 
-      await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
+      const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
+      if (payErr) console.error('[Paymob] Webhook payment update error:', payErr.message)
     } else if (merchantOrderId) {
       console.log(`[Paymob] Webhook: payment not successful for ${merchantOrderId}`)
     } else {
@@ -252,7 +252,8 @@ router.get('/verify', authenticateToken, async (req, res) => {
       if (updateErr) console.error('[Paymob] Verify update error:', updateErr.message)
       else console.log(`[Paymob] Verify: tenant ${tenantId} upgraded to ${plan.tier}`)
 
-      await supabase.from('tenant_payments').update({ status: 'paid', payment_date: new Date().toISOString() }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
+      const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
+      if (payErr) console.error('[Paymob] Verify payment update error:', payErr.message)
 
       return res.json({ paid: true, plan: planSlug || 'pro' })
     }
