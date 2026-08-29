@@ -546,7 +546,7 @@ function TenantDetailModal({ t, tenantId, onClose }) {
 function PaymentsTab({ t }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('')
+  const [filter, setFilter] = useState('paid')
 
   useEffect(() => {
     setLoading(true)
