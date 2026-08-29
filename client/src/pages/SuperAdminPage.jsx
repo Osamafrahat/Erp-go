@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { superAdminApi } from '../lib/api'
-import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard } from 'lucide-react'
+import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard, Database } from 'lucide-react'
 
 const tierColors = {
   free: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
@@ -230,6 +230,42 @@ function DashboardTab({ t }) {
           </div>
         </div>
       </div>
+
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-5">
+        <div className="flex items-start gap-3">
+          <Database className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">Database Migration Required</h3>
+            <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-3">Run this SQL in Supabase SQL Editor (Dashboard → SQL Editor → New Query):</p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 font-mono text-xs text-gray-800 dark:text-gray-200 overflow-x-auto">
+              <pre>{`ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;
+
+CREATE TABLE IF NOT EXISTS saved_payment_methods (
+  id SERIAL PRIMARY KEY,
+  tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL DEFAULT 'paymob',
+  card_last_four TEXT,
+  card_brand TEXT,
+  token TEXT NOT NULL,
+  paymob_token_id TEXT,
+  is_default BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);`}</pre>
+            </div>
+            <button
+              onClick={() => {
+                const sql = `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz;\nALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;\n\nCREATE TABLE IF NOT EXISTS saved_payment_methods (\n  id SERIAL PRIMARY KEY,\n  tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,\n  provider TEXT NOT NULL DEFAULT 'paymob',\n  card_last_four TEXT,\n  card_brand TEXT,\n  token TEXT NOT NULL,\n  paymob_token_id TEXT,\n  is_default BOOLEAN DEFAULT true,\n  created_at TIMESTAMPTZ DEFAULT now(),\n  updated_at TIMESTAMPTZ DEFAULT now()\n);`
+                navigator.clipboard.writeText(sql)
+              }}
+              className="mt-2 text-xs bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300 px-3 py-1.5 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-700 font-medium"
+            >
+              Copy SQL
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -347,6 +383,7 @@ function TenantsTab({ t, showToast }) {
                   <th className="px-4 py-3 font-medium">Products</th>
                   <th className="px-4 py-3 font-medium">Orders</th>
                   <th className="px-4 py-3 font-medium">Created</th>
+                  <th className="px-4 py-3 font-medium">Expires</th>
                   <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
@@ -364,6 +401,15 @@ function TenantsTab({ t, showToast }) {
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300"><Package className="w-3.5 h-3.5 inline mr-1" />{tenant.product_count ?? 0}</td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{tenant.order_count ?? 0}</td>
                     <td className="px-4 py-3 text-gray-500">{tenant.created_at ? new Date(tenant.created_at).toLocaleDateString() : '—'}</td>
+                    <td className="px-4 py-3">
+                      {tenant.subscription_expires_at ? (
+                        <span className={`text-xs font-medium ${new Date(tenant.subscription_expires_at) < new Date() ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                          {new Date(tenant.subscription_expires_at).toLocaleDateString()}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
                         <button onClick={() => setDetailTenant(tenant)} className="text-xs p-1.5 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300"><Eye className="w-3.5 h-3.5" /></button>

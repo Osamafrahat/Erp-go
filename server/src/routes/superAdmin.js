@@ -389,6 +389,40 @@ router.get('/activity', async (req, res) => {
   }
 })
 
+// POST /api/super-admin/migrate - Run schema migration (super admin only)
+router.post('/migrate', async (req, res) => {
+  try {
+    const results = []
+
+    // Try adding subscription_expires_at
+    const { error: e1 } = await supabase.rpc('exec_sql', {
+      sql: 'ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz'
+    })
+    if (e1) {
+      // Fallback: try direct query to check if column exists
+      const { error: checkErr } = await supabase.from('tenants').select('subscription_expires_at').limit(1)
+      results.push({ column: 'subscription_expires_at', status: checkErr ? 'MISSING - run SQL manually' : 'EXISTS' })
+    } else {
+      results.push({ column: 'subscription_expires_at', status: 'CREATED' })
+    }
+
+    // Try adding renewal_note
+    const { error: e2 } = await supabase.rpc('exec_sql', {
+      sql: 'ALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text'
+    })
+    if (e2) {
+      const { error: checkErr } = await supabase.from('tenants').select('renewal_note').limit(1)
+      results.push({ column: 'renewal_note', status: checkErr ? 'MISSING - run SQL manually' : 'EXISTS' })
+    } else {
+      results.push({ column: 'renewal_note', status: 'CREATED' })
+    }
+
+    res.json({ results, sql: 'ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz; ALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // GET /api/super-admin/payments - All payments across tenants
 router.get('/payments', async (req, res) => {
   try {
