@@ -283,6 +283,13 @@ function TenantsTab({ t, showToast }) {
   const [detailTenant, setDetailTenant] = useState(null)
   const limit = 15
 
+  const statusLabels = {
+    active: t('billing.active') || 'Active',
+    trialing: t('billing.trial') || 'Trial',
+    cancelled: t('billing.cancelled') || 'Cancelled',
+    past_due: t('billing.pastDue') || 'Past Due',
+  }
+
   const fetchTenants = useCallback(async () => {
     try {
       const params = { page, limit }
@@ -396,7 +403,7 @@ function TenantsTab({ t, showToast }) {
                         <option value="free">{t('pricing.free') || 'Free'}</option><option value="pro">{t('pricing.pro') || 'Pro'}</option><option value="enterprise">{t('pricing.enterprise') || 'Enterprise'}</option>
                       </select>
                     </td>
-                    <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[tenant.subscription_status] || statusColors.cancelled}`}>{tenant.subscription_status}</span></td>
+                    <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[tenant.subscription_status] || statusColors.cancelled}`}>{statusLabels[tenant.subscription_status] || tenant.subscription_status}</span></td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300"><Users className="w-3.5 h-3.5 inline mr-1" />{tenant.user_count ?? 0}</td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300"><Package className="w-3.5 h-3.5 inline mr-1" />{tenant.product_count ?? 0}</td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{tenant.order_count ?? 0}</td>
