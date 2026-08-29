@@ -76,6 +76,13 @@ router.get('/current', authenticateToken, requireManager, async (req, res) => {
       }
     }
 
+    const { data: paymentHistory } = await supabase
+      .from('tenant_payments')
+      .select('id, amount, currency, status, description, created_at')
+      .eq('tenant_id', tenant.id)
+      .order('created_at', { ascending: false })
+      .limit(20)
+
     res.json({
       tenant: {
         id: tenant.id,
@@ -93,6 +100,14 @@ router.get('/current', authenticateToken, requireManager, async (req, res) => {
         users: userCount || 0,
         orders_this_month: orderCount || 0,
       },
+      paymentHistory: (paymentHistory || []).map(p => ({
+        id: p.id,
+        amount: p.amount,
+        currency: p.currency,
+        status: p.status,
+        description: p.description,
+        date: p.created_at,
+      })),
       subscription: subscription
         ? {
             id: subscription.id,

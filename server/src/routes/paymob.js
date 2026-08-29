@@ -129,7 +129,9 @@ router.post('/webhook', async (req, res) => {
     console.log(`[Paymob] Webhook: success=${paymentSuccess}, order=${merchantOrderId}, type=${body.type}`)
 
     const tenantIdMatch = merchantOrderId.match(/tenant-(\d+)-/)
-    const tenantId = tenantIdMatch?.[1]
+    const tokenizeMatch = merchantOrderId.match(/tokenize-tenant-(\d+)-/)
+    const tenantId = tenantIdMatch?.[1] || tokenizeMatch?.[1]
+    const isTokenize = merchantOrderId.startsWith('tokenize-')
     const planSlugMatch = merchantOrderId.match(/tenant-\d+-(\w+)-/)
     const planSlug = planSlugMatch?.[1]
     const periodMatch = merchantOrderId.match(/tenant-\d+-\w+-(yearly|monthly)-/)
@@ -137,30 +139,79 @@ router.post('/webhook', async (req, res) => {
     const expiryDays = billingPeriod === 'yearly' ? 365 : 30
 
     if (paymentSuccess && tenantId) {
-      const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
-      const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + expiryDays)
-      console.log(`[Paymob] Webhook upgrading tenant ${tenantId} to ${plan.tier} (${billingPeriod})`)
+      if (isTokenize) {
+        // Tokenize-only: just save the card
+        const cardToken = obj.token || obj.payment_data?.card_token || obj.card_token
+        const cardLastFour = obj.payment_data?.card_last_four || obj.card_last_four
+        const cardBrand = obj.payment_data?.card_type || obj.card_type
 
-      const { error: updateErr } = await supabase
-        .from('tenants')
-        .update({
-          subscription_status: 'active',
-          subscription_tier: plan.tier,
-          max_products: plan.max_products,
-          max_users: plan.max_users,
-          max_orders_monthly: plan.max_orders_monthly,
-          subscription_expires_at: expiresAt.toISOString(),
-          trial_ends_at: null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', tenantId)
+        if (cardToken) {
+          try {
+            await supabase.from('saved_payment_methods').update({ is_default: false }).eq('tenant_id', tenantId)
+            await supabase.from('saved_payment_methods').insert({
+              tenant_id: tenantId,
+              provider: 'paymob',
+              token: cardToken,
+              card_last_four: cardLastFour || null,
+              card_brand: cardBrand || null,
+              paymob_token_id: cardToken,
+              is_default: true,
+            })
+            console.log(`[Paymob] Webhook: saved card (tokenize) for tenant ${tenantId}`)
+          } catch (e) {
+            console.error('[Paymob] Webhook tokenize card save error:', e.message)
+          }
+        }
+      } else {
+        // Subscription upgrade
+        const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
+        const expiresAt = new Date()
+        expiresAt.setDate(expiresAt.getDate() + expiryDays)
+        console.log(`[Paymob] Webhook upgrading tenant ${tenantId} to ${plan.tier} (${billingPeriod})`)
 
-      if (updateErr) console.error('[Paymob] Webhook update error:', updateErr.message)
-      else console.log(`[Paymob] Webhook: tenant ${tenantId} upgraded to ${plan.tier}`)
+        const { error: updateErr } = await supabase
+          .from('tenants')
+          .update({
+            subscription_status: 'active',
+            subscription_tier: plan.tier,
+            max_products: plan.max_products,
+            max_users: plan.max_users,
+            max_orders_monthly: plan.max_orders_monthly,
+            subscription_expires_at: expiresAt.toISOString(),
+            trial_ends_at: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', tenantId)
 
-      const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
-      if (payErr) console.error('[Paymob] Webhook payment update error:', payErr.message)
+        if (updateErr) console.error('[Paymob] Webhook update error:', updateErr.message)
+        else console.log(`[Paymob] Webhook: tenant ${tenantId} upgraded to ${plan.tier}`)
+
+        const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
+        if (payErr) console.error('[Paymob] Webhook payment update error:', payErr.message)
+
+        // Save card token from webhook
+        const cardToken = obj.token || obj.payment_data?.card_token || obj.card_token
+        const cardLastFour = obj.payment_data?.card_last_four || obj.card_last_four
+        const cardBrand = obj.payment_data?.card_type || obj.card_type
+
+        if (cardToken && tenantId) {
+          try {
+            await supabase.from('saved_payment_methods').update({ is_default: false }).eq('tenant_id', tenantId)
+            await supabase.from('saved_payment_methods').insert({
+              tenant_id: tenantId,
+              provider: 'paymob',
+              token: cardToken,
+              card_last_four: cardLastFour || null,
+              card_brand: cardBrand || null,
+              paymob_token_id: cardToken,
+              is_default: true,
+            })
+            console.log(`[Paymob] Webhook: saved card for tenant ${tenantId}`)
+          } catch (e) {
+            console.error('[Paymob] Webhook card save exception:', e.message)
+          }
+        }
+      }
     } else if (merchantOrderId) {
       console.log(`[Paymob] Webhook: payment not successful for ${merchantOrderId}`)
     } else {
@@ -232,7 +283,9 @@ router.get('/verify', authenticateToken, requireManager, async (req, res) => {
     console.log(`[Paymob] Verify: paid=${isPaid}, merchant_order_id=${merchantOrderId}`)
 
     const tenantIdMatch = merchantOrderId.match(/tenant-(\d+)-/)
-    const tenantId = tenantIdMatch?.[1]
+    const tokenizeMatch = merchantOrderId.match(/tokenize-tenant-(\d+)-/)
+    const tenantId = tenantIdMatch?.[1] || tokenizeMatch?.[1]
+    const isTokenize = merchantOrderId.startsWith('tokenize-')
     const planSlugMatch = merchantOrderId.match(/tenant-\d+-(\w+)-/)
     const planSlug = planSlugMatch?.[1]
     const periodMatch = merchantOrderId.match(/tenant-\d+-\w+-(yearly|monthly)-/)
@@ -240,6 +293,34 @@ router.get('/verify', authenticateToken, requireManager, async (req, res) => {
     const expiryDays = billingPeriod === 'yearly' ? 365 : 30
 
     if (isPaid && tenantId) {
+      // Save card token if present
+      const cardToken = paymentData?.token || paymentData?.payment_data?.card_token || paymentData?.obj?.token
+      const cardLastFour = paymentData?.payment_data?.card_last_four || paymentData?.card_last_four || paymentData?.obj?.payment_data?.card_last_four
+      const cardBrand = paymentData?.payment_data?.card_type || paymentData?.card_type || paymentData?.obj?.payment_data?.card_type
+
+      if (isTokenize) {
+        // Tokenize-only: just save the card
+        if (cardToken) {
+          try {
+            await supabase.from('saved_payment_methods').update({ is_default: false }).eq('tenant_id', tenantId)
+            await supabase.from('saved_payment_methods').insert({
+              tenant_id: tenantId,
+              provider: 'paymob',
+              token: cardToken,
+              card_last_four: cardLastFour || null,
+              card_brand: cardBrand || null,
+              paymob_token_id: cardToken,
+              is_default: true,
+            })
+            console.log(`[Paymob] Verify: saved card (tokenize) for tenant ${tenantId}`)
+          } catch (e) {
+            console.error('[Paymob] Verify tokenize card save error:', e.message)
+          }
+        }
+        return res.json({ paid: true, plan: 'tokenize' })
+      }
+
+      // Subscription upgrade
       const plan = PLAN_MAP[planSlug] || PLAN_MAP.pro
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + expiryDays)
@@ -262,6 +343,31 @@ router.get('/verify', authenticateToken, requireManager, async (req, res) => {
 
       const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
       if (payErr) console.error('[Paymob] Verify payment update error:', payErr.message)
+
+      // Save card token if present
+      const cardToken = paymentData?.token || paymentData?.payment_data?.card_token || paymentData?.obj?.token
+      const cardLastFour = paymentData?.payment_data?.card_last_four || paymentData?.card_last_four || paymentData?.obj?.payment_data?.card_last_four
+      const cardBrand = paymentData?.payment_data?.card_type || paymentData?.card_type || paymentData?.obj?.payment_data?.card_type
+
+      if (cardToken && tenantId) {
+        try {
+          // Upsert: set all other cards as non-default, then insert new one
+          await supabase.from('saved_payment_methods').update({ is_default: false }).eq('tenant_id', tenantId)
+          const { error: cardErr } = await supabase.from('saved_payment_methods').insert({
+            tenant_id: tenantId,
+            provider: 'paymob',
+            token: cardToken,
+            card_last_four: cardLastFour || null,
+            card_brand: cardBrand || null,
+            paymob_token_id: cardToken,
+            is_default: true,
+          })
+          if (cardErr) console.error('[Paymob] Verify save card error:', cardErr.message)
+          else console.log(`[Paymob] Verify: saved card for tenant ${tenantId}`)
+        } catch (e) {
+          console.error('[Paymob] Verify card save exception:', e.message)
+        }
+      }
 
       return res.json({ paid: true, plan: planSlug || 'pro' })
     }
@@ -321,6 +427,64 @@ router.post('/cards', authenticateToken, requireManager, async (req, res) => {
 
     if (error) throw error
     res.status(201).json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/billing/paymob/tokenize - Create a tokenization intention for saving a card
+router.post('/tokenize', authenticateToken, requireManager, async (req, res) => {
+  try {
+    const secretKey = process.env.PAYMOB_SECRET_KEY
+    const publicKey = process.env.PAYMOB_PUBLIC_KEY
+    const cardIntegrationId = process.env.PAYMOB_CARD_INTEGRATION_ID
+    const webhookUrl = 'https://erp-go-crimson-wind-2087.fly.dev/api/billing/paymob/webhook'
+    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/billing`
+
+    if (!secretKey || !publicKey || !cardIntegrationId) {
+      return res.status(503).json({ error: 'Paymob not configured' })
+    }
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('full_name, email')
+      .eq('id', req.user.id)
+      .single()
+
+    const merchantOrderId = `tokenize-tenant-${req.user.tenantId}-${Date.now()}`
+
+    const intentionRes = await fetch(`${PAYMOB_BASE_URL}/v1/intention/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${secretKey}`,
+      },
+      body: JSON.stringify({
+        amount: 100,
+        currency: 'EGP',
+        payment_methods: [Number(cardIntegrationId)],
+        items: [{ name: 'Card Tokenization', amount: 100, description: 'Save card for renewal', quantity: 1 }],
+        billing_data: {
+          first_name: user?.full_name?.split(' ')[0] || 'Customer',
+          last_name: user?.full_name?.split(' ').slice(1).join(' ') || 'User',
+          email: user?.email || '',
+          phone_number: '+201000000000',
+          apartment: 'N/A', floor: 'N/A', street: 'N/A', building: 'N/A',
+          city: 'Cairo', country: 'EGY', postal_code: '00000', state: 'Cairo',
+        },
+        special_reference: merchantOrderId,
+        notification_url: webhookUrl,
+        redirection_url: redirectUrl,
+        extras: { action: 'tokenize', tenant_id: req.user.tenantId },
+      }),
+    })
+
+    const intentionData = await intentionRes.json()
+    if (!intentionData.client_secret) {
+      return res.status(500).json({ error: intentionData.detail || 'Failed to create tokenization intention' })
+    }
+
+    res.json({ checkout_url: `https://accept.paymob.com/unifiedcheckout/?publicKey=${publicKey}&clientSecret=${intentionData.client_secret}` })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

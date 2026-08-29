@@ -180,6 +180,7 @@ export default function BillingPage() {
   const [savedCards, setSavedCards] = useState([])
   const [deletingCard, setDeletingCard] = useState(null)
   const [plans, setPlans] = useState([])
+  const [addingCard, setAddingCard] = useState(false)
 
   if (currentUser?.role !== 'MANAGER' && currentUser?.role !== 'SUPER_ADMIN') {
     return (
@@ -239,6 +240,20 @@ export default function BillingPage() {
       alert('Failed to delete card')
     } finally {
       setDeletingCard(null)
+    }
+  }
+
+  const handleAddCard = async () => {
+    setAddingCard(true)
+    try {
+      const { data } = await api.post('/billing/paymob/tokenize')
+      if (data?.checkout_url) {
+        window.location.href = data.checkout_url
+      }
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to start card save')
+    } finally {
+      setAddingCard(false)
     }
   }
 
@@ -382,9 +397,14 @@ export default function BillingPage() {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               {t('billing.savedCards') || 'Saved Payment Methods'}
             </h3>
-            <Link to="/pricing" className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+            <button
+              onClick={handleAddCard}
+              disabled={addingCard}
+              className="flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:underline disabled:opacity-50"
+            >
+              {addingCard ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5" />}
               {t('billing.addCard') || '+ Add Card'}
-            </Link>
+            </button>
           </div>
           {savedCards.length > 0 ? (
             <div className="space-y-3">
@@ -440,9 +460,9 @@ export default function BillingPage() {
                 {billing.paymentHistory.map((p, i) => (
                   <tr key={i} className="border-b border-gray-100 dark:border-gray-700/50">
                     <td className="py-2.5 text-gray-900 dark:text-white">{new Date(p.date).toLocaleDateString()}</td>
-                    <td className="py-2.5 text-gray-900 dark:text-white">${p.amount}</td>
+                    <td className="py-2.5 text-gray-900 dark:text-white">{(p.amount || 0).toLocaleString()} ج.م</td>
                     <td className="py-2.5">
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${p.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs ${p.status === 'paid' || p.status === 'succeeded' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>
                         {p.status}
                       </span>
                     </td>
