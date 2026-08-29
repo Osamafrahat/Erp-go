@@ -50,7 +50,7 @@ export default function LoginPage() {
               <Store className="w-10 h-10 text-white" />
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{settings.storeName || 'Store POS'}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{settings.storeName || 'ERP-GO'}</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-2">{t('users.signInTitle')}</p>
         </div>
 

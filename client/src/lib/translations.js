@@ -19,7 +19,7 @@ export const translations = {
     'dashboard.lowStockAlert': 'Low Stock Alert',
     'dashboard.threshold': 'Threshold',
     'dashboard.left': 'left',
-    'dashboard.welcomeTitle': 'Welcome to Store POS',
+    'dashboard.welcomeTitle': 'Welcome to ERP-GO',
     'dashboard.welcomeMessage': 'Use the navigation menu to access your available features',
     'dashboard.startSelling': 'Start Selling',
     'dashboard.startSellingDesc': 'Open POS and process sales',
@@ -58,7 +58,7 @@ export const translations = {
     'nav.suppliers': 'Suppliers',
     'nav.promotions': 'Promotions',
     'nav.settings': 'Settings',
-    'nav.storeName': 'Store POS',
+    'nav.storeName': 'ERP-GO',
     'nav.darkMode': 'Dark Mode',
     'nav.lightMode': 'Light Mode',
     'nav.language': 'Language',
@@ -1270,7 +1270,7 @@ export const translations = {
     'invoices.noOrders': 'No orders found',
 
     // Layout
-    'layout.defaultStoreName': 'Store POS',
+    'layout.defaultStoreName': 'ERP-GO',
     'layout.posSystem': 'POS System',
     'layout.expandSidebar': 'Expand sidebar',
 
@@ -1889,7 +1889,7 @@ export const translations = {
     'pricing.paymentFailed': 'Payment failed',
 
     // Landing Page
-    'landing.brand': 'Store POS',
+    'landing.brand': 'ERP-GO',
     'landing.badge': 'All-in-one store management',
     'landing.heroTitle': 'Complete Store',
     'landing.heroTitle2': 'Management System',
@@ -1979,7 +1979,7 @@ export const translations = {
     'dashboard.lowStockAlert': 'تنبيه المخزون المنخفض',
     'dashboard.threshold': 'الحد',
     'dashboard.left': 'متبقي',
-    'dashboard.welcomeTitle': 'مرحباً بك في نقطة بيع المتجر',
+    'dashboard.welcomeTitle': 'مرحباً بك في ERP-GO',
     'dashboard.welcomeMessage': 'استخدم قائمة التنقل للوصول إلى الميزات المتاحة',
     'dashboard.startSelling': 'ابدأ البيع',
     'dashboard.startSellingDesc': 'افتح نقطة البيع ومعالجة المبيعات',
@@ -2017,7 +2017,7 @@ export const translations = {
     'nav.suppliers': 'الموردين',
     'nav.promotions': 'العروض',
     'nav.settings': 'الإعدادات',
-    'nav.storeName': 'نقطة بيع المتجر',
+    'nav.storeName': 'ERP-GO',
     'nav.darkMode': 'الوضع الداكن',
     'nav.lightMode': 'الوضع الفاتح',
     'nav.language': 'اللغة',
@@ -3222,7 +3222,7 @@ export const translations = {
     'invoices.noOrders': 'لا توجد طلبات',
 
     // Layout
-    'layout.defaultStoreName': 'نقطة بيع المتجر',
+    'layout.defaultStoreName': 'ERP-GO',
     'layout.posSystem': 'نظام نقطة البيع',
     'layout.expandSidebar': 'توسيع الشريط الجانبي',
 
@@ -3840,7 +3840,7 @@ export const translations = {
     'pricing.save': 'وفّر 17%',
 
     // Landing Page
-    'landing.brand': 'متجرى',
+    'landing.brand': 'ERP-GO',
     'landing.badge': 'نظام إدارة متجر شامل',
     'landing.heroTitle': 'نظام إدارة متجر',
     'landing.heroTitle2': 'شامل ومتقدم',

@@ -55,7 +55,7 @@ export default function InventoryPrintSheet({ products, categories, settings, us
         <div style={{ borderBottom: '3px solid #000', paddingBottom: '12px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <h1 style={{ fontSize: '22px', fontWeight: 'bold', color: '#000', margin: '0 0 4px 0' }}>{settings?.storeName || 'Store POS'}</h1>
+              <h1 style={{ fontSize: '22px', fontWeight: 'bold', color: '#000', margin: '0 0 4px 0' }}>{settings?.storeName || 'ERP-GO'}</h1>
               <p style={{ fontSize: '11px', color: '#333', margin: '2px 0' }}>{settings?.storeAddress || ''}</p>
               <p style={{ fontSize: '11px', color: '#333', margin: '2px 0' }}>{settings?.storePhone || ''}</p>
             </div>
@@ -173,7 +173,7 @@ export default function InventoryPrintSheet({ products, categories, settings, us
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <p style={{ fontSize: '9px', color: '#555' }}>{t('print.generatedBy')}</p>
-              <p style={{ fontSize: '9px', color: '#000', fontWeight: 500 }}>{settings?.storeName || 'Store POS'}</p>
+              <p style={{ fontSize: '9px', color: '#000', fontWeight: 500 }}>{settings?.storeName || 'ERP-GO'}</p>
             </div>
             <div style={{ textAlign: 'center' }}>
               <p style={{ fontSize: '10px', color: '#000', fontWeight: 600 }}>

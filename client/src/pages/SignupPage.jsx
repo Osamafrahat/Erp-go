@@ -115,7 +115,7 @@ export default function SignupPage() {
                   onChange={(e) => setStoreName(e.target.value)}
                   required
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                  placeholder={t('signup.storeNamePlaceholder') || 'My Awesome Store'}
+                  placeholder={t('signup.storeNamePlaceholder') || 'My Shop'}
                 />
               </div>
             </div>

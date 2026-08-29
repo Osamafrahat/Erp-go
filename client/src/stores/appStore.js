@@ -24,7 +24,7 @@ export const useAppStore = create((set, get) => ({
 
   // Store settings (loaded from database)
   settings: {
-    storeName: 'My Store',
+    storeName: 'ERP-GO',
     storeAddress: '',
     storePhone: '',
     storeLogo: '',

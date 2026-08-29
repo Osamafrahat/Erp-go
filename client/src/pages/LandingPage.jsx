@@ -105,7 +105,7 @@ export default function LandingPage() {
               <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center">
                 <Store className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">{t('landing.brand') || 'Store POS'}</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">{t('landing.brand') || 'ERP-GO'}</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('landing.features') || 'Features'}</a>
@@ -296,7 +296,7 @@ export default function LandingPage() {
                 <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                   <Store className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-gray-900 dark:text-white">{t('landing.brand') || 'Store POS'}</span>
+                <span className="font-bold text-gray-900 dark:text-white">{t('landing.brand') || 'ERP-GO'}</span>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">{t('landing.footerDesc') || 'Professional store management for modern businesses.'}</p>
             </div>
@@ -324,7 +324,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400 dark:text-gray-500">
-            © {new Date().getFullYear()} {t('landing.brand') || 'Store POS'}. {t('landing.footerRights') || 'All rights reserved.'}
+            © {new Date().getFullYear()} {t('landing.brand') || 'ERP-GO'}. {t('landing.footerRights') || 'All rights reserved.'}
           </div>
         </div>
       </footer>

@@ -77,7 +77,7 @@ function App() {
   }, [isAuthenticated, loadSettings, refreshUser])
 
   useEffect(() => {
-    document.title = settings.storeName || 'Store POS'
+    document.title = settings.storeName || 'ERP-GO'
   }, [settings.storeName])
 
   const showForcePasswordChange = isAuthenticated && mustChangePassword()

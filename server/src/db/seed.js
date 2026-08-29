@@ -243,7 +243,7 @@ ALTER TABLE expenses ADD COLUMN IF NOT EXISTS method TEXT DEFAULT 'cash';
 
   // Seed default store settings
   const defaultSettings = [
-    { key: 'store_name', value: 'My Store' },
+    { key: 'store_name', value: 'ERP-GO' },
     { key: 'currency', value: 'EGP' },
     { key: 'currency_symbol', value: 'ج.م' },
     { key: 'tax_rate', value: '14' },
