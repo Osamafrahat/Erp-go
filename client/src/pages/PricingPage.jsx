@@ -186,7 +186,7 @@ export default function PricingPage() {
       setShowDowngradeConfirm(null)
       navigate('/billing')
     } catch (err) {
-      alert(err.response?.data?.error || 'Downgrade failed')
+      alert(err.response?.data?.error || (t('pricing.downgradeFailed') || 'Downgrade failed'))
     } finally {
       setDowngrading(false)
     }
@@ -205,7 +205,7 @@ export default function PricingPage() {
         window.location.href = data.checkout_url
       }
     } catch (err) {
-      alert(err.response?.data?.error || 'Payment failed')
+      alert(err.response?.data?.error || (t('pricing.paymentFailed') || 'Payment failed'))
       setProcessing(false)
     }
   }
@@ -219,7 +219,7 @@ export default function PricingPage() {
         window.location.href = data.url
       }
     } catch (err) {
-      alert(err.response?.data?.error || 'Payment failed')
+      alert(err.response?.data?.error || (t('pricing.paymentFailed') || 'Payment failed'))
       setProcessing(false)
     }
   }
@@ -324,7 +324,7 @@ export default function PricingPage() {
 
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">{tier.name}</h3>
                 <div className="mt-2 mb-6">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-white">{tier.price > 0 ? `${tier.price.toLocaleString()} ج.م` : 'Free'}</span>
+                  <span className="text-4xl font-bold text-gray-900 dark:text-white">{tier.price > 0 ? `${tier.price.toLocaleString()} ج.م` : (t('pricing.free') || 'Free')}</span>
                   <span className="text-gray-500 dark:text-gray-400">{tier.period}</span>
                   {tier.monthlyEquiv && billingPeriod === 'yearly' && (
                     <p className="text-xs text-green-600 dark:text-green-400 mt-1">

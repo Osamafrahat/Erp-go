@@ -58,7 +58,7 @@ export default function SuperAdminPage() {
   const tabs = [
     { key: 'dashboard', label: t('admin.tabDashboard') || 'Dashboard', icon: BarChart3 },
     { key: 'tenants', label: t('admin.tabTenants') || 'Tenants', icon: Building2 },
-    { key: 'payments', label: 'Payments', icon: CreditCard },
+    { key: 'payments', label: t('admin.tabPayments') || 'Payments', icon: CreditCard },
     { key: 'plans', label: t('admin.tabPlans') || 'Plans', icon: DollarSign },
     { key: 'activity', label: t('admin.tabActivity') || 'Activity', icon: Activity },
   ]
@@ -125,7 +125,7 @@ function DashboardTab({ t }) {
   if (loading) return <div className="flex items-center justify-center h-40"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
   if (!analytics) return null
 
-  const fmt = (v) => `${(v || 0).toLocaleString()} EGP`
+  const fmt = (v) => `${(v || 0).toLocaleString()} ج.م`
 
   return (
     <div className="space-y-6">
@@ -222,7 +222,7 @@ function DashboardTab({ t }) {
               <span className="text-lg font-bold text-green-600 dark:text-green-400">{analytics.successful_payments}</span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Success Rate</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('admin.successRate') || 'Success Rate'}</span>
               <span className="text-lg font-bold text-gray-900 dark:text-white">
                 {analytics.total_payments > 0 ? Math.round((analytics.successful_payments / analytics.total_payments) * 100) : 0}%
               </span>
@@ -235,8 +235,8 @@ function DashboardTab({ t }) {
         <div className="flex items-start gap-3">
           <Database className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">Database Migration Required</h3>
-            <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-3">Run this SQL in Supabase SQL Editor (Dashboard → SQL Editor → New Query):</p>
+            <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">{t('admin.migrationRequired') || 'Database Migration Required'}</h3>
+            <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-3">{t('admin.migrationHint') || 'Run this SQL in Supabase SQL Editor (Dashboard → SQL Editor → New Query):'}</p>
             <div className="bg-white dark:bg-gray-800 rounded-lg p-3 font-mono text-xs text-gray-800 dark:text-gray-200 overflow-x-auto">
               <pre>{`ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz;
 ALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;
@@ -261,7 +261,7 @@ CREATE TABLE IF NOT EXISTS saved_payment_methods (
               }}
               className="mt-2 text-xs bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300 px-3 py-1.5 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-700 font-medium"
             >
-              Copy SQL
+              {t('admin.copySql') || 'Copy SQL'}
             </button>
           </div>
         </div>
@@ -305,7 +305,7 @@ function TenantsTab({ t, showToast }) {
       await superAdminApi.updateTenant(tenantId, { subscription_tier: newTier })
       setTenants(prev => prev.map(t => t.id === tenantId ? { ...t, subscription_tier: newTier } : t))
       showToast(t('admin.tierUpdated') || 'Tier updated')
-    } catch (err) { showToast(err.response?.data?.error || 'Failed', 'error') } finally { setActionLoading(null) }
+    } catch (err) { showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error') } finally { setActionLoading(null) }
   }
 
   const handleSuspend = async (tenantId, currentStatus) => {
@@ -315,7 +315,7 @@ function TenantsTab({ t, showToast }) {
       await superAdminApi.updateTenant(tenantId, { subscription_status: newStatus })
       setTenants(prev => prev.map(t => t.id === tenantId ? { ...t, subscription_status: newStatus } : t))
       showToast(t('admin.tierUpdated') || 'Updated')
-    } catch (err) { showToast(err.response?.data?.error || 'Failed', 'error') } finally { setActionLoading(null) }
+    } catch (err) { showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error') } finally { setActionLoading(null) }
   }
 
   const handleImpersonate = async (tenantId) => {
@@ -327,17 +327,17 @@ function TenantsTab({ t, showToast }) {
       localStorage.setItem('user', JSON.stringify(data.user))
       localStorage.setItem('tenant_id', String(data.user.tenant_id))
       window.location.href = '/dashboard'
-    } catch (err) { showToast(err.response?.data?.error || 'Failed', 'error') } finally { setActionLoading(null) }
+    } catch (err) { showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error') } finally { setActionLoading(null) }
   }
 
   const handleDelete = async (tenantId, tenantName) => {
-    if (!window.confirm(`Delete "${tenantName}" and ALL its data?`)) return
+    if (!window.confirm(t('admin.deleteConfirm') || `Delete "${tenantName}" and ALL its data?`)) return
     setActionLoading(tenantId)
     try {
       await superAdminApi.deleteTenant(tenantId)
       setTenants(prev => prev.filter(t => t.id !== tenantId))
       showToast(t('admin.tenantDeleted') || 'Deleted')
-    } catch (err) { showToast(err.response?.data?.error || 'Failed', 'error') } finally { setActionLoading(null) }
+    } catch (err) { showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error') } finally { setActionLoading(null) }
   }
 
   const totalPages = Math.ceil(total / limit)
@@ -352,16 +352,16 @@ function TenantsTab({ t, showToast }) {
           </div>
           <div className="flex gap-2">
             <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1) }} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2">
-              <option value="">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="trialing">Trial</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="">{t('admin.allStatuses') || 'All Statuses'}</option>
+              <option value="active">{t('billing.active') || 'Active'}</option>
+              <option value="trialing">{t('billing.trial') || 'Trial'}</option>
+              <option value="cancelled">{t('billing.cancelled') || 'Cancelled'}</option>
             </select>
             <select value={filterTier} onChange={(e) => { setFilterTier(e.target.value); setPage(1) }} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2">
-              <option value="">All Tiers</option>
-              <option value="free">Free</option>
-              <option value="pro">Pro</option>
-              <option value="enterprise">Enterprise</option>
+              <option value="">{t('admin.allTiers') || 'All Tiers'}</option>
+              <option value="free">{t('pricing.free') || 'Free'}</option>
+              <option value="pro">{t('pricing.pro') || 'Pro'}</option>
+              <option value="enterprise">{t('pricing.enterprise') || 'Enterprise'}</option>
             </select>
             <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
               <Plus className="w-4 h-4" /> {t('admin.createNew') || 'Create'}
@@ -376,15 +376,15 @@ function TenantsTab({ t, showToast }) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Tier</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Users</th>
-                  <th className="px-4 py-3 font-medium">Products</th>
-                  <th className="px-4 py-3 font-medium">Orders</th>
-                  <th className="px-4 py-3 font-medium">Created</th>
-                  <th className="px-4 py-3 font-medium">Expires</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+                  <th className="px-4 py-3 font-medium">{t('common.name') || 'Name'}</th>
+                  <th className="px-4 py-3 font-medium">{t('admin.tier') || 'Tier'}</th>
+                  <th className="px-4 py-3 font-medium">{t('common.status') || 'Status'}</th>
+                  <th className="px-4 py-3 font-medium">{t('common.users') || 'Users'}</th>
+                  <th className="px-4 py-3 font-medium">{t('common.products') || 'Products'}</th>
+                  <th className="px-4 py-3 font-medium">{t('common.orders') || 'Orders'}</th>
+                  <th className="px-4 py-3 font-medium">{t('admin.created') || 'Created'}</th>
+                  <th className="px-4 py-3 font-medium">{t('admin.expires') || 'Expires'}</th>
+                  <th className="px-4 py-3 font-medium">{t('common.actions') || 'Actions'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -393,7 +393,7 @@ function TenantsTab({ t, showToast }) {
                     <td className="px-4 py-3"><p className="font-medium text-gray-900 dark:text-white">{tenant.name}</p><p className="text-xs text-gray-400">{tenant.slug}</p></td>
                     <td className="px-4 py-3">
                       <select value={tenant.subscription_tier} onChange={(e) => handleChangeTier(tenant.id, e.target.value)} disabled={actionLoading === tenant.id} className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${tierColors[tenant.subscription_tier] || tierColors.free}`}>
-                        <option value="free">Free</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option>
+                        <option value="free">{t('pricing.free') || 'Free'}</option><option value="pro">{t('pricing.pro') || 'Pro'}</option><option value="enterprise">{t('pricing.enterprise') || 'Enterprise'}</option>
                       </select>
                     </td>
                     <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[tenant.subscription_status] || statusColors.cancelled}`}>{tenant.subscription_status}</span></td>
@@ -422,7 +422,7 @@ function TenantsTab({ t, showToast }) {
                     </td>
                   </tr>
                 ))}
-                {tenants.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">No tenants found</td></tr>}
+                {tenants.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">{t('admin.noTenants') || 'No tenants found'}</td></tr>}
               </tbody>
             </table>
           </div>
@@ -430,11 +430,11 @@ function TenantsTab({ t, showToast }) {
 
         {totalPages > 1 && (
           <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
-            <span className="text-gray-500">Showing {((page - 1) * limit) + 1}–{Math.min(page * limit, total)} of {total}</span>
+            <span className="text-gray-500">{t('admin.showing') || 'Showing'} {((page - 1) * limit) + 1}–{Math.min(page * limit, total)} {t('admin.of') || 'of'} {total}</span>
             <div className="flex gap-1">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 text-gray-700 dark:text-gray-300">Prev</button>
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 text-gray-700 dark:text-gray-300">{t('common.previous') || 'Prev'}</button>
               <span className="px-3 py-1 text-gray-500">{page}/{totalPages}</span>
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 text-gray-700 dark:text-gray-300">Next</button>
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 text-gray-700 dark:text-gray-300">{t('common.next') || 'Next'}</button>
             </div>
           </div>
         )}
@@ -454,7 +454,7 @@ function CreateTenantModal({ t, showToast, onClose, onCreated }) {
   const handleSubmit = async (e) => {
     e.preventDefault(); setLoading(true); setError('')
     try { await superAdminApi.createTenant(form); showToast(t('admin.tenantCreated') || 'Created'); onCreated() }
-    catch (err) { setError(err.response?.data?.error || 'Failed') } finally { setLoading(false) }
+    catch (err) { setError(err.response?.data?.error || (t('common.error') || 'Failed')) } finally { setLoading(false) }
   }
 
   return (
@@ -466,17 +466,17 @@ function CreateTenantModal({ t, showToast, onClose, onCreated }) {
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
           {error && <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-2 rounded">{error}</p>}
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Store Name" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
-          <input value={form.adminFullName} onChange={(e) => setForm({ ...form, adminFullName: e.target.value })} placeholder="Admin Full Name" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
-          <input value={form.adminUsername} onChange={(e) => setForm({ ...form, adminUsername: e.target.value })} placeholder="Admin Username" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
-          <input value={form.adminEmail} onChange={(e) => setForm({ ...form, adminEmail: e.target.value })} placeholder="Admin Email" type="email" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
-          <input value={form.adminPassword} onChange={(e) => setForm({ ...form, adminPassword: e.target.value })} placeholder="Admin Password" type="password" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required minLength={8} />
+          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('admin.storeName') || 'Store Name'} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
+          <input value={form.adminFullName} onChange={(e) => setForm({ ...form, adminFullName: e.target.value })} placeholder={t('admin.adminFullName') || 'Admin Full Name'} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
+          <input value={form.adminUsername} onChange={(e) => setForm({ ...form, adminUsername: e.target.value })} placeholder={t('admin.adminUsername') || 'Admin Username'} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
+          <input value={form.adminEmail} onChange={(e) => setForm({ ...form, adminEmail: e.target.value })} placeholder={t('admin.adminEmail') || 'Admin Email'} type="email" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
+          <input value={form.adminPassword} onChange={(e) => setForm({ ...form, adminPassword: e.target.value })} placeholder={t('admin.adminPassword') || 'Admin Password'} type="password" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required minLength={8} />
           <select value={form.tier} onChange={(e) => setForm({ ...form, tier: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-            <option value="free">Free</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option>
+            <option value="free">{t('pricing.free') || 'Free'}</option><option value="pro">{t('pricing.pro') || 'Pro'}</option><option value="enterprise">{t('pricing.enterprise') || 'Enterprise'}</option>
           </select>
           <div className="flex gap-2 justify-end pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">Cancel</button>
-            <button type="submit" disabled={loading} className="px-4 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg disabled:opacity-50">{loading ? '...' : 'Create'}</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">{t('common.cancel') || 'Cancel'}</button>
+            <button type="submit" disabled={loading} className="px-4 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg disabled:opacity-50">{loading ? '...' : (t('common.add') || 'Create')}</button>
           </div>
         </form>
       </div>
@@ -503,7 +503,7 @@ function TenantDetailModal({ t, tenantId, onClose }) {
         : tenant ? (
           <div className="p-4 space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[{ label: 'Users', value: tenant.user_count }, { label: 'Products', value: tenant.product_count }, { label: 'Orders', value: tenant.order_count }, { label: 'Tier', value: tenant.subscription_tier }].map(({ label, value }) => (
+              {[{ label: t('common.users') || 'Users', value: tenant.user_count }, { label: t('common.products') || 'Products', value: tenant.product_count }, { label: t('common.orders') || 'Orders', value: tenant.order_count }, { label: t('admin.tier') || 'Tier', value: tenant.subscription_tier }].map(({ label, value }) => (
                 <div key={label} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-center">
                   <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
                   <p className="text-lg font-bold text-gray-900 dark:text-white">{value}</p>
@@ -511,20 +511,20 @@ function TenantDetailModal({ t, tenantId, onClose }) {
               ))}
             </div>
             {tenant.users?.length > 0 && (
-              <div><h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Users</h3>
+              <div><h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('common.users') || 'Users'}</h3>
                 <div className="space-y-1">{tenant.users.map((u) => (
                   <div key={u.id} className="flex items-center justify-between text-sm py-1.5 px-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     <div><span className="font-medium text-gray-900 dark:text-white">{u.username}</span><span className="text-gray-400 ml-2">{u.role}</span></div>
-                    <span className={`text-xs ${u.is_active ? 'text-green-600' : 'text-red-600'}`}>{u.is_active ? 'Active' : 'Inactive'}</span>
+                    <span className={`text-xs ${u.is_active ? 'text-green-600' : 'text-red-600'}`}>{u.is_active ? (t('common.active') || 'Active') : (t('common.inactive') || 'Inactive')}</span>
                   </div>
                 ))}</div>
               </div>
             )}
             {tenant.recent_orders?.length > 0 && (
-              <div><h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Recent Orders</h3>
+              <div><h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('admin.recentOrders') || 'Recent Orders'}</h3>
                 <div className="space-y-1">{tenant.recent_orders.map((o) => (
                   <div key={o.id} className="flex items-center justify-between text-sm py-1.5 px-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    <span className="text-gray-900 dark:text-white">{o.order_number}</span><span className="text-gray-500">{o.total_amount} EGP</span>
+                    <span className="text-gray-900 dark:text-white">{o.order_number}</span><span className="text-gray-500">{o.total_amount} ج.م</span>
                   </div>
                 ))}</div>
               </div>
@@ -553,12 +553,12 @@ function PaymentsTab({ t }) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <h3 className="font-medium text-gray-900 dark:text-white">Payment History</h3>
+        <h3 className="font-medium text-gray-900 dark:text-white">{t('billing.paymentHistory') || 'Payment History'}</h3>
         <select value={filter} onChange={(e) => setFilter(e.target.value)} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5">
-          <option value="">All Statuses</option>
-          <option value="paid">Paid</option>
-          <option value="pending">Pending</option>
-          <option value="failed">Failed</option>
+          <option value="">{t('admin.allStatuses') || 'All Statuses'}</option>
+          <option value="paid">{t('admin.paid') || 'Paid'}</option>
+          <option value="pending">{t('admin.pending') || 'Pending'}</option>
+          <option value="failed">{t('admin.failed') || 'Failed'}</option>
         </select>
       </div>
       {payments.length === 0 ? (
@@ -567,18 +567,18 @@ function PaymentsTab({ t }) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                <th className="px-4 py-3 font-medium">Tenant</th>
-                <th className="px-4 py-3 font-medium">Amount</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Date</th>
+                <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                <th className="px-4 py-3 font-medium">{t('admin.tenant') || 'Tenant'}</th>
+                <th className="px-4 py-3 font-medium">{t('common.amount') || 'Amount'}</th>
+                <th className="px-4 py-3 font-medium">{t('common.status') || 'Status'}</th>
+                <th className="px-4 py-3 font-medium">{t('common.date') || 'Date'}</th>
               </tr>
             </thead>
             <tbody>
               {payments.map((p) => (
                 <tr key={p.id} className="border-b border-gray-100 dark:border-gray-700/50">
-                  <td className="px-4 py-3"><p className="text-gray-900 dark:text-white">{p.tenant?.name || 'Unknown'}</p><p className="text-xs text-gray-400">{p.tenant?.subscription_tier || ''}</p></td>
-                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{(p.amount / 100).toLocaleString()} EGP</td>
+                  <td className="px-4 py-3"><p className="text-gray-900 dark:text-white">{p.tenant?.name || (t('admin.unknown') || 'Unknown')}</p><p className="text-xs text-gray-400">{p.tenant?.subscription_tier || ''}</p></td>
+                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{(p.amount / 100).toLocaleString()} ج.م</td>
                   <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-1 rounded-full ${p.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : p.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>{p.status}</span></td>
                   <td className="px-4 py-3 text-gray-500">{p.created_at ? new Date(p.created_at).toLocaleString() : '—'}</td>
                 </tr>
@@ -614,7 +614,7 @@ function PlansTab({ t, showToast }) {
       setPlans(prev => prev.map(p => p.id === planId ? data : p))
       setEditing(null)
       showToast(t('admin.planSaved') || 'Plan updated')
-    } catch (err) { showToast(err.response?.data?.error || 'Failed', 'error') } finally { setSaving(false) }
+    } catch (err) { showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error') } finally { setSaving(false) }
   }
 
   const fmt = (v) => v === -1 || v === Infinity ? '∞' : v?.toLocaleString()
@@ -636,17 +636,17 @@ function PlansTab({ t, showToast }) {
           </div>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-500">Monthly Price (EGP)</label>
+              <label className="text-xs text-gray-500">{t('admin.monthlyPrice') || 'Monthly Price'} (ج.م)</label>
               {editing === plan.id ? <input type="number" value={editForm.price_monthly} onChange={(e) => setEditForm({ ...editForm, price_monthly: Number(e.target.value) })} className="w-full mt-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
-              : <p className="text-2xl font-bold text-gray-900 dark:text-white">{plan.price_monthly} <span className="text-sm font-normal text-gray-500">EGP/mo</span></p>}
+              : <p className="text-2xl font-bold text-gray-900 dark:text-white">{plan.price_monthly?.toLocaleString()} <span className="text-sm font-normal text-gray-500">ج.م/{t('pricing.perMonth') || 'mo'}</span></p>}
             </div>
             <div>
-              <label className="text-xs text-gray-500">Yearly Price (EGP)</label>
+              <label className="text-xs text-gray-500">{t('admin.yearlyPrice') || 'Yearly Price'} (ج.م)</label>
               {editing === plan.id ? <input type="number" value={editForm.price_yearly} onChange={(e) => setEditForm({ ...editForm, price_yearly: Number(e.target.value) })} className="w-full mt-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
-              : <p className="text-lg font-semibold text-gray-900 dark:text-white">{plan.price_yearly} <span className="text-sm font-normal text-gray-500">EGP/yr</span></p>}
+              : <p className="text-lg font-semibold text-gray-900 dark:text-white">{plan.price_yearly?.toLocaleString()} <span className="text-sm font-normal text-gray-500">ج.م/{t('pricing.perYear') || 'yr'}</span></p>}
             </div>
             <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-              {[{ label: 'Products', key: 'max_products' }, { label: 'Users', key: 'max_users' }, { label: 'Orders/mo', key: 'max_orders_monthly' }].map(({ label, key }) => (
+              {[{ label: t('common.products') || 'Products', key: 'max_products' }, { label: t('common.users') || 'Users', key: 'max_users' }, { label: t('admin.ordersPerMonth') || 'Orders/mo', key: 'max_orders_monthly' }].map(({ label, key }) => (
                 <div key={key}>
                   <label className="text-xs text-gray-500">{label}</label>
                   {editing === plan.id ? <input type="number" value={editForm[key]} onChange={(e) => setEditForm({ ...editForm, [key]: Number(e.target.value) })} className="w-full mt-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />

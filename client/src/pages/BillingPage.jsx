@@ -237,7 +237,7 @@ export default function BillingPage() {
       await api.delete(`/billing/paymob/cards/${cardId}`)
       setSavedCards(prev => prev.filter(c => c.id !== cardId))
     } catch {
-      alert('Failed to delete card')
+      alert(t('billing.deleteCardFailed') || 'Failed to delete card')
     } finally {
       setDeletingCard(null)
     }
@@ -251,7 +251,7 @@ export default function BillingPage() {
         window.location.href = data.checkout_url
       }
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to start card save')
+      alert(err.response?.data?.error || (t('billing.addCardFailed') || 'Failed to start card save'))
     } finally {
       setAddingCard(false)
     }
