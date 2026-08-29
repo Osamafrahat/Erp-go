@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
@@ -61,6 +62,7 @@ function PricingCard({ name, price, period, desc, features, cta, highlighted, ct
 export default function LandingPage() {
   const { t, language, setLanguage } = useAppStore()
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const [openModal, setOpenModal] = useState(null)
 
   const features = [
     { icon: ShoppingCart, title: t('landing.pos') || 'Point of Sale', desc: t('landing.posDesc') || 'Fast checkout with receipt printing, multiple payment methods, and real-time inventory updates.', color: 'bg-primary-600' },
@@ -332,8 +334,8 @@ export default function LandingPage() {
             <div>
               <h4 className="font-semibold text-gray-900 dark:text-white mb-3">{t('landing.footerLegal') || 'Legal'}</h4>
               <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
-                <li><span>{t('landing.footerPrivacy') || 'Privacy Policy'}</span></li>
-                <li><span>{t('landing.footerTerms') || 'Terms of Service'}</span></li>
+                <li><button onClick={() => setOpenModal('privacy')} className="hover:text-primary-600 transition-colors text-left">{t('landing.footerPrivacy') || 'Privacy Policy'}</button></li>
+                <li><button onClick={() => setOpenModal('terms')} className="hover:text-primary-600 transition-colors text-left">{t('landing.footerTerms') || 'Terms of Service'}</button></li>
               </ul>
             </div>
           </div>
@@ -342,6 +344,168 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Privacy Policy Modal */}
+      {openModal === 'privacy' && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setOpenModal(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{language === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy'}</h2>
+              <button onClick={() => setOpenModal(null)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors">✕</button>
+            </div>
+            <div className="px-6 py-6 space-y-6 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+              {language === 'ar' ? (
+                <>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">المعلومات التي نجمعها</h3>
+                    <p>نقوم بجمع المعلومات التالية عند إنشاء حسابك واستخدام المنصة:</p>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>الاسم واسم المتجر وعنوان البريد الإلكتروني</li>
+                      <li>بيانات المعاملات المالية (المبيعات، المصروفات، الفواتير)</li>
+                      <li>معلومات الموظفين والعملاء التي تدخلها في النظام</li>
+                      <li>عنوان IP ومعلومات الجهاز ل目的 الأمن</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">كيف نستخدم معلوماتك</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>تشغيل وتحسين خدمات المنصة</li>
+                      <li>إرسال إشعارات متعلقة بحسابك واشتراكك</li>
+                      <li>حماية حسابك ومنع الوصول غير المصرح به</li>
+                      <li>الامتثال للمتطلبات القانونية</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">أمن البيانات</h3>
+                    <p>نستخدم تشفير SSL/TLS لحماية بياناتك. بياناتك محفوظة بشكل آمن في بنية Supabase السحابية مع عزل كامل لكل مستأجر.</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">حقوقك</h3>
+                    <p>يحق لك الوصول إلى بياناتك وتصديرها وحذفها في أي وقت. يمكنك طلب حذف حسابك بالكامل من خلال الدعم الفني.</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">التواصل</h3>
+                    <p>لأي استفسارات حول سياسة الخصوصية، تواصل معنا عبر البريد الإلكتروني: support.erp.go@gmail.com</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Information We Collect</h3>
+                    <p>We collect the following information when you create your account and use the platform:</p>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>Your name, store name, and email address</li>
+                      <li>Financial transaction data (sales, expenses, invoices)</li>
+                      <li>Employee and customer information you enter into the system</li>
+                      <li>IP address and device information for security purposes</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">How We Use Your Information</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>To operate and improve platform services</li>
+                      <li>To send notifications related to your account and subscription</li>
+                      <li>To protect your account and prevent unauthorized access</li>
+                      <li>To comply with legal requirements</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Data Security</h3>
+                    <p>We use SSL/TLS encryption to protect your data. Your data is securely stored in Supabase cloud infrastructure with full tenant isolation.</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Your Rights</h3>
+                    <p>You have the right to access, export, and delete your data at any time. You can request full account deletion through our support team.</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Contact</h3>
+                    <p>For any questions about this Privacy Policy, contact us at: support.erp.go@gmail.com</p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Terms of Service Modal */}
+      {openModal === 'terms' && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setOpenModal(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{language === 'ar' ? 'شروط الخدمة' : 'Terms of Service'}</h2>
+              <button onClick={() => setOpenModal(null)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors">✕</button>
+            </div>
+            <div className="px-6 py-6 space-y-6 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+              {language === 'ar' ? (
+                <>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">القبول بالشروط</h3>
+                    <p>باستخدام منصة ERP-GO، أنت توافق على هذه الشروط. إذا لم توافق، يرجى عدم استخدام المنصة.</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">الحسابات والاشتراكات</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>يجب أن يكون عمرك 18 سنة أو أكثر لإنشاء حساب</li>
+                      <li>أنت مسؤول عن الحفاظ على سرية بيانات تسجيل الدخول</li>
+                      <li>الخطط المجانية لها حدود использования محددة</li>
+                      <li>يمكنك إلغاء اشتراكك في أي وقت من لوحة التحكم</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">المحتوى والبيانات</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>أنت تمتلك كل البيانات التي تدخلها في النظام</li>
+                      <li>نحن لا نبيع أو نشارك بياناتك مع أطراف ثالثة</li>
+                      <li>يجب عليك الامتثال للقوانين المحلية عند استخدام المنصة</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">الإلغاء والاسترداد</h3>
+                    <p>يمكنك إلغاء اشتراكك في أي وقت. لا يتم تقديم استرداد للمبالغ المدفوعة للفترة الحالية. سيبقى حسابك نشطاً حتى نهاية فترة الفوترة الحالية.</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">المسؤولية</h3>
+                    <p>المنصة مقدمة "كما هي" دون ضمانات. نحن لسنا مسؤولين عن أي خسائر الناتجة عن استخدام المنصة.</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Acceptance of Terms</h3>
+                    <p>By using ERP-GO, you agree to these terms. If you do not agree, please do not use the platform.</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Accounts & Subscriptions</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>You must be 18 or older to create an account</li>
+                      <li>You are responsible for maintaining the confidentiality of your login credentials</li>
+                      <li>Free plans have specific usage limits</li>
+                      <li>You can cancel your subscription at any time from the dashboard</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Content & Data</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>You own all data you enter into the system</li>
+                      <li>We do not sell or share your data with third parties</li>
+                      <li>You must comply with local laws when using the platform</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Cancellation & Refunds</h3>
+                    <p>You may cancel your subscription at any time. No refunds are provided for the current billing period. Your account will remain active until the end of the current billing period.</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Limitation of Liability</h3>
+                    <p>The platform is provided "as is" without warranties. We are not liable for any losses resulting from platform use.</p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
