@@ -344,11 +344,6 @@ router.get('/verify', authenticateToken, requireManager, async (req, res) => {
       const { error: payErr } = await supabase.from('tenant_payments').update({ status: 'paid' }).eq('tenant_id', tenantId).eq('status', 'pending').order('created_at', { ascending: false }).limit(1)
       if (payErr) console.error('[Paymob] Verify payment update error:', payErr.message)
 
-      // Save card token if present
-      const cardToken = paymentData?.token || paymentData?.payment_data?.card_token || paymentData?.obj?.token
-      const cardLastFour = paymentData?.payment_data?.card_last_four || paymentData?.card_last_four || paymentData?.obj?.payment_data?.card_last_four
-      const cardBrand = paymentData?.payment_data?.card_type || paymentData?.card_type || paymentData?.obj?.payment_data?.card_type
-
       if (cardToken && tenantId) {
         try {
           // Upsert: set all other cards as non-default, then insert new one
