@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import { body, param, validationResult } from 'express-validator'
 import supabase from '../db/supabase.js'
-import { authenticateToken, requirePermission, checkTenantLimits } from '../middleware/auth.js'
+import { authenticateToken, requirePermission } from '../middleware/auth.js'
+import { checkTenantLimits } from '../middleware/limits.js'
 import { sanitizeSearch } from '../helpers/search.js'
 
 const router = Router()

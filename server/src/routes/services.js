@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { body, param, validationResult } from 'express-validator'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requirePermission } from '../middleware/auth.js'
+import { checkTenantLimits } from '../middleware/limits.js'
 
 const router = Router()
 
@@ -47,7 +48,7 @@ router.get('/:id', [
 })
 
 // Create service
-router.post('/', authenticateToken, requirePermission('services_edit'), [
+router.post('/', authenticateToken, requirePermission('services_edit'), checkTenantLimits('services'), [
   body('name').trim().notEmpty().withMessage('Service name is required'),
   body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
   body('service_type').optional().isIn(['maintenance', 'warranty', 'subscription', 'custom']),

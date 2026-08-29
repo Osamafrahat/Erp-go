@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import supabase from '../db/supabase.js'
-import { checkTenantLimits } from '../middleware/auth.js'
+import { checkTenantLimits } from '../middleware/limits.js'
 
 const router = Router()
 
