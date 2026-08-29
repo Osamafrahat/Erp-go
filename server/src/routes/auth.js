@@ -210,6 +210,7 @@ router.post('/signup', [
       entity_name: user.username,
       details: { store_name: storeName, tenant_id: tenant.id },
       ip_address: req.ip || req.connection?.remoteAddress,
+      tenant_id: tenant.id,
     })
 
     res.status(201).json({
@@ -310,6 +311,7 @@ router.post('/login', [
       entity_type: 'auth',
       entity_name: user.username,
       ip_address: req.ip || req.connection?.remoteAddress,
+      tenant_id: user.tenantId || null,
     })
 
     res.json({ token, user: userWithoutPassword, ...tenantData })
@@ -503,6 +505,7 @@ router.post('/logout', authenticateToken, async (req, res) => {
       entity_type: 'auth',
       entity_name: req.user?.username,
       ip_address: req.ip || req.connection?.remoteAddress,
+      tenant_id: req.user?.tenantId || null,
     })
     res.json({ message: 'Logged out successfully' })
   } catch (err) {

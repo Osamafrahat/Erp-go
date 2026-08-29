@@ -29,6 +29,7 @@ function log(req, params) {
     user_id: user.id || null,
     user_name: user.full_name || user.username || 'System',
     ip_address: req.ip || req.connection?.remoteAddress,
+    tenant_id: user.tenantId || null,
     ...params,
   }).catch(() => {})
 }
