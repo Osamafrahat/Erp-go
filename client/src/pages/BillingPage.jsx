@@ -179,6 +179,7 @@ export default function BillingPage() {
   const [showSupport, setShowSupport] = useState(false)
   const [savedCards, setSavedCards] = useState([])
   const [deletingCard, setDeletingCard] = useState(null)
+  const [plans, setPlans] = useState([])
 
   if (currentUser?.role !== 'MANAGER' && currentUser?.role !== 'SUPER_ADMIN') {
     return (
@@ -190,33 +191,43 @@ export default function BillingPage() {
     )
   }
 
-  useEffect(() => {
-    const fetchBilling = async () => {
-      try {
-        const { data } = await api.get('/billing/current')
-        setBilling(data)
-      } catch {
-        setBilling({
-          tier: currentUser?.subscription_tier || 'free',
-          status: 'active',
-          trialEndsAt: null,
-          productsUsed: 0,
-          productsMax: 50,
-          usersUsed: 1,
-          usersMax: 2,
-          ordersThisMonth: 0,
-          ordersMax: 100,
-          paymentHistory: [],
-        })
-      } finally {
-        setLoading(false)
-      }
+  const fetchBilling = async () => {
+    try {
+      setLoading(true)
+      const { data } = await api.get('/billing/current')
+      setBilling(data)
+    } catch {
+      setBilling({
+        tier: currentUser?.subscription_tier || 'free',
+        status: 'active',
+        trialEndsAt: null,
+        productsUsed: 0,
+        productsMax: 50,
+        usersUsed: 1,
+        usersMax: 2,
+        ordersThisMonth: 0,
+        ordersMax: 100,
+        paymentHistory: [],
+      })
+    } finally {
+      setLoading(false)
     }
-    fetchBilling()
+  }
+
+  useEffect(() => { fetchBilling() }, [currentUser])
+
+  useEffect(() => {
+    const onFocus = () => fetchBilling()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
   }, [currentUser])
 
   useEffect(() => {
     api.get('/billing/paymob/cards').then(({ data }) => setSavedCards(data || [])).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    api.get('/billing/plans').then(({ data }) => setPlans(data || [])).catch(() => {})
   }, [])
 
   const handleDeleteCard = async (cardId) => {
@@ -271,11 +282,15 @@ export default function BillingPage() {
                 {statusLabels[status] || status}
               </span>
             </div>
-            {tier !== 'free' && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                ${tier === 'pro' ? (t('billing.pricePro') || '$29') : (t('billing.priceEnterprise') || '$99')}/{t('billing.perMonth') || 'month'}
-              </p>
-            )}
+            {tier !== 'free' && (() => {
+              const plan = plans.find(p => p.slug === tier)
+              const price = plan?.price_monthly || 0
+              return (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {price.toLocaleString()} ج.م/{t('pricing.perMonth') || 'mo'}
+                </p>
+              )
+            })()}
           </div>
           <Link
             to="/pricing"
