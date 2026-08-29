@@ -252,11 +252,14 @@ CREATE TABLE IF NOT EXISTS saved_payment_methods (
   is_default BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
-);`}</pre>
+);
+
+-- Fix old payment amounts stored as cents
+UPDATE tenant_payments SET amount = amount / 100 WHERE amount > 1000;`}</pre>
             </div>
             <button
               onClick={() => {
-                const sql = `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz;\nALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;\n\nCREATE TABLE IF NOT EXISTS saved_payment_methods (\n  id SERIAL PRIMARY KEY,\n  tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,\n  provider TEXT NOT NULL DEFAULT 'paymob',\n  card_last_four TEXT,\n  card_brand TEXT,\n  token TEXT NOT NULL,\n  paymob_token_id TEXT,\n  is_default BOOLEAN DEFAULT true,\n  created_at TIMESTAMPTZ DEFAULT now(),\n  updated_at TIMESTAMPTZ DEFAULT now()\n);`
+                const sql = `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz;\nALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;\n\nCREATE TABLE IF NOT EXISTS saved_payment_methods (\n  id SERIAL PRIMARY KEY,\n  tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,\n  provider TEXT NOT NULL DEFAULT 'paymob',\n  card_last_four TEXT,\n  card_brand TEXT,\n  token TEXT NOT NULL,\n  paymob_token_id TEXT,\n  is_default BOOLEAN DEFAULT true,\n  created_at TIMESTAMPTZ DEFAULT now(),\n  updated_at TIMESTAMPTZ DEFAULT now()\n);\n\n-- Fix old payment amounts stored as cents\nUPDATE tenant_payments SET amount = amount / 100 WHERE amount > 1000;`
                 navigator.clipboard.writeText(sql)
               }}
               className="mt-2 text-xs bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300 px-3 py-1.5 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-700 font-medium"
