@@ -281,13 +281,23 @@ export default function BillingPage() {
               <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${statusColors[status]}`}>
                 {statusLabels[status] || status}
               </span>
+              {tier !== 'free' && billing?.tenant?.subscription_expires_at && (
+                <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${(new Date(billing.tenant.subscription_expires_at) - new Date()) > 60 * 24 * 60 * 60 * 1000 ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>
+                  {(new Date(billing.tenant.subscription_expires_at) - new Date()) > 60 * 24 * 60 * 60 * 1000 ? (t('pricing.yearly') || 'Annual') : (t('pricing.monthly') || 'Monthly')}
+                </span>
+              )}
             </div>
             {tier !== 'free' && (() => {
               const plan = plans.find(p => p.slug === tier)
-              const price = plan?.price_monthly || 0
+              const priceMonthly = plan?.price_monthly || 0
+              const priceYearly = plan?.price_yearly || 0
+              const expiresAt = billing?.tenant?.subscription_expires_at
+              const isYearly = expiresAt && (new Date(expiresAt) - new Date()) > 60 * 24 * 60 * 60 * 1000
+              const price = isYearly ? priceYearly : priceMonthly
+              const periodLabel = isYearly ? (t('pricing.perYear') || '/yr') : (t('pricing.perMonth') || '/mo')
               return (
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {price.toLocaleString()} ج.م/{t('pricing.perMonth') || 'mo'}
+                  {price > 0 ? `${price.toLocaleString()} ج.م${periodLabel}` : (t('billing.freePlan') || 'Free')}
                 </p>
               )
             })()}
