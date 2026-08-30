@@ -54,7 +54,7 @@ export default function LandingPage() {
     { icon: Headphones, title: t('landing.support') || '24/7 Technical Support', desc: t('landing.supportDesc') || 'Expert help anytime via WhatsApp, email, or live chat. We\'re always here for you.', color: 'bg-cyan-600', gradient: 'bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-900/10 dark:to-transparent' },
     { icon: Zap, title: t('landing.upgrades') || 'Easy Plan Upgrades', desc: t('landing.upgradesDesc') || 'Start free, upgrade when you grow. Flexible plans with instant activation and no downtime.', color: 'bg-teal-600', gradient: 'bg-gradient-to-br from-teal-50 to-white dark:from-teal-900/10 dark:to-transparent' },
     { icon: Database, title: t('landing.backup') || 'Automatic Backups', desc: t('landing.backupDesc') || 'Your data is safely backed up automatically. Restore anytime with one click.', color: 'bg-indigo-600', gradient: 'bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/10 dark:to-transparent' },
-    { icon: MessageCircle, title: t('landing.chat') || 'Live Chat Support', desc: t('landing.chatDesc') || 'Get instant answers through built-in live chat. Talk to our team directly from the app.', color: 'bg-pink-600', gradient: 'bg-gradient-to-br from-pink-50 to-white dark:from-pink-900/10 dark:to-transparent' },
+    { icon: MessageCircle, title: t('landing.chat') || 'Live Chat Support', desc: t('landing.chatDesc') || 'Get instant answers through built-in live chat. Talk to your team directly from the app.', color: 'bg-pink-600', gradient: 'bg-gradient-to-br from-pink-50 to-white dark:from-pink-900/10 dark:to-transparent' },
   ]
 
   const steps = [

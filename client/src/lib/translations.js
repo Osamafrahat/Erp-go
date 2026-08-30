@@ -1926,7 +1926,7 @@ export const translations = {
     'landing.backup': 'Automatic Backups',
     'landing.backupDesc': 'Your data is safely backed up automatically. Restore anytime with one click.',
     'landing.chat': 'Live Chat Support',
-    'landing.chatDesc': 'Get instant answers through built-in live chat. Talk to our team directly from the app.',
+    'landing.chatDesc': 'Get instant answers through built-in live chat. Talk to your team directly from the app.',
     'landing.whyTitle': 'Built for Real Store Owners',
     'landing.whySubtitle': "We understand the challenges of running a store. That's why we built a system that handles the complexity so you can focus on growth.",
     'landing.why1': 'Lightning-fast POS — process a sale in seconds',
