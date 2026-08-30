@@ -134,11 +134,6 @@ export default function LandingPage() {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400 dark:text-gray-500">
-              <div className="flex items-center gap-2"><div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center"><Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /></div>{t('landing.freeForever') || 'Free forever plan'}</div>
-              <div className="flex items-center gap-2"><div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center"><Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /></div>{t('landing.noCard') || 'No credit card required'}</div>
-              <div className="flex items-center gap-2"><div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center"><Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /></div>{t('landing.cancelAnytime') || 'Cancel anytime'}</div>
-            </div>
           </div>
         </div>
       </section>
