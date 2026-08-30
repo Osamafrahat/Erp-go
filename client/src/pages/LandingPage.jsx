@@ -209,7 +209,7 @@ export default function LandingPage() {
                 <img
                   src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=700&fit=crop&q=80"
                   alt="Store cashier using POS system"
-                  className="w-full h-80 sm:h-96 object-cover"
+                  className="w-full h-96 sm:h-[500px] lg:h-[600px] object-cover"
                   onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=700&fit=crop&q=80' }}
                 />
               </div>
