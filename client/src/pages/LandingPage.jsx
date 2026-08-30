@@ -185,7 +185,7 @@ export default function LandingPage() {
                 <Star className="w-3.5 h-3.5" />
                 {t('landing.whyUs') || 'Why ERP-GO'}
               </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">{t('landing.whyTitle') || 'Built for Real Store Owners'}</h2>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">{t('landing.whyTitle') || 'Built for Successful Store Owners'}</h2>
               <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">{t('landing.whySubtitle') || "We understand the challenges of running a store. That's why we built a system that handles the complexity so you can focus on growth."}</p>
               <div className="space-y-5">
                 {[
