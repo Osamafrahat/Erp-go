@@ -211,18 +211,6 @@ export default function LandingPage() {
                   alt="Store cashier using POS system"
                   className="w-full h-80 sm:h-96 object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary-900/40 to-transparent" />
-                <div className="absolute bottom-6 left-6 right-6 grid grid-cols-2 gap-3">
-                  {[
-                    { label: t('landing.stat1Label') || 'Orders Processed', value: '+100K' },
-                    { label: t('landing.stat2Label') || 'Active Stores', value: '+500' },
-                  ].map((s, i) => (
-                    <div key={i} className="bg-white/15 backdrop-blur-sm rounded-xl p-3 text-center">
-                      <div className="text-2xl font-extrabold text-white">{s.value}</div>
-                      <div className="text-xs text-white/70">{s.label}</div>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
