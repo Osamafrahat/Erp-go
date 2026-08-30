@@ -256,7 +256,7 @@ export default function LandingPage() {
                 <img src="/erpgologo.svg" alt="ERP-GO" className="h-10 w-auto" />
                 <span className="font-extrabold text-gray-900 dark:text-white tracking-tight">{t('landing.brand') || 'ERP-GO'}</span>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{t('landing.footerDesc') || 'Professional store management for modern businesses.'}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{t('landing.footerDesc') || 'Intelligent Solutions'}</p>
             </div>
             <div>
               <h4 className="font-bold text-gray-900 dark:text-white mb-3">{t('landing.footerProduct') || 'Product'}</h4>
