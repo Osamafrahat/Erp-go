@@ -204,19 +204,18 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-primary-500/20 to-emerald-500/20 rounded-3xl blur-2xl" />
-              <div className="relative bg-gradient-to-br from-primary-600 via-primary-500 to-emerald-500 rounded-3xl p-8 sm:p-12 text-white shadow-2xl shadow-primary-500/20">
+              <div className="bg-gradient-to-br from-blue-500 via-blue-400 to-emerald-500 rounded-3xl p-8 sm:p-12 shadow-2xl">
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { label: t('landing.stat1Label') || 'Active Stores', value: '500+', icon: Store },
-                    { label: t('landing.stat2Label') || 'Orders Processed', value: '100K+', icon: ShoppingCart },
-                    { label: t('landing.stat3Label') || 'Uptime', value: '99.9%', icon: Shield },
-                    { label: t('landing.stat4Label') || 'Support', value: '24/7', icon: Headphones },
+                    { label: t('landing.stat1Label') || 'Orders Processed', value: '+100K', icon: ShoppingCart },
+                    { label: t('landing.stat2Label') || 'Active Stores', value: '+500', icon: Store },
+                    { label: t('landing.stat3Label') || 'Support', value: '24/7', icon: Headphones },
+                    { label: t('landing.stat4Label') || 'Uptime', value: '99.9%', icon: Shield },
                   ].map((s, i) => (
-                    <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 text-center hover:bg-white/15 transition-colors">
-                      <s.icon className="w-6 h-6 mx-auto mb-2 text-white/70" />
-                      <div className="text-3xl font-extrabold mb-1">{s.value}</div>
-                      <div className="text-xs text-white/60 font-medium">{s.label}</div>
+                    <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center">
+                      <s.icon className="w-7 h-7 mx-auto mb-3 text-white/70" />
+                      <div className="text-3xl sm:text-4xl font-extrabold text-white mb-1">{s.value}</div>
+                      <div className="text-sm text-white/70 font-medium">{s.label}</div>
                     </div>
                   ))}
                 </div>
