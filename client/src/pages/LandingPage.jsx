@@ -85,7 +85,7 @@ export default function LandingPage() {
                 <Globe className="w-4 h-4" />
                 {language === 'en' ? 'عربي' : 'EN'}
               </button>
-              <Link to={isAuthenticated ? '/dashboard' : '/login'} className="px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm font-semibold rounded-xl hover:from-primary-700 hover:to-primary-800 shadow-lg shadow-primary-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/30">
+              <Link to="/signup" className="px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm font-semibold rounded-xl hover:from-primary-700 hover:to-primary-800 shadow-lg shadow-primary-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/30">
                 {t('landing.startFree') || 'Start Free Trial'}
               </Link>
             </div>
@@ -97,7 +97,7 @@ export default function LandingPage() {
                 <Globe className="w-3.5 h-3.5" />
                 {language === 'en' ? 'عربي' : 'EN'}
               </button>
-              <Link to={isAuthenticated ? '/dashboard' : '/login'} className="px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-primary-500/25">
+              <Link to="/signup" className="px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-primary-500/25">
                 {t('landing.startFree') || 'Start'}
               </Link>
             </div>
@@ -131,7 +131,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
               <Link
-                to={isAuthenticated ? '/dashboard' : '/login'}
+                to="/signup"
                 className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-10 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-lg font-bold rounded-2xl hover:from-primary-700 hover:to-primary-800 shadow-xl shadow-primary-500/25 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-500/30 hover:-translate-y-0.5"
               >
                 {t('landing.startFree') || 'Start Free Trial'}
@@ -235,7 +235,7 @@ export default function LandingPage() {
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-6 leading-tight">{t('landing.ctaTitle') || 'Ready to Manage Your Store?'}</h2>
                 <p className="text-lg text-white/80 mb-10 max-w-xl mx-auto leading-relaxed">{t('landing.ctaSubtitle') || 'Start your free trial today. No credit card required.'}</p>
                 <Link
-                  to={isAuthenticated ? '/dashboard' : '/login'}
+                  to="/signup"
                   className="inline-flex items-center gap-2.5 px-10 py-4 bg-white text-primary-600 text-lg font-bold rounded-2xl hover:bg-gray-100 transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-0.5"
                 >
                   {t('landing.startFree') || 'Start Free Trial'}
