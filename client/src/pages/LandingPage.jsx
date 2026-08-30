@@ -67,9 +67,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/25">
-                <Store className="w-5 h-5 text-white" />
-              </div>
+              <img src="/erpgologo.svg" alt="ERP-GO" className="h-9 w-auto" />
               <span className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">{t('landing.brand') || 'ERP-GO'}</span>
             </div>
             <div className="hidden md:flex items-center gap-7">
@@ -111,6 +109,9 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary-400/10 to-emerald-400/10 rounded-full blur-3xl" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 sm:py-36 lg:py-44">
           <div className="text-center max-w-4xl mx-auto">
+            <div className="flex justify-center mb-6">
+              <img src="/erpgologo.svg" alt="ERP-GO" className="h-16 w-auto" />
+            </div>
             <div className="inline-flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-primary-700 dark:text-primary-300 text-sm font-semibold px-5 py-2 rounded-full mb-8 border border-primary-200/50 dark:border-primary-700/50 shadow-sm">
               <Sparkles className="w-4 h-4" />
               {t('landing.badge') || 'All-in-one store management'}
@@ -268,9 +269,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center shadow-md shadow-primary-500/20">
-                  <Store className="w-4 h-4 text-white" />
-                </div>
+                <img src="/erpgologo.svg" alt="ERP-GO" className="h-8 w-auto" />
                 <span className="font-extrabold text-gray-900 dark:text-white tracking-tight">{t('landing.brand') || 'ERP-GO'}</span>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{t('landing.footerDesc') || 'Professional store management for modern businesses.'}</p>
