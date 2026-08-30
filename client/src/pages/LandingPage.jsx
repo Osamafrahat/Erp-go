@@ -67,7 +67,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2.5">
-              <img src="/erpgologo.svg" alt="ERP-GO" className="h-9 w-auto" />
+              <img src="/erpgologo.svg" alt="ERP-GO" className="h-12 w-auto" />
               <span className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">{t('landing.brand') || 'ERP-GO'}</span>
             </div>
             <div className="hidden md:flex items-center gap-7">
@@ -110,7 +110,7 @@ export default function LandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 sm:py-36 lg:py-44">
           <div className="text-center max-w-4xl mx-auto">
             <div className="flex justify-center mb-6">
-              <img src="/erpgologo.svg" alt="ERP-GO" className="h-16 w-auto" />
+              <img src="/erpgologo.svg" alt="ERP-GO" className="h-24 w-auto" />
             </div>
             <div className="inline-flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-primary-700 dark:text-primary-300 text-sm font-semibold px-5 py-2 rounded-full mb-8 border border-primary-200/50 dark:border-primary-700/50 shadow-sm">
               <Sparkles className="w-4 h-4" />
@@ -269,7 +269,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src="/erpgologo.svg" alt="ERP-GO" className="h-8 w-auto" />
+                <img src="/erpgologo.svg" alt="ERP-GO" className="h-10 w-auto" />
                 <span className="font-extrabold text-gray-900 dark:text-white tracking-tight">{t('landing.brand') || 'ERP-GO'}</span>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{t('landing.footerDesc') || 'Professional store management for modern businesses.'}</p>
