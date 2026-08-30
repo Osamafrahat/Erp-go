@@ -61,7 +61,7 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className={`min-h-screen bg-white dark:bg-gray-900 ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-100/50 dark:border-gray-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
