@@ -170,7 +170,7 @@ export default function PayrollPage() {
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-300">
                 {t('hr.payroll.processWarning') || 'This will calculate salaries for all active employees based on their base salary and overtime hours.'}
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.payroll.periodStart') || 'Period Start'}</label>
                   <input type="date" value={formStart} onChange={e => setFormStart(e.target.value)}

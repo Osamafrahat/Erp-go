@@ -76,7 +76,7 @@ export default function SettingsPage() {
             <h2 className="text-lg font-semibold">{t('nav.language')}</h2>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             {Object.entries(languageNames).map(([code, name]) => (
               <button
                 key={code}
@@ -216,7 +216,7 @@ export default function SettingsPage() {
             <h2 className="text-lg font-semibold">{t('settings.currency')}</h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('settings.currency')}
@@ -421,13 +421,13 @@ export default function SettingsPage() {
                       { enableHighAccuracy: true, timeout: 10000 }
                     )
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition"
+                  className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition min-h-[44px]"
                 >
                   <Navigation className="w-3.5 h-3.5" />
                   {t('settings.useMyLocation') || 'Use My Location'}
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                     {t('settings.latitude') || 'Latitude'}
@@ -487,7 +487,7 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t('settings.etaClientId') || 'Client ID'}
@@ -516,7 +516,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t('settings.etaPosSerial') || 'POS Serial Number'}
@@ -545,7 +545,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t('settings.etaActivityCode') || 'Taxpayer Activity Code'}

@@ -60,12 +60,12 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
         {products.map((product) => (
           <button
             key={product.id}
             onClick={() => handleProductClick(product)}
-            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:border-primary-500 hover:shadow-lg transition-all text-left group"
+            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-2 sm:p-4 hover:border-primary-500 hover:shadow-lg transition-all text-left group"
           >
             {/* Product Image */}
             <div className="aspect-square rounded-lg bg-gray-100 dark:bg-gray-700 mb-3 flex items-center justify-center overflow-hidden">
@@ -130,7 +130,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
             </div>
 
             {/* Add to Cart Button */}
-            <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="mt-2 sm:mt-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
               <div className="flex items-center justify-center gap-2 py-2 bg-primary-50 dark:bg-primary-900/30 text-primary-600 rounded-lg">
                 <Plus className="w-4 h-4" />
                 <span className="text-sm font-medium">
@@ -145,7 +145,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
       {/* Quantity Input Modal for Splittable Items */}
       {qtyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setQtyModal(null)}>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold mb-1">{qtyModal.name}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               {formatCurrency(qtyModal.price)} / {qtyModal.unit_of_measure === 'kilo' ? 'kg' : qtyModal.unit_of_measure === 'liter' ? 'L' : 'm'}

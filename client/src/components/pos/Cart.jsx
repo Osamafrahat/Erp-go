@@ -67,7 +67,7 @@ export default memo(function Cart({ onCheckout }) {
           {items.length > 0 && (
             <button
               onClick={clearCart}
-              className="text-sm text-red-500 hover:text-red-600 flex items-center gap-1"
+              className="text-sm text-red-500 hover:text-red-600 flex items-center gap-1 p-2 -mr-2 min-w-[44px] min-h-[44px] justify-center"
             >
               <Trash2 className="w-4 h-4" />
               {t('cart.remove')}
@@ -109,7 +109,7 @@ export default memo(function Cart({ onCheckout }) {
                 {/* Product Details */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-medium text-sm truncate">{item.product.name}</h4>
+                    <h4 className="font-medium text-sm truncate line-clamp-1 sm:line-clamp-none">{item.product.name}</h4>
                     {item.product._type === 'service' && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                         {t('services.service') || 'Service'}
@@ -148,9 +148,9 @@ export default memo(function Cart({ onCheckout }) {
                       <>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.product._type)}
-                          className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
+                          className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
                         >
-                          <Minus className="w-3 h-3" />
+                          <Minus className="w-4 h-4 md:w-3 md:h-3" />
                         </button>
                         <span className="w-8 text-center font-medium">{item.quantity}</span>
                         <button
@@ -160,9 +160,9 @@ export default memo(function Cart({ onCheckout }) {
                               toastError(`${t('pos.insufficientStock') || 'Insufficient stock'} (${t('inventory.inStock')}: ${item.product.stock_quantity})`)
                             }
                           }}
-                          className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
+                          className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
                         >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="w-4 h-4 md:w-3 md:h-3" />
                         </button>
                       </>
                     )}
@@ -173,9 +173,9 @@ export default memo(function Cart({ onCheckout }) {
                 <div className="text-right flex flex-col justify-between">
                   <button
                     onClick={() => removeItem(item.product.id, item.product._type)}
-                    className="text-gray-400 hover:text-red-500"
+                    className="text-gray-400 hover:text-red-500 p-1.5 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                   </button>
                   <p className="font-semibold">{formatCurrency(item.product.price * item.quantity)}</p>
                 </div>
@@ -196,9 +196,9 @@ export default memo(function Cart({ onCheckout }) {
               </div>
               <button
                 onClick={handleRemovePromo}
-                className="text-green-600 hover:text-green-700"
+                className="text-green-600 hover:text-green-700 p-1.5 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
           ) : (
@@ -209,12 +209,12 @@ export default memo(function Cart({ onCheckout }) {
                 value={promoInput}
                 onChange={(e) => { setPromoInput(e.target.value); setPromoError('') }}
                 onKeyDown={(e) => e.key === 'Enter' && handleApplyPromo()}
-                className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                className="flex-1 px-3 py-2.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
               />
               <button
                 onClick={handleApplyPromo}
                 disabled={promoLoading}
-                className="px-3 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50"
+                className="px-3 py-2.5 text-sm font-medium bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 min-h-[44px]"
               >
                 {promoLoading ? '...' : t('cart.apply')}
               </button>

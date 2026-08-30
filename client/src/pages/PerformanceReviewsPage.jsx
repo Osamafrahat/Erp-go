@@ -349,7 +349,7 @@ export default function PerformanceReviewsPage() {
                   placeholder={t('hr.performance.selectEmployee') || 'Search employee...'}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.performance.periodStart') || 'Period Start'}</label>
                   <input type="date" value={formPeriodStart} onChange={e => setFormPeriodStart(e.target.value)}

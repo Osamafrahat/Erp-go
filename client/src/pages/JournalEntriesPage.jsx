@@ -189,9 +189,9 @@ export default function JournalEntriesPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold">{showDetail.entry_number}</h3>
-              <button onClick={() => setShowDetail(null)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowDetail(null)} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"><X className="w-5 h-5" /></button>
             </div>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div><span className="text-gray-500">{t('common.date')}:</span> {showDetail.date}</div>
               <div><span className="text-gray-500">{t('accounting.reference')}:</span> {showDetail.reference || '-'}</div>
                 <div className="col-span-2"><span className="text-gray-500">{t('accounting.description')}:</span> {translateDesc(showDetail.description)}</div>

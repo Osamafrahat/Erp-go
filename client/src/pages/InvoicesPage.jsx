@@ -285,7 +285,7 @@ export default function InvoicesPage() {
             <button
               key={key}
               onClick={() => setTypeFilter(key)}
-              className={`px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+              className={`px-3 py-2.5 rounded-xl text-xs font-medium transition-colors min-h-[44px] ${
                 typeFilter === key
                   ? 'bg-primary-600 text-white'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -305,7 +305,7 @@ export default function InvoicesPage() {
             <button
               key={key}
               onClick={() => setStatusFilter(key)}
-              className={`px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+              className={`px-3 py-2.5 rounded-xl text-xs font-medium transition-colors min-h-[44px] ${
                 statusFilter === key
                   ? 'bg-primary-600 text-white'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'

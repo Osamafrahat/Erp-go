@@ -108,7 +108,7 @@ export default function ReportsPage() {
       {/* ==================== SALES TAB ==================== */}
       {activeTab === 'sales' && salesData && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">

@@ -181,9 +181,9 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-6 text-white">
-        <h1 className="text-2xl font-bold">{getGreeting()}, {currentUser?.fullName}!</h1>
-        <p className="text-primary-100 mt-1">
+      <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-4 sm:p-6 text-white">
+        <h1 className="text-xl sm:text-2xl font-bold break-words">{getGreeting()}, {currentUser?.fullName}!</h1>
+        <p className="text-primary-100 mt-1 truncate">
           {settings.storeName || t('layout.defaultStoreName')} — {ROLES_LABELS[role] || role}
         </p>
       </div>
@@ -389,22 +389,22 @@ function AccountantDashboard({ stats, t }) {
       {stats.recentPayments.length > 0 && (
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">{t('dashboard.recentPayments')}</h3>
-            <Link to="/accounting/payments" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1">
+            <h3 className="text-base sm:text-lg font-semibold truncate mr-3">{t('dashboard.recentPayments')}</h3>
+            <Link to="/accounting/payments" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1 shrink-0">
               {t('dashboard.viewAll')} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
           <div className="space-y-3">
             {stats.recentPayments.map((payment) => (
               <div key={payment.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div>
-                  <p className="font-medium">{payment.description || payment.reference || `Payment #${payment.id}`}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{payment.description || payment.reference || `Payment #${payment.id}`}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {new Date(payment.created_at || payment.date).toLocaleDateString()}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className={`font-semibold ${payment.type === 'inbound' ? 'text-green-600' : 'text-red-600'}`}>
+                <div className="text-right shrink-0 pl-3">
+                  <p className={`font-semibold whitespace-nowrap ${payment.type === 'inbound' ? 'text-green-600' : 'text-red-600'}`}>
                     {payment.type === 'inbound' ? '+' : '-'}{formatCurrency(payment.amount)}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
@@ -420,21 +420,21 @@ function AccountantDashboard({ stats, t }) {
       {stats.recentExpenses.length > 0 && (
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">{t('dashboard.recentExpenses')}</h3>
-            <Link to="/expenses" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1">
+            <h3 className="text-base sm:text-lg font-semibold truncate mr-3">{t('dashboard.recentExpenses')}</h3>
+            <Link to="/expenses" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1 shrink-0">
               {t('dashboard.viewAll')} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
           <div className="space-y-3">
             {stats.recentExpenses.map((expense) => (
               <div key={expense.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div>
-                  <p className="font-medium">{expense.description || expense.category}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{expense.description || expense.category}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                     {expense.category} — {new Date(expense.created_at || expense.date).toLocaleDateString()}
                   </p>
                 </div>
-                <span className="font-semibold text-red-600">-{formatCurrency(expense.amount)}</span>
+                <span className="font-semibold text-red-600 whitespace-nowrap shrink-0 pl-3">-{formatCurrency(expense.amount)}</span>
               </div>
             ))}
           </div>
@@ -469,13 +469,13 @@ function StatCard({ icon: Icon, label, value, color, href }) {
       to={href}
       className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-4 hover:shadow-md transition-shadow"
     >
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
+      <div className="flex items-center gap-3 min-w-0">
+        <div className={`p-2 rounded-lg ${colorClasses[color]} shrink-0`}>
           <Icon className="w-5 h-5" />
         </div>
-        <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
-          <p className="text-xl font-bold">{value}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{label}</p>
+          <p className="text-lg sm:text-xl font-bold truncate">{value}</p>
         </div>
       </div>
     </Link>
@@ -541,7 +541,7 @@ function QuickActions({ showAll, showPOS, showInventory, showSuppliers, showProm
           <action.icon className="w-6 h-6" />
           <div>
             <p className="font-semibold">{action.label}</p>
-            <p className="text-sm text-white/80">{action.description}</p>
+            <p className="text-sm text-white/80 line-clamp-2">{action.description}</p>
           </div>
         </Link>
       ))}
@@ -551,10 +551,10 @@ function QuickActions({ showAll, showPOS, showInventory, showSuppliers, showProm
 
 function RecentOrders({ orders, t }) {
   return (
-    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6">
+    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">{t('dashboard.recentOrders')}</h3>
-        <Link to="/reports" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1">
+        <h3 className="text-base sm:text-lg font-semibold truncate mr-3">{t('dashboard.recentOrders')}</h3>
+        <Link to="/reports" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1 shrink-0">
           {t('dashboard.viewAll')} <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -582,13 +582,13 @@ function RecentOrders({ orders, t }) {
 
 function LowStockAlert({ products, t }) {
   return (
-    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800/50 shadow-sm p-6">
+    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800/50 shadow-sm p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2 text-amber-600">
-          <AlertTriangle className="w-5 h-5" />
+        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 text-amber-600 truncate mr-3">
+          <AlertTriangle className="w-5 h-5 shrink-0" />
           {t('dashboard.lowStockAlert')}
         </h3>
-        <Link to="/inventory" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1">
+        <Link to="/inventory" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1 shrink-0">
           {t('dashboard.viewAll')} <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

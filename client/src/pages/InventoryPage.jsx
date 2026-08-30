@@ -102,7 +102,7 @@ export default function InventoryPage() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setShowPrintSheet(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 min-h-[44px]"
           >
             <Printer className="w-4 h-4" />
             <span className="hidden sm:inline">{t('inventory.printReport') || 'Print Report'}</span>
@@ -110,7 +110,7 @@ export default function InventoryPage() {
           {canEdit && (
             <button
               onClick={() => setShowCategoryManager(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 min-h-[44px]"
             >
               <Tag className="w-4 h-4" />
               <span className="hidden sm:inline">{t('inventory.categories')}</span>
@@ -205,7 +205,7 @@ export default function InventoryPage() {
               <h2 className="text-xl font-semibold">{t('inventory.inventoryReport') || 'Inventory Report'}</h2>
               <button
                 onClick={() => setShowPrintSheet(false)}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>

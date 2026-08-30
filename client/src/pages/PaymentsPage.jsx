@@ -143,7 +143,7 @@ export default function PaymentsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4">
             <h3 className="text-lg font-bold">{editingId ? (t('accounting.editPayment') || 'Edit Payment') : (t('accounting.newPayment') || 'New Payment')}</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <select value={formData.payment_type} onChange={e => setFormData({ ...formData, payment_type: e.target.value, partner_type: '', partner_id: '' })} className="px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-primary-500">
                 <option value="inbound">{t('accounting.inbound')} ({t('accounting.received')})</option>
                 <option value="outbound">{t('accounting.outbound')} ({t('accounting.paid')})</option>

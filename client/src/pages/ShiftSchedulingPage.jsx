@@ -409,7 +409,7 @@ export default function ShiftSchedulingPage({ readOnly = false }) {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                   placeholder={t('hr.shifts.shiftNamePlaceholder') || 'e.g. Morning Shift'} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.shifts.startTime') || 'Start Time'}</label>
                   <input type="time" value={shiftStart} onChange={e => setShiftStart(e.target.value)}
@@ -461,7 +461,7 @@ export default function ShiftSchedulingPage({ readOnly = false }) {
                   placeholder={t('hr.shifts.selectShift') || 'Search shift...'}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.shifts.startDate') || 'Start Date'}</label>
                   <input type="date" value={assignStartDate} onChange={e => setAssignStartDate(e.target.value)}
