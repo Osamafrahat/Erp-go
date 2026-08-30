@@ -207,7 +207,7 @@ export default function LandingPage() {
               <div className="absolute -inset-4 bg-gradient-to-r from-primary-500/20 to-emerald-500/20 rounded-3xl blur-2xl" />
               <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-primary-500/20">
                 <img
-                  src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=700&fit=crop"
+                  src="https://images.unsplash.com/photo-1590736969955-71cc94901144?w=600&h=700&fit=crop"
                   alt="Store cashier using POS system"
                   className="w-full h-80 sm:h-96 object-cover"
                 />
