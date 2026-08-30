@@ -190,7 +190,7 @@ export default function LandingPage() {
               <div className="space-y-5">
                 {[
                   { icon: Zap, text: t('landing.why1') || 'Lightning-fast POS — process a sale in seconds', color: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' },
-                  { icon: Shield, text: t('landing.why2') || 'Secure multi-tenant architecture with role-based access', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
+                  { icon: Shield, text: t('landing.why2') || 'Secure multi-users architecture with role-based access', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
                   { icon: Globe, text: t('landing.why3') || 'Bilingual support (English & Arabic) out of the box', color: 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400' },
                   { icon: Star, text: t('landing.why4') || 'Real-time analytics and customizable reports', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
                 ].map((item, i) => (
