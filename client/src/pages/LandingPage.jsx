@@ -50,7 +50,8 @@ export default function LandingPage() {
     { icon: Users, title: t('landing.employees') || 'Employee Management', desc: t('landing.employeesDesc') || 'Manage attendance, shift scheduling, payroll, performance reviews, and leave requests.', color: 'bg-violet-600', gradient: 'bg-gradient-to-br from-violet-50 to-white dark:from-violet-900/10 dark:to-transparent' },
     { icon: BarChart3, title: t('landing.reports') || 'Financial Reports', desc: t('landing.reportsDesc') || 'Sales reports, expense tracking, profit & loss statements, and accounting integration.', color: 'bg-amber-600', gradient: 'bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/10 dark:to-transparent' },
     { icon: UserCheck, title: t('landing.customers') || 'Customer Management', desc: t('landing.customersDesc') || 'Customer profiles, purchase history, CRM tools, and invoice management.', color: 'bg-rose-600', gradient: 'bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/10 dark:to-transparent' },
-    { icon: Layers, title: t('landing.saas') || 'Multi-Tenant SaaS', desc: t('landing.saasDesc') || 'Self-service signup, subscription billing, and isolated tenant data with role-based access.', color: 'bg-cyan-600', gradient: 'bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-900/10 dark:to-transparent' },
+    { icon: Headphones, title: t('landing.support') || '24/7 Technical Support', desc: t('landing.supportDesc') || 'Expert help anytime via WhatsApp, email, or live chat. We\'re always here for you.', color: 'bg-cyan-600', gradient: 'bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-900/10 dark:to-transparent' },
+    { icon: Zap, title: t('landing.upgrades') || 'Easy Plan Upgrades', desc: t('landing.upgradesDesc') || 'Start free, upgrade when you grow. Flexible plans with instant activation and no downtime.', color: 'bg-teal-600', gradient: 'bg-gradient-to-br from-teal-50 to-white dark:from-teal-900/10 dark:to-transparent' },
   ]
 
   const steps = [
