@@ -2,60 +2,39 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
-import api from '../lib/api'
 import {
   ShoppingCart, Package, Users, BarChart3, UserCheck, Layers,
-  Check, ArrowRight, Zap, Shield, Globe, Star, ChevronRight, Store
+  Check, ArrowRight, Zap, Shield, Globe, Star, Store,
+  CreditCard, Clock, Headphones, ArrowUpRight, Sparkles
 } from 'lucide-react'
 
-function FeatureCard({ icon: Icon, title, desc, color }) {
+function FeatureCard({ icon: Icon, title, desc, color, gradient }) {
   return (
-    <div className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-lg transition-all duration-300">
-      <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-        <Icon className="w-6 h-6 text-white" />
+    <div className="group relative bg-white dark:bg-gray-800/50 rounded-2xl p-6 border border-gray-100 dark:border-gray-700/50 hover:border-primary-300 dark:hover:border-primary-600/50 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-500 hover:-translate-y-1">
+      <div className={`absolute inset-0 rounded-2xl ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+      <div className="relative">
+        <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg`}>
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{desc}</p>
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{desc}</p>
     </div>
   )
 }
 
-function PricingCard({ name, price, period, desc, features, cta, highlighted, ctaLink }) {
+function StepCard({ num, icon: Icon, title, desc }) {
   return (
-    <div className={`relative rounded-2xl p-8 border-2 transition-all duration-300 ${
-      highlighted
-        ? 'border-primary-500 bg-white dark:bg-gray-800 shadow-xl shadow-primary-500/10 scale-105'
-        : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary-300'
-    }`}>
-      {highlighted && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary-600 text-white text-xs font-bold px-4 py-1 rounded-full">
-          Most Popular
+    <div className="relative group">
+      <div className="absolute -inset-4 bg-gradient-to-r from-primary-500/10 to-emerald-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
+      <div className="relative bg-white dark:bg-gray-800/50 rounded-2xl p-6 border border-gray-100 dark:border-gray-700/50 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/25 group-hover:scale-110 transition-transform duration-500">
+          <Icon className="w-7 h-7 text-white" />
         </div>
-      )}
-      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{name}</h3>
-      <div className="mb-4">
-        <span className="text-4xl font-extrabold text-gray-900 dark:text-white">{price}</span>
-        <span className="text-gray-500 dark:text-gray-400 text-sm ml-1">{period}</span>
+        <div className="text-xs font-bold text-primary-600 dark:text-primary-400 mb-2 tracking-wider uppercase">{num}</div>
+        <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{desc}</p>
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{desc}</p>
-      <ul className="space-y-3 mb-8">
-        {features.map((f, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
-            <Check className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" />
-            <span>{f}</span>
-          </li>
-        ))}
-      </ul>
-      <Link
-        to={ctaLink}
-        className={`block w-full text-center py-3 rounded-xl font-semibold transition-colors ${
-          highlighted
-            ? 'bg-primary-600 text-white hover:bg-primary-700'
-            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-        }`}
-      >
-        {cta}
-      </Link>
     </div>
   )
 }
@@ -64,74 +43,47 @@ export default function LandingPage() {
   const { t, language, setLanguage } = useAppStore()
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const [openModal, setOpenModal] = useState(null)
-  const [plans, setPlans] = useState([])
-
-  useEffect(() => {
-    api.get('/billing/plans').then(({ data }) => setPlans(data || [])).catch(() => {})
-  }, [])
-
-  const planMap = {}
-  for (const p of plans) planMap[p.slug] = p
-
-  const fmt = (v) => v === -1 || v === Infinity || v === null ? (t('pricing.unlimited') || 'Unlimited') : v?.toLocaleString()
 
   const features = [
-    { icon: ShoppingCart, title: t('landing.pos') || 'Point of Sale', desc: t('landing.posDesc') || 'Fast checkout with receipt printing, multiple payment methods, and real-time inventory updates.', color: 'bg-primary-600' },
-    { icon: Package, title: t('landing.inventory') || 'Inventory Management', desc: t('landing.inventoryDesc') || 'Track stock levels, set low-stock alerts, manage suppliers, and monitor product movements.', color: 'bg-emerald-600' },
-    { icon: Users, title: t('landing.employees') || 'Employee Management', desc: t('landing.employeesDesc') || 'Manage attendance, shift scheduling, payroll, performance reviews, and leave requests.', color: 'bg-violet-600' },
-    { icon: BarChart3, title: t('landing.reports') || 'Financial Reports', desc: t('landing.reportsDesc') || 'Sales reports, expense tracking, profit & loss statements, and accounting integration.', color: 'bg-amber-600' },
-    { icon: UserCheck, title: t('landing.customers') || 'Customer Management', desc: t('landing.customersDesc') || 'Customer profiles, purchase history, CRM tools, and invoice management.', color: 'bg-rose-600' },
-    { icon: Layers, title: t('landing.saas') || 'Multi-Tenant SaaS', desc: t('landing.saasDesc') || 'Self-service signup, subscription billing, and isolated tenant data with role-based access.', color: 'bg-cyan-600' },
+    { icon: ShoppingCart, title: t('landing.pos') || 'Point of Sale', desc: t('landing.posDesc') || 'Fast checkout with receipt printing, multiple payment methods, and real-time inventory updates.', color: 'bg-primary-600', gradient: 'bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/10 dark:to-transparent' },
+    { icon: Package, title: t('landing.inventory') || 'Inventory Management', desc: t('landing.inventoryDesc') || 'Track stock levels, set low-stock alerts, manage suppliers, and monitor product movements.', color: 'bg-emerald-600', gradient: 'bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/10 dark:to-transparent' },
+    { icon: Users, title: t('landing.employees') || 'Employee Management', desc: t('landing.employeesDesc') || 'Manage attendance, shift scheduling, payroll, performance reviews, and leave requests.', color: 'bg-violet-600', gradient: 'bg-gradient-to-br from-violet-50 to-white dark:from-violet-900/10 dark:to-transparent' },
+    { icon: BarChart3, title: t('landing.reports') || 'Financial Reports', desc: t('landing.reportsDesc') || 'Sales reports, expense tracking, profit & loss statements, and accounting integration.', color: 'bg-amber-600', gradient: 'bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/10 dark:to-transparent' },
+    { icon: UserCheck, title: t('landing.customers') || 'Customer Management', desc: t('landing.customersDesc') || 'Customer profiles, purchase history, CRM tools, and invoice management.', color: 'bg-rose-600', gradient: 'bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/10 dark:to-transparent' },
+    { icon: Layers, title: t('landing.saas') || 'Multi-Tenant SaaS', desc: t('landing.saasDesc') || 'Self-service signup, subscription billing, and isolated tenant data with role-based access.', color: 'bg-cyan-600', gradient: 'bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-900/10 dark:to-transparent' },
   ]
 
-  const freeFeatures = [
-    `${fmt(planMap.free?.max_products)} ${t('pricing.products') || 'Products'}`,
-    `${fmt(planMap.free?.max_users)} ${t('pricing.users') || 'Users'}`,
-    `${fmt(planMap.free?.max_orders_monthly)} ${t('pricing.ordersPerMonth') || 'Orders/month'}`,
-    t('landing.freeF4') || 'Basic POS & inventory',
-    t('landing.freeF5') || 'Email support',
-  ]
-
-  const proFeatures = [
-    `${fmt(planMap.pro?.max_products)} ${t('pricing.products') || 'Products'}`,
-    `${fmt(planMap.pro?.max_users)} ${t('pricing.users') || 'Users'}`,
-    `${fmt(planMap.pro?.max_orders_monthly)} ${t('pricing.ordersPerMonth') || 'Orders/month'}`,
-    t('landing.proF4') || 'Advanced reports & accounting',
-    t('landing.proF5') || 'Priority support',
-  ]
-
-  const enterpriseFeatures = [
-    `${fmt(planMap.enterprise?.max_products)} ${t('pricing.products') || 'Products'}`,
-    `${fmt(planMap.enterprise?.max_users)} ${t('pricing.users') || 'Users'}`,
-    `${fmt(planMap.enterprise?.max_orders_monthly)} ${t('pricing.ordersPerMonth') || 'Orders/month'}`,
-    t('landing.entF4') || 'Full HR, payroll & accounting',
-    t('landing.entF5') || 'Dedicated support',
+  const steps = [
+    { icon: Store, title: t('landing.step1Title') || 'Create Your Store', desc: t('landing.step1Desc') || 'Sign up in seconds. No credit card required. Get started with a free plan instantly.' },
+    { icon: Package, title: t('landing.step2Title') || 'Add Your Products', desc: t('landing.step2Desc') || 'Import your inventory or add products one by one. Set prices, stock levels, and categories.' },
+    { icon: ShoppingCart, title: t('landing.step3Title') || 'Start Selling', desc: t('landing.step3Desc') || 'Process sales in seconds with our lightning-fast POS. Accept cash, cards, or digital wallets.' },
+    { icon: BarChart3, title: t('landing.step4Title') || 'Track Everything', desc: t('landing.step4Desc') || 'Monitor sales, expenses, inventory, and employee performance in real-time dashboards.' },
   ]
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800">
+      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-100/50 dark:border-gray-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/25">
                 <Store className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">{t('landing.brand') || 'ERP-GO'}</span>
+              <span className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">{t('landing.brand') || 'ERP-GO'}</span>
             </div>
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-7">
               <a href="#features" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('landing.features') || 'Features'}</a>
-              <a href="#pricing" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('landing.pricing') || 'Pricing'}</a>
+              <a href="#how" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('landing.howItWorks') || 'How It Works'}</a>
               <Link to="/login" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('users.signIn') || 'Login'}</Link>
               <button
                 onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary-300 dark:hover:border-primary-600 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all"
               >
                 <Globe className="w-4 h-4" />
                 {language === 'en' ? 'عربي' : 'EN'}
               </button>
-              <Link to={isAuthenticated ? '/dashboard' : '/login'} className="px-5 py-2 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors">
+              <Link to={isAuthenticated ? '/dashboard' : '/login'} className="px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm font-semibold rounded-xl hover:from-primary-700 hover:to-primary-800 shadow-lg shadow-primary-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/30">
                 {t('landing.startFree') || 'Start Free Trial'}
               </Link>
             </div>
@@ -143,7 +95,7 @@ export default function LandingPage() {
                 <Globe className="w-3.5 h-3.5" />
                 {language === 'en' ? 'عربي' : 'EN'}
               </button>
-              <Link to={isAuthenticated ? '/dashboard' : '/login'} className="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors">
+              <Link to={isAuthenticated ? '/dashboard' : '/login'} className="px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-primary-500/25">
                 {t('landing.startFree') || 'Start'}
               </Link>
             </div>
@@ -153,53 +105,59 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-200/30 dark:bg-primary-800/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-emerald-200/20 dark:bg-emerald-800/10 rounded-full blur-3xl" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-50/80 via-white to-emerald-50/60 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-300/20 dark:bg-primary-700/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-emerald-300/15 dark:bg-emerald-700/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary-400/10 to-emerald-400/10 rounded-full blur-3xl" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 sm:py-36 lg:py-44">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium px-4 py-1.5 rounded-full mb-6">
-              <Zap className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-primary-700 dark:text-primary-300 text-sm font-semibold px-5 py-2 rounded-full mb-8 border border-primary-200/50 dark:border-primary-700/50 shadow-sm">
+              <Sparkles className="w-4 h-4" />
               {t('landing.badge') || 'All-in-one store management'}
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight mb-6">
-              {t('landing.heroTitle') || 'Complete Store'} <br />
-              <span className="bg-gradient-to-r from-primary-600 to-emerald-500 bg-clip-text text-transparent">
+            <h1 className="text-5xl sm:text-6xl lg:text-8xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-8">
+              {t('landing.heroTitle') || 'Complete Store'}{' '}
+              <span className="bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 bg-clip-text text-transparent">
                 {t('landing.heroTitle2') || 'Management System'}
               </span>
             </h1>
-            <p className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
               {t('landing.heroSubtitle') || 'Professional POS, inventory, HR, and accounting — all in one platform. Manage your store from anywhere.'}
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
               <Link
                 to={isAuthenticated ? '/dashboard' : '/login'}
-                className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-600 text-white text-lg font-semibold rounded-2xl hover:bg-primary-700 shadow-lg shadow-primary-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/30"
+                className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-10 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-lg font-bold rounded-2xl hover:from-primary-700 hover:to-primary-800 shadow-xl shadow-primary-500/25 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-500/30 hover:-translate-y-0.5"
               >
                 {t('landing.startFree') || 'Start Free Trial'}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/pricing"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-lg font-semibold rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-10 py-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-lg font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 {t('landing.viewPricing') || 'View Pricing'}
+                <ArrowUpRight className="w-5 h-5" />
               </Link>
             </div>
-            <div className="flex items-center justify-center gap-6 mt-10 text-sm text-gray-400 dark:text-gray-500">
-              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" />{t('landing.freeForever') || 'Free forever plan'}</div>
-              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" />{t('landing.noCard') || 'No credit card required'}</div>
-              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" />{t('landing.cancelAnytime') || 'Cancel anytime'}</div>
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400 dark:text-gray-500">
+              <div className="flex items-center gap-2"><div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center"><Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /></div>{t('landing.freeForever') || 'Free forever plan'}</div>
+              <div className="flex items-center gap-2"><div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center"><Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /></div>{t('landing.noCard') || 'No credit card required'}</div>
+              <div className="flex items-center gap-2"><div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center"><Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /></div>{t('landing.cancelAnytime') || 'Cancel anytime'}</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 sm:py-28 bg-gray-50 dark:bg-gray-800/30">
+      <section id="features" className="py-24 sm:py-32 bg-gray-50/50 dark:bg-gray-800/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.featuresTitle') || 'Everything You Need to Run Your Store'}</h2>
+            <div className="inline-flex items-center gap-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-bold px-4 py-1.5 rounded-full mb-4 uppercase tracking-wider">
+              <Zap className="w-3.5 h-3.5" />
+              {t('landing.features') || 'Features'}
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.featuresTitle') || 'Everything You Need to Run Your Store'}</h2>
             <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.featuresSubtitle') || 'One platform to manage sales, inventory, employees, finances, and customers.'}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -208,107 +166,97 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* How It Works */}
+      <section id="how" className="py-24 sm:py-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-4 py-1.5 rounded-full mb-4 uppercase tracking-wider">
+              <Clock className="w-3.5 h-3.5" />
+              {t('landing.howItWorks') || 'How It Works'}
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.howTitle') || 'Up and Running in Minutes'}</h2>
+            <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.howSubtitle') || 'No complex setup. No training needed. Start managing your store today.'}</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {steps.map((s, i) => <StepCard key={i} num={`0${i + 1}`} {...s} />)}
+          </div>
+        </div>
+      </section>
+
       {/* Why Us */}
-      <section className="py-20 sm:py-28">
+      <section className="py-24 sm:py-32 bg-gray-50/50 dark:bg-gray-800/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-6">{t('landing.whyTitle') || 'Built for Real Store Owners'}</h2>
-              <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">{t('landing.whySubtitle') || 'We understand the challenges of running a store. That\'s why we built a system that handles the complexity so you can focus on growth.'}</p>
-              <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-bold px-4 py-1.5 rounded-full mb-6 uppercase tracking-wider">
+                <Star className="w-3.5 h-3.5" />
+                {t('landing.whyUs') || 'Why ERP-GO'}
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">{t('landing.whyTitle') || 'Built for Real Store Owners'}</h2>
+              <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">{t('landing.whySubtitle') || "We understand the challenges of running a store. That's why we built a system that handles the complexity so you can focus on growth."}</p>
+              <div className="space-y-5">
                 {[
-                  { icon: Zap, text: t('landing.why1') || 'Lightning-fast POS — process a sale in seconds' },
-                  { icon: Shield, text: t('landing.why2') || 'Secure multi-tenant architecture with role-based access' },
-                  { icon: Globe, text: t('landing.why3') || 'Bilingual support (English & Arabic) out of the box' },
-                  { icon: Star, text: t('landing.why4') || 'Real-time analytics and customizable reports' },
+                  { icon: Zap, text: t('landing.why1') || 'Lightning-fast POS — process a sale in seconds', color: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' },
+                  { icon: Shield, text: t('landing.why2') || 'Secure multi-tenant architecture with role-based access', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
+                  { icon: Globe, text: t('landing.why3') || 'Bilingual support (English & Arabic) out of the box', color: 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400' },
+                  { icon: Star, text: t('landing.why4') || 'Real-time analytics and customizable reports', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                      <item.icon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                  <div key={i} className="flex items-start gap-4 group">
+                    <div className={`w-10 h-10 ${item.color} rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
+                      <item.icon className="w-5 h-5" />
                     </div>
-                    <span className="text-gray-600 dark:text-gray-300">{item.text}</span>
+                    <span className="text-gray-600 dark:text-gray-300 pt-2">{item.text}</span>
                   </div>
                 ))}
               </div>
             </div>
             <div className="relative">
-              <div className="bg-gradient-to-br from-primary-500 to-emerald-500 rounded-3xl p-8 sm:p-12 text-white">
+              <div className="absolute -inset-4 bg-gradient-to-r from-primary-500/20 to-emerald-500/20 rounded-3xl blur-2xl" />
+              <div className="relative bg-gradient-to-br from-primary-600 via-primary-500 to-emerald-500 rounded-3xl p-8 sm:p-12 text-white shadow-2xl shadow-primary-500/20">
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { label: t('landing.stat1Label') || 'Active Stores', value: '500+' },
-                    { label: t('landing.stat2Label') || 'Orders Processed', value: '100K+' },
-                    { label: t('landing.stat3Label') || 'Uptime', value: '99.9%' },
-                    { label: t('landing.stat4Label') || 'Countries', value: '10+' },
+                    { label: t('landing.stat1Label') || 'Active Stores', value: '500+', icon: Store },
+                    { label: t('landing.stat2Label') || 'Orders Processed', value: '100K+', icon: ShoppingCart },
+                    { label: t('landing.stat3Label') || 'Uptime', value: '99.9%', icon: Shield },
+                    { label: t('landing.stat4Label') || 'Support', value: '24/7', icon: Headphones },
                   ].map((s, i) => (
-                    <div key={i} className="bg-white/10 rounded-2xl p-5 text-center">
+                    <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 text-center hover:bg-white/15 transition-colors">
+                      <s.icon className="w-6 h-6 mx-auto mb-2 text-white/70" />
                       <div className="text-3xl font-extrabold mb-1">{s.value}</div>
-                      <div className="text-sm text-white/70">{s.label}</div>
+                      <div className="text-xs text-white/60 font-medium">{s.label}</div>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-primary-200 dark:bg-primary-800/30 rounded-full blur-2xl" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="pricing" className="py-20 sm:py-28 bg-gray-50 dark:bg-gray-800/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.pricingTitle') || 'Simple, Transparent Pricing'}</h2>
-            <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.pricingSubtitle') || 'Start free, upgrade when you need more. No hidden fees.'}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
-            <PricingCard
-              name="Free"
-              price="0 EGP"
-              period={t('landing.perMonth') || '/month'}
-              desc={t('landing.freeDesc') || 'Perfect for small stores just getting started.'}
-              features={freeFeatures}
-              cta={t('landing.getStarted') || 'Get Started'}
-              ctaLink={isAuthenticated ? '/dashboard' : '/signup'}
-            />
-            <PricingCard
-              name="Pro"
-              price={`${(planMap.pro?.price_monthly ?? 599).toLocaleString()} EGP`}
-              period={t('landing.perMonth') || '/month'}
-              desc={t('landing.proDesc') || 'For growing stores that need more power.'}
-              features={proFeatures}
-              cta={t('landing.startTrial') || 'Start Trial'}
-              highlighted
-              ctaLink={isAuthenticated ? '/dashboard' : '/signup'}
-            />
-            <PricingCard
-              name="Enterprise"
-              price={`${(planMap.enterprise?.price_monthly ?? 1499).toLocaleString()} EGP`}
-              period={t('landing.perMonth') || '/month'}
-              desc={t('landing.entDesc') || 'For large operations with advanced needs.'}
-              features={enterpriseFeatures}
-              cta={t('landing.contactSales') || 'Contact Sales'}
-              ctaLink={isAuthenticated ? '/dashboard' : '/signup'}
-            />
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
-      <section className="py-20 sm:py-28">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-gradient-to-r from-primary-600 to-emerald-500 rounded-3xl p-12 sm:p-16 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-            <div className="relative">
-              <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">{t('landing.ctaTitle') || 'Ready to Manage Your Store?'}</h2>
-              <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">{t('landing.ctaSubtitle') || 'Start your free trial today. No credit card required.'}</p>
-              <Link
-                to={isAuthenticated ? '/dashboard' : '/login'}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-600 text-lg font-semibold rounded-2xl hover:bg-gray-100 transition-colors shadow-lg"
-              >
-                {t('landing.startFree') || 'Start Free Trial'}
-                <ArrowRight className="w-5 h-5" />
-              </Link>
+      <section className="py-24 sm:py-32">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="relative">
+            <div className="absolute -inset-4 bg-gradient-to-r from-primary-500/20 via-emerald-500/20 to-primary-500/20 rounded-3xl blur-3xl" />
+            <div className="relative bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 rounded-3xl p-12 sm:p-20 text-white overflow-hidden shadow-2xl shadow-primary-500/20">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+              <div className="relative">
+                <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-6 border border-white/20">
+                  <CreditCard className="w-4 h-4" />
+                  {t('landing.ctaBadge') || 'Free to start'}
+                </div>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-6 leading-tight">{t('landing.ctaTitle') || 'Ready to Manage Your Store?'}</h2>
+                <p className="text-lg text-white/80 mb-10 max-w-xl mx-auto leading-relaxed">{t('landing.ctaSubtitle') || 'Start your free trial today. No credit card required.'}</p>
+                <Link
+                  to={isAuthenticated ? '/dashboard' : '/login'}
+                  className="inline-flex items-center gap-2.5 px-10 py-4 bg-white text-primary-600 text-lg font-bold rounded-2xl hover:bg-gray-100 transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-0.5"
+                >
+                  {t('landing.startFree') || 'Start Free Trial'}
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -320,33 +268,33 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center shadow-md shadow-primary-500/20">
                   <Store className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-gray-900 dark:text-white">{t('landing.brand') || 'ERP-GO'}</span>
+                <span className="font-extrabold text-gray-900 dark:text-white tracking-tight">{t('landing.brand') || 'ERP-GO'}</span>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('landing.footerDesc') || 'Professional store management for modern businesses.'}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{t('landing.footerDesc') || 'Professional store management for modern businesses.'}</p>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">{t('landing.footerProduct') || 'Product'}</h4>
-              <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
-                <li><a href="#features" className="hover:text-primary-600 transition-colors">{t('landing.features') || 'Features'}</a></li>
-                <li><a href="#pricing" className="hover:text-primary-600 transition-colors">{t('landing.pricing') || 'Pricing'}</a></li>
-                <li><Link to="/login" className="hover:text-primary-600 transition-colors">{t('users.signIn') || 'Login'}</Link></li>
+              <h4 className="font-bold text-gray-900 dark:text-white mb-3">{t('landing.footerProduct') || 'Product'}</h4>
+              <ul className="space-y-2.5 text-sm text-gray-500 dark:text-gray-400">
+                <li><a href="#features" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('landing.features') || 'Features'}</a></li>
+                <li><a href="#how" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('landing.howItWorks') || 'How It Works'}</a></li>
+                <li><Link to="/login" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">{t('users.signIn') || 'Login'}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">{t('landing.footerSupport') || 'Support'}</h4>
-              <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
-                <li><a href="https://wa.me/201555256213" target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 transition-colors">WhatsApp</a></li>
-                <li><a href="mailto:support.erp.go@gmail.com" className="hover:text-primary-600 transition-colors">Email</a></li>
+              <h4 className="font-bold text-gray-900 dark:text-white mb-3">{t('landing.footerSupport') || 'Support'}</h4>
+              <ul className="space-y-2.5 text-sm text-gray-500 dark:text-gray-400">
+                <li><a href="https://wa.me/201555256213" target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">WhatsApp</a></li>
+                <li><a href="mailto:support.erp.go@gmail.com" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Email</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">{t('landing.footerLegal') || 'Legal'}</h4>
-              <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
-                <li><button onClick={() => setOpenModal('privacy')} className="hover:text-primary-600 transition-colors text-left">{t('landing.footerPrivacy') || 'Privacy Policy'}</button></li>
-                <li><button onClick={() => setOpenModal('terms')} className="hover:text-primary-600 transition-colors text-left">{t('landing.footerTerms') || 'Terms of Service'}</button></li>
+              <h4 className="font-bold text-gray-900 dark:text-white mb-3">{t('landing.footerLegal') || 'Legal'}</h4>
+              <ul className="space-y-2.5 text-sm text-gray-500 dark:text-gray-400">
+                <li><button onClick={() => setOpenModal('privacy')} className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left">{t('landing.footerPrivacy') || 'Privacy Policy'}</button></li>
+                <li><button onClick={() => setOpenModal('terms')} className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left">{t('landing.footerTerms') || 'Terms of Service'}</button></li>
               </ul>
             </div>
           </div>
