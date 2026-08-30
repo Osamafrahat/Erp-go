@@ -191,7 +191,7 @@ export default function LandingPage() {
                 {[
                   { icon: Zap, text: t('landing.why1') || 'Lightning-fast POS — process a sale in seconds', color: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' },
                   { icon: Shield, text: t('landing.why2') || 'Secure multi-users architecture with role-based access', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
-                  { icon: Globe, text: t('landing.why3') || 'Bilingual support (English & Arabic) out of the box', color: 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400' },
+                  { icon: Globe, text: t('landing.why3') || 'Bilingual support (English & Arabic)', color: 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400' },
                   { icon: Star, text: t('landing.why4') || 'Real-time analytics and customizable reports', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-4 group">
@@ -207,9 +207,10 @@ export default function LandingPage() {
               <div className="absolute -inset-4 bg-gradient-to-r from-primary-500/20 to-emerald-500/20 rounded-3xl blur-2xl" />
               <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-primary-500/20">
                 <img
-                  src="https://images.unsplash.com/photo-1590736969955-71cc94901144?w=600&h=700&fit=crop"
+                  src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=700&fit=crop&q=80"
                   alt="Store cashier using POS system"
                   className="w-full h-80 sm:h-96 object-cover"
+                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=700&fit=crop&q=80' }}
                 />
               </div>
             </div>
