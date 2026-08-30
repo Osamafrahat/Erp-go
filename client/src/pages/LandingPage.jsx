@@ -133,13 +133,6 @@ export default function LandingPage() {
                 {t('landing.startFree') || 'Start Free Trial'}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link
-                to="/pricing"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-10 py-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-lg font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                {t('landing.viewPricing') || 'View Pricing'}
-                <ArrowUpRight className="w-5 h-5" />
-              </Link>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400 dark:text-gray-500">
               <div className="flex items-center gap-2"><div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center"><Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /></div>{t('landing.freeForever') || 'Free forever plan'}</div>
