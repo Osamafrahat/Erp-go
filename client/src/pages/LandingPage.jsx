@@ -204,18 +204,22 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="relative">
-              <div className="bg-gradient-to-br from-blue-500 via-blue-400 to-emerald-500 rounded-3xl p-8 sm:p-12 shadow-2xl">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="absolute -inset-4 bg-gradient-to-r from-primary-500/20 to-emerald-500/20 rounded-3xl blur-2xl" />
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-primary-500/20">
+                <img
+                  src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=700&fit=crop"
+                  alt="Store cashier using POS system"
+                  className="w-full h-80 sm:h-96 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary-900/40 to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6 grid grid-cols-2 gap-3">
                   {[
-                    { label: t('landing.stat1Label') || 'Orders Processed', value: '+100K', icon: ShoppingCart },
-                    { label: t('landing.stat2Label') || 'Active Stores', value: '+500', icon: Store },
-                    { label: t('landing.stat3Label') || 'Support', value: '24/7', icon: Headphones },
-                    { label: t('landing.stat4Label') || 'Uptime', value: '99.9%', icon: Shield },
+                    { label: t('landing.stat1Label') || 'Orders Processed', value: '+100K' },
+                    { label: t('landing.stat2Label') || 'Active Stores', value: '+500' },
                   ].map((s, i) => (
-                    <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center">
-                      <s.icon className="w-7 h-7 mx-auto mb-3 text-white/70" />
-                      <div className="text-3xl sm:text-4xl font-extrabold text-white mb-1">{s.value}</div>
-                      <div className="text-sm text-white/70 font-medium">{s.label}</div>
+                    <div key={i} className="bg-white/15 backdrop-blur-sm rounded-xl p-3 text-center">
+                      <div className="text-2xl font-extrabold text-white">{s.value}</div>
+                      <div className="text-xs text-white/70">{s.label}</div>
                     </div>
                   ))}
                 </div>
