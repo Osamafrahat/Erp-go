@@ -6,9 +6,14 @@ import {
   cacheCategories,
   cacheCustomers,
   cacheSettings,
+  cacheServices,
+  cachePlans,
   getCachedProducts,
   getCachedCategories,
   getCachedCustomers,
+  getCachedSettings,
+  getCachedServices,
+  getCachedPlans,
   setLastSyncTime,
   addPendingOrder,
   getPendingOrders,
@@ -16,6 +21,7 @@ import {
   markOrderFailed,
   retryPendingOrders,
   clearSyncedOrders,
+  updateCachedProduct,
 } from '../lib/offlineDB'
 
 export const useOfflineStore = create((set, get) => ({
@@ -43,12 +49,14 @@ export const useOfflineStore = create((set, get) => ({
   setOnline: (isOnline) => set({ isOnline }),
 
   // Cache data from API responses
-  cacheData: async ({ products, categories, customers, settings }) => {
+  cacheData: async ({ products, categories, customers, settings, services, plans }) => {
     try {
       if (products) await cacheProducts(products)
       if (categories) await cacheCategories(categories)
       if (customers) await cacheCustomers(customers)
       if (settings) await cacheSettings(settings)
+      if (services) await cacheServices(services)
+      if (plans) await cachePlans(plans)
     } catch (err) {
       console.error('[OfflineDB] Cache error:', err)
     }
@@ -57,15 +65,18 @@ export const useOfflineStore = create((set, get) => ({
   // Load data from IndexedDB cache
   loadCachedData: async () => {
     try {
-      const [products, categories, customers] = await Promise.all([
+      const [products, categories, customers, settings, services, plans] = await Promise.all([
         getCachedProducts(),
         getCachedCategories(),
         getCachedCustomers(),
+        getCachedSettings(),
+        getCachedServices(),
+        getCachedPlans(),
       ])
-      return { products, categories, customers }
+      return { products, categories, customers, settings, services, plans }
     } catch (err) {
       console.error('[OfflineDB] Load cache error:', err)
-      return { products: [], categories: [], customers: [] }
+      return { products: [], categories: [], customers: [], settings: {}, services: [], plans: [] }
     }
   },
 
@@ -74,6 +85,26 @@ export const useOfflineStore = create((set, get) => ({
     const clientOrderId = orderData.client_order_id || `OFF-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     const order = { ...orderData, client_order_id: clientOrderId }
     await addPendingOrder(order)
+
+    // Decrement stock locally for product items
+    if (orderData.items) {
+      for (const item of orderData.items) {
+        if (item.product_id && item._type === 'product' && item.quantity) {
+          try {
+            const products = await getCachedProducts()
+            const product = products.find(p => p.id === item.product_id)
+            if (product && product.stock_quantity != null) {
+              await updateCachedProduct(item.product_id, {
+                stock_quantity: Math.max(0, product.stock_quantity - item.quantity),
+              })
+            }
+          } catch (e) {
+            console.error('[OfflineDB] Stock decrement error:', e)
+          }
+        }
+      }
+    }
+
     const count = await getPendingOrderCount()
     set({ pendingCount: count })
     return clientOrderId

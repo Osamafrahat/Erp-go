@@ -29,6 +29,14 @@ function getDB() {
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings', { keyPath: 'key' })
         }
+        // Services cache
+        if (!db.objectStoreNames.contains('services')) {
+          db.createObjectStore('services', { keyPath: 'id' })
+        }
+        // Plans cache
+        if (!db.objectStoreNames.contains('plans')) {
+          db.createObjectStore('plans', { keyPath: 'id' })
+        }
         // Pending orders (offline queue)
         if (!db.objectStoreNames.contains('pendingOrders')) {
           const orderStore = db.createObjectStore('pendingOrders', { keyPath: 'client_order_id' })
@@ -119,6 +127,38 @@ export async function getCachedSettings() {
     result[item.key] = item.value
   }
   return result
+}
+
+// --- Services ---
+export async function cacheServices(services) {
+  const db = await getDB()
+  const tx = db.transaction('services', 'readwrite')
+  await tx.store.clear()
+  for (const s of services) {
+    await tx.store.put(s)
+  }
+  await tx.done
+}
+
+export async function getCachedServices() {
+  const db = await getDB()
+  return db.getAll('services')
+}
+
+// --- Plans ---
+export async function cachePlans(plans) {
+  const db = await getDB()
+  const tx = db.transaction('plans', 'readwrite')
+  await tx.store.clear()
+  for (const p of plans) {
+    await tx.store.put(p)
+  }
+  await tx.done
+}
+
+export async function getCachedPlans() {
+  const db = await getDB()
+  return db.getAll('plans')
 }
 
 // --- Pending Orders (Offline Queue) ---

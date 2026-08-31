@@ -11,7 +11,7 @@ import Cart from '../components/pos/Cart'
 import PaymentModal from '../components/pos/PaymentModal'
 import BarcodeScanner from '../components/pos/BarcodeScanner'
 import ReceiptModal from '../components/pos/ReceiptModal'
-import { Search, Zap, User, Wrench, CreditCard } from 'lucide-react'
+import { Search, Zap, User, Wrench, CreditCard, WifiOff } from 'lucide-react'
 
 export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -74,6 +74,8 @@ export default function POSPage() {
         setProducts(cached.products)
         setCategories(cached.categories)
         setCustomers(cached.customers)
+        if (cached.services?.length) setServices(cached.services)
+        if (cached.plans?.length) setPlans(cached.plans)
         setLoading(false)
       }
 
@@ -99,6 +101,9 @@ export default function POSPage() {
             products: productsData,
             categories: categoriesRes.data,
             customers: customersRes.data,
+            services: servicesData,
+            plans: plansData,
+            settings: { taxRate: settings.taxRate, storeName: settings.storeName, currency: settings.currency },
           })
         } catch (err) {
           console.error('Background fetch failed, using cache:', err)
@@ -210,6 +215,14 @@ export default function POSPage() {
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-6rem)] md:h-[calc(100vh-8rem)] gap-3 md:gap-4 overflow-hidden">
+      {/* Offline Banner */}
+      {!isOnline && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white text-sm font-medium rounded-xl shrink-0">
+          <WifiOff className="w-4 h-4" />
+          {t('offline.offline') || 'You are offline'} — {t('offline.ordersWillBeQueued') || 'Orders will be saved and synced when connected'}
+        </div>
+      )}
+
       {/* Left side - Products/Services */}
       <div className="flex-1 min-w-0 flex flex-col gap-2 md:gap-4 overflow-y-auto">
         {/* Search and Filters */}
@@ -407,12 +420,26 @@ export default function POSPage() {
               // Create subscriptions from plan items
               for (const item of subscriptionItems) {
                 try {
-                  await subscriptionsApi.quickCreate({
-                    customer_id: selectedCustomer.id,
-                    plan_id: item.product.id,
-                    payment_method: paymentData.method,
-                    notes: `POS sale - ${item.product.name}`,
-                  })
+                  if (navigator.onLine) {
+                    await subscriptionsApi.quickCreate({
+                      customer_id: selectedCustomer.id,
+                      plan_id: item.product.id,
+                      payment_method: paymentData.method,
+                      notes: `POS sale - ${item.product.name}`,
+                    })
+                  } else {
+                    // Queue subscription for sync when back online
+                    await queueOrder({
+                      _type: 'subscription',
+                      customer_id: selectedCustomer.id,
+                      plan_id: item.product.id,
+                      plan_name: item.product.name,
+                      payment_method: paymentData.method,
+                      total: item.product.price * item.quantity,
+                      user_id: currentUser?.id,
+                      created_at: new Date().toISOString(),
+                    })
+                  }
                 } catch (subErr) {
                   if (subErr.response?.status === 409) {
                     toastError(t('pos.duplicateSubscription') || 'Customer already has an active subscription for this plan')

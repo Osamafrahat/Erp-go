@@ -401,6 +401,7 @@ export const translations = {
     'offline.waitingConnection': 'Waiting for connection...',
     'offline.errors': 'errors',
     'offline.orderQueued': 'Order saved offline — will sync when connected',
+    'offline.ordersWillBeQueued': 'Orders will be saved and synced when connected',
     'offline.syncComplete': 'All offline orders synced successfully',
     'offline.syncPartial': 'Some orders failed to sync',
 
@@ -2387,6 +2388,7 @@ export const translations = {
     'offline.waitingConnection': 'في انتظار الاتصال...',
     'offline.errors': 'أخطاء',
     'offline.orderQueued': 'تم حفظ الطلب — سيتم المزامنة عند الاتصال',
+    'offline.ordersWillBeQueued': 'سيتم حفظ الطلبات والمزامنة عند الاتصال',
     'offline.syncComplete': 'تمت مزامنة جميع الطلبات بنجاح',
     'offline.syncPartial': 'بعض الطلبات فشلت في المزامنة',
 
