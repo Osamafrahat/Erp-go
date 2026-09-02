@@ -214,7 +214,7 @@ export default function POSPage() {
   const displayItems = activeTab === 'products' ? filteredProducts : activeTab === 'services' ? filteredServices : filteredPlans
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-6rem)] md:h-[calc(100vh-8rem)] gap-3 md:gap-4 overflow-hidden">
+    <div className="flex flex-col md:flex-row h-auto md:h-[calc(100vh-8rem)] gap-3 md:gap-4 overflow-visible md:overflow-hidden">
       {/* Offline Banner */}
       {!isOnline && (
         <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white text-sm font-medium rounded-xl shrink-0">
