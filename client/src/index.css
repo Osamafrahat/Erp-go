@@ -23,14 +23,10 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Mobile: prevent horizontal overflow */
+/* Mobile: prevent horizontal overflow on the app wrapper, NOT html/body */
 @media (max-width: 767px) {
-  html, body {
-    overflow-x: hidden;
-    max-width: 100vw;
-  }
-  body {
-    overscroll-behavior-y: contain;
+  #root {
+    overflow-x: clip;
   }
 }
 
