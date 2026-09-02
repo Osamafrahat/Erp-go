@@ -19,7 +19,8 @@ body {
   min-height: 100vh;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
-  overscroll-behavior: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Mobile: prevent horizontal overflow */
@@ -27,6 +28,9 @@ body {
   html, body {
     overflow-x: hidden;
     max-width: 100vw;
+  }
+  body {
+    overscroll-behavior-y: contain;
   }
 }
 
