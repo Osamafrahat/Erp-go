@@ -111,16 +111,16 @@ export default function LandingPage() {
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-300/20 dark:bg-primary-700/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-emerald-300/15 dark:bg-emerald-700/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary-400/10 to-emerald-400/10 rounded-full blur-3xl" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 sm:py-36 lg:py-44">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-28 lg:py-44">
           <div className="text-center max-w-4xl mx-auto">
             <div className="flex justify-center mb-6">
-              <img src="/erpgologo.svg" alt="ERP-GO" className="h-32 w-auto" />
+              <img src="/erpgologo.svg" alt="ERP-GO" className="h-16 sm:h-24 lg:h-32 w-auto" />
             </div>
             <div className="inline-flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-primary-700 dark:text-primary-300 text-sm font-semibold px-5 py-2 rounded-full mb-8 border border-primary-200/50 dark:border-primary-700/50 shadow-sm">
               <Sparkles className="w-4 h-4" />
               {t('landing.badge') || 'All-in-one store management'}
             </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-8xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-8">
+            <h1 className="text-3xl sm:text-5xl lg:text-8xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-8">
               {t('landing.heroTitle') || 'Complete Store'}{' '}
               <span className="bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 bg-clip-text text-transparent">
                 {t('landing.heroTitle2') || 'Management System'}
@@ -150,8 +150,8 @@ export default function LandingPage() {
               <Zap className="w-3.5 h-3.5" />
               {t('landing.features') || 'Features'}
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.featuresTitle') || 'Everything You Need to Run Your Store'}</h2>
-            <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.featuresSubtitle') || 'One platform to manage sales, inventory, employees, finances, and customers.'}</p>
+            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.featuresTitle') || 'Everything You Need to Run Your Store'}</h2>
+            <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.featuresSubtitle') || 'One platform to manage sales, inventory, employees, finances, and customers.'}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f, i) => <FeatureCard key={i} {...f} />)}
@@ -167,8 +167,8 @@ export default function LandingPage() {
               <Clock className="w-3.5 h-3.5" />
               {t('landing.howItWorks') || 'How It Works'}
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.howTitle') || 'Up and Running in Minutes'}</h2>
-            <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.howSubtitle') || 'No complex setup. No training needed. Start managing your store today.'}</p>
+            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.howTitle') || 'Up and Running in Minutes'}</h2>
+            <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.howSubtitle') || 'No complex setup. No training needed. Start managing your store today.'}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {steps.map((s, i) => <StepCard key={i} num={`0${i + 1}`} {...s} />)}
@@ -179,14 +179,14 @@ export default function LandingPage() {
       {/* Why Us */}
       <section className="py-24 sm:py-32 bg-gray-50/50 dark:bg-gray-800/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             <div>
               <div className="inline-flex items-center gap-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-bold px-4 py-1.5 rounded-full mb-6 uppercase tracking-wider">
                 <Star className="w-3.5 h-3.5" />
                 {t('landing.whyUs') || 'Why ERP-GO'}
               </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">{t('landing.whyTitle') || 'Built for Successful Store Owners'}</h2>
-              <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">{t('landing.whySubtitle') || "We understand the challenges of running a store. That's why we built a system that handles the complexity so you can focus on growth."}</p>
+              <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">{t('landing.whyTitle') || 'Built for Successful Store Owners'}</h2>
+              <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">{t('landing.whySubtitle') || "We understand the challenges of running a store. That's why we built a system that handles the complexity so you can focus on growth."}</p>
               <div className="space-y-5">
                 {[
                   { icon: Zap, text: t('landing.why1') || 'Lightning-fast POS — process a sale in seconds', color: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' },
@@ -198,7 +198,7 @@ export default function LandingPage() {
                     <div className={`w-10 h-10 ${item.color} rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
                       <item.icon className="w-5 h-5" />
                     </div>
-                    <span className="text-gray-600 dark:text-gray-300 pt-2">{item.text}</span>
+                    <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300 pt-2">{item.text}</span>
                   </div>
                 ))}
               </div>
@@ -223,7 +223,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-primary-500/20 via-emerald-500/20 to-primary-500/20 rounded-3xl blur-3xl" />
-            <div className="relative bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 rounded-3xl p-12 sm:p-20 text-white overflow-hidden shadow-2xl shadow-primary-500/20">
+            <div className="relative bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 rounded-3xl p-8 sm:p-12 lg:p-20 text-white overflow-hidden shadow-2xl shadow-primary-500/20">
               <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
@@ -232,8 +232,8 @@ export default function LandingPage() {
                   <CreditCard className="w-4 h-4" />
                   {t('landing.ctaBadge') || 'Free to start'}
                 </div>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-6 leading-tight">{t('landing.ctaTitle') || 'Ready to Manage Your Store?'}</h2>
-                <p className="text-lg text-white/80 mb-10 max-w-xl mx-auto leading-relaxed">{t('landing.ctaSubtitle') || 'Start your free trial today. No credit card required.'}</p>
+                <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold mb-6 leading-tight">{t('landing.ctaTitle') || 'Ready to Manage Your Store?'}</h2>
+                <p className="text-base sm:text-lg text-white/80 mb-10 max-w-xl mx-auto leading-relaxed">{t('landing.ctaSubtitle') || 'Start your free trial today. No credit card required.'}</p>
                 <Link
                   to="/signup"
                   className="inline-flex items-center gap-2.5 px-10 py-4 bg-white text-primary-600 text-lg font-bold rounded-2xl hover:bg-gray-100 transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-0.5"
@@ -250,7 +250,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-gray-200 dark:border-gray-800 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <img src="/erpgologo.svg" alt="ERP-GO" className="h-10 w-auto" />

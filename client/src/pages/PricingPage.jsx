@@ -233,7 +233,7 @@ export default function PricingPage() {
   const upgraded = searchParams.get('upgraded') === 'true'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 sm:py-12 px-4">
       <div className="max-w-5xl mx-auto">
         {verifying && (
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl flex items-center gap-3">
@@ -248,10 +248,10 @@ export default function PricingPage() {
           </div>
         )}
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             {t('pricing.title') || 'Choose Your Plan'}
           </h1>
-          <p className="mt-3 text-lg text-gray-600 dark:text-gray-400">
+          <p className="mt-3 text-base sm:text-lg text-gray-600 dark:text-gray-400">
             {t('pricing.subtitle') || 'Scale your business with the right tools'}
           </p>
 
@@ -308,8 +308,8 @@ export default function PricingPage() {
             return (
               <div
                 key={tier.id}
-                className={`relative rounded-2xl border-2 ${colors.border} ${colors.bg} p-6 flex flex-col ${
-                  tier.popular ? 'ring-2 ring-primary-500 shadow-xl scale-105' : 'shadow-md'
+                className={`relative rounded-2xl border-2 ${colors.border} ${colors.bg} p-4 sm:p-6 flex flex-col ${
+                  tier.popular ? 'ring-2 ring-primary-500 shadow-xl md:scale-105' : 'shadow-md'
                 }`}
               >
                 {tier.popular && (
@@ -330,7 +330,7 @@ export default function PricingPage() {
 
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">{tier.name}</h3>
                 <div className="mt-2 mb-6">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-white">{tier.price > 0 ? `${tier.price.toLocaleString()} ج.م` : (t('pricing.free') || 'Free')}</span>
+                  <span className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white">{tier.price > 0 ? `${tier.price.toLocaleString()} ج.م` : (t('pricing.free') || 'Free')}</span>
                   <span className="text-gray-500 dark:text-gray-400">{tier.period}</span>
                   {tier.monthlyEquiv && billingPeriod === 'yearly' && (
                     <p className="text-xs text-green-600 dark:text-green-400 mt-1">
@@ -347,7 +347,7 @@ export default function PricingPage() {
                       ) : (
                         <X className="w-4 h-4 text-gray-300 dark:text-gray-600" />
                       )}
-                      <span className={`text-sm ${feature.included ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                      <span className={`text-xs sm:text-sm ${feature.included ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
                         {feature.text}
                       </span>
                     </li>
