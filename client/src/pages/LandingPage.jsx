@@ -6,7 +6,7 @@ import {
   ShoppingCart, Package, Users, BarChart3, UserCheck, Layers,
   Check, ArrowRight, Zap, Shield, Globe, Star, Store,
   CreditCard, Clock, Headphones, ArrowUpRight, Sparkles,
-  Database, MessageCircle
+  Database, MessageCircle, Timer
 } from 'lucide-react'
 
 function FeatureCard({ icon: Icon, title, desc, color, gradient }) {
@@ -55,6 +55,7 @@ export default function LandingPage() {
     { icon: Zap, title: t('landing.upgrades') || 'Easy Plan Upgrades', desc: t('landing.upgradesDesc') || 'Start free, upgrade when you grow. Flexible plans with instant activation and no downtime.', color: 'bg-teal-600', gradient: 'bg-gradient-to-br from-teal-50 to-white dark:from-teal-900/10 dark:to-transparent' },
     { icon: Database, title: t('landing.backup') || 'Automatic Backups', desc: t('landing.backupDesc') || 'Your data is safely backed up automatically. Restore anytime with one click.', color: 'bg-indigo-600', gradient: 'bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/10 dark:to-transparent' },
     { icon: MessageCircle, title: t('landing.chat') || 'Live Chat Support', desc: t('landing.chatDesc') || 'Get instant answers through built-in live chat. Talk to your team directly from the app.', color: 'bg-pink-600', gradient: 'bg-gradient-to-br from-pink-50 to-white dark:from-pink-900/10 dark:to-transparent' },
+    { icon: Timer, title: t('landing.eta') || 'ETA Integration', desc: t('landing.etaDesc') || 'Track delivery and service times with real-time ETA updates. Keep customers informed and improve satisfaction.', color: 'bg-orange-600', gradient: 'bg-gradient-to-br from-orange-50 to-white dark:from-orange-900/10 dark:to-transparent' },
   ]
 
   const steps = [
