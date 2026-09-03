@@ -929,6 +929,12 @@ export const translations = {
     'customers.points': 'points',
     'customers.totalLabel': 'Total:',
     'customers.country': 'Country',
+    'customers.totalOrders': 'Total Orders',
+    'customers.avgOrder': 'Avg Order',
+    'customers.purchaseHistory': 'Purchase History',
+    'customers.noOrders': 'No orders yet',
+    'customers.items': 'items',
+    'customers.payment': 'Payment',
 
     // Employees extras
     'employees.hired': 'Hired:',
@@ -2912,6 +2918,12 @@ export const translations = {
     'customers.points': 'نقاط',
     'customers.totalLabel': 'الإجمالي:',
     'customers.country': 'الدولة',
+    'customers.totalOrders': 'إجمالي الطلبات',
+    'customers.avgOrder': 'متوسط الطلب',
+    'customers.purchaseHistory': 'سجل المشتريات',
+    'customers.noOrders': 'لا توجد طلبات بعد',
+    'customers.items': 'عناصر',
+    'customers.payment': 'الدفع',
 
     // Employees extras
     'employees.hired': 'تاريخ التعيين:',

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
-import { customersApi } from '../lib/api'
-import { X, Plus, Edit2, Trash2, User, Phone, Mail, MapPin, Star } from 'lucide-react'
+import { customersApi, ordersApi } from '../lib/api'
+import { X, Plus, Edit2, Trash2, User, Phone, Mail, MapPin, Star, ChevronDown, ChevronRight, ShoppingCart, Receipt, Calendar, CreditCard, Package } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
 
 export default function CustomersPage() {
@@ -17,6 +17,7 @@ export default function CustomersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
 
   useEffect(() => {
     fetchCustomers()
@@ -140,7 +141,8 @@ export default function CustomersPage() {
           {customers.map((customer) => (
             <div
               key={customer.id}
-              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
+              onClick={() => setSelectedCustomer(customer)}
+              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 cursor-pointer hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-md transition-all duration-200"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -152,7 +154,7 @@ export default function CustomersPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">{t('customers.since')} {new Date(customer.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                   {canEdit && (
                     <button
                       onClick={() => handleEdit(customer)}
@@ -199,7 +201,7 @@ export default function CustomersPage() {
                   <span>{customer.loyalty_points || 0} {t('customers.points')}</span>
                 </div>
                 <div className="text-gray-500 dark:text-gray-400">
-                  {t('customers.totalLabel')} ${customer.total_spent?.toFixed(2) || '0.00'}
+                  {t('customers.totalLabel')} ج.م {customer.total_spent?.toFixed(2) || '0.00'}
                 </div>
               </div>
             </div>
@@ -229,6 +231,212 @@ export default function CustomersPage() {
         cancelText={t('common.cancel') || 'Cancel'}
         loading={deleting}
       />
+
+      {/* Customer Detail Drawer */}
+      {selectedCustomer && (
+        <CustomerDetailDrawer
+          customer={selectedCustomer}
+          onClose={() => setSelectedCustomer(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+function CustomerDetailDrawer({ customer, onClose }) {
+  const { t } = useAppStore()
+  const [orders, setOrders] = useState([])
+  const [loadingOrders, setLoadingOrders] = useState(true)
+  const [expandedOrder, setExpandedOrder] = useState(null)
+
+  useEffect(() => {
+    fetchCustomerOrders()
+  }, [customer.id])
+
+  const fetchCustomerOrders = async () => {
+    setLoadingOrders(true)
+    try {
+      const response = await ordersApi.getByCustomer(customer.id)
+      setOrders(response.data || [])
+    } catch (err) {
+      console.error('Failed to fetch customer orders:', err)
+    } finally {
+      setLoadingOrders(false)
+    }
+  }
+
+  const totalOrders = orders.length
+  const totalSpent = orders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
+  const avgOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0
+  const loyaltyPoints = customer.loyalty_points || 0
+
+  const stats = [
+    { label: t('customers.totalOrders') || 'Total Orders', value: totalOrders, icon: ShoppingCart, color: 'text-primary-600 bg-primary-100 dark:bg-primary-900/30' },
+    { label: t('customers.totalSpent') || 'Total Spent', value: `ج.م ${totalSpent.toFixed(2)}`, icon: Receipt, color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' },
+    { label: t('customers.avgOrder') || 'Avg Order', value: `ج.م ${avgOrderValue.toFixed(2)}`, icon: CreditCard, color: 'text-amber-600 bg-amber-100 dark:bg-amber-900/30' },
+    { label: t('customers.loyaltyPoints') || 'Loyalty Points', value: loyaltyPoints, icon: Star, color: 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30' },
+  ]
+
+  const paymentMethodLabels = {
+    cash: t('pos.cash') || 'Cash',
+    card: t('pos.card') || 'Card',
+    transfer: t('pos.transfer') || 'Transfer',
+    mobile: t('pos.mobile') || 'Mobile',
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative w-full max-w-2xl bg-white dark:bg-gray-800 shadow-2xl overflow-y-auto">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+                <User className="w-5 h-5 text-primary-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{customer.name}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('customers.since')} {new Date(customer.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="px-6 py-4 space-y-6">
+          {/* Contact Info */}
+          <div className="space-y-2 text-sm">
+            {customer.phone && (
+              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                <Phone className="w-4 h-4 text-gray-400" />
+                <span>{customer.phone}</span>
+              </div>
+            )}
+            {customer.email && (
+              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                <Mail className="w-4 h-4 text-gray-400" />
+                <span>{customer.email}</span>
+              </div>
+            )}
+            {customer.address && (
+              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                <MapPin className="w-4 h-4 text-gray-400" />
+                <span>{customer.address}</span>
+              </div>
+            )}
+            {customer.notes && (
+              <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-gray-600 dark:text-gray-300">
+                {customer.notes}
+              </div>
+            )}
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {stats.map((stat) => (
+              <div key={stat.label} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className={`p-1.5 rounded-lg ${stat.color}`}>
+                    <stat.icon className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</span>
+                </div>
+                <div className="text-lg font-bold text-gray-900 dark:text-white">{stat.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Purchase History */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <Receipt className="w-5 h-5" />
+              {t('customers.purchaseHistory') || 'Purchase History'}
+            </h3>
+
+            {loadingOrders ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <ShoppingCart className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>{t('customers.noOrders') || 'No orders yet'}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {orders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="bg-gray-50 dark:bg-gray-700/50 rounded-xl overflow-hidden"
+                  >
+                    <button
+                      onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="text-left">
+                          <div className="font-medium text-gray-900 dark:text-white text-sm">{order.order_number}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="font-bold text-gray-900 dark:text-white text-sm">ج.م {parseFloat(order.total).toFixed(2)}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {order.order_items?.length || 0} {t('customers.items') || 'items'}
+                          </div>
+                        </div>
+                        {expandedOrder === order.id ? (
+                          <ChevronDown className="w-4 h-4 text-gray-400" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-gray-400" />
+                        )}
+                      </div>
+                    </button>
+
+                    {/* Expanded Order Items */}
+                    {expandedOrder === order.id && (
+                      <div className="px-4 pb-3 border-t border-gray-200 dark:border-gray-600">
+                        <div className="pt-3 space-y-2">
+                          {order.order_items?.map((item) => (
+                            <div key={item.id} className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2">
+                                <Package className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-700 dark:text-gray-300">{item.product_name}</span>
+                                <span className="text-gray-400 dark:text-gray-500">x{item.quantity}</span>
+                              </div>
+                              <span className="font-medium text-gray-900 dark:text-white">ج.م {parseFloat(item.total).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                          <span>{t('customers.payment') || 'Payment'}: {paymentMethodLabels[order.payment_method] || order.payment_method}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            order.payment_status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                            order.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                            'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                          }`}>
+                            {order.payment_status}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

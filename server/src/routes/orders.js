@@ -7,7 +7,7 @@ const router = Router()
 // Get all orders
 router.get('/', async (req, res, next) => {
   try {
-    const { start_date, end_date, limit = 100 } = req.query
+    const { start_date, end_date, customer_id, limit = 100 } = req.query
 
     let query = supabase
       .from('orders')
@@ -26,6 +26,9 @@ router.get('/', async (req, res, next) => {
     }
     if (end_date) {
       query = query.lte('created_at', end_date)
+    }
+    if (customer_id) {
+      query = query.eq('customer_id', customer_id)
     }
 
     const { data, error } = await query
