@@ -114,6 +114,7 @@ router.post('/', [
       .from('purchase_order_items')
       .select('*')
       .eq('purchase_order_id', po.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     res.status(201).json({ ...po, items: itemsData || [] })
   } catch (err) {
@@ -139,6 +140,7 @@ router.get('/:id', async (req, res, next) => {
       .from('purchase_order_items')
       .select('*')
       .eq('purchase_order_id', po.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     res.json({ ...po, items: items || [] })
   } catch (err) {
@@ -167,6 +169,7 @@ router.put('/:id', async (req, res, next) => {
         .from('purchase_order_items')
         .delete()
         .eq('purchase_order_id', req.params.id)
+        .eq('tenant_id', req.user?.tenantId)
 
       const itemsToInsert = items.map(item => ({
         purchase_order_id: req.params.id,
@@ -201,6 +204,7 @@ router.put('/:id', async (req, res, next) => {
       .from('purchase_order_items')
       .select('*')
       .eq('purchase_order_id', data.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     res.json({ ...data, items: updatedItems || [] })
   } catch (err) {
@@ -230,6 +234,7 @@ router.patch('/:id/receive', async (req, res, next) => {
       .from('purchase_order_items')
       .select('*')
       .eq('purchase_order_id', po.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     if (items) {
       for (const item of items) {
@@ -239,11 +244,13 @@ router.patch('/:id/receive', async (req, res, next) => {
             .from('purchase_order_items')
             .update({ received_quantity: item.quantity })
             .eq('id', item.id)
+            .eq('tenant_id', req.user?.tenantId)
 
           const { data: product } = await supabase
             .from('products')
             .select('stock_quantity')
             .eq('id', item.product_id)
+            .eq('tenant_id', req.user?.tenantId)
             .single()
 
           if (product) {
@@ -251,6 +258,7 @@ router.patch('/:id/receive', async (req, res, next) => {
               .from('products')
               .update({ stock_quantity: (product.stock_quantity || 0) + received_qty })
               .eq('id', item.product_id)
+              .eq('tenant_id', req.user?.tenantId)
           }
 
           await supabase
@@ -285,6 +293,7 @@ router.patch('/:id/receive', async (req, res, next) => {
       .from('purchase_order_items')
       .select('*')
       .eq('purchase_order_id', data.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     res.json({ ...data, items: updatedItems || [] })
   } catch (err) {
@@ -314,6 +323,7 @@ router.delete('/:id', async (req, res, next) => {
       .from('purchase_order_items')
       .delete()
       .eq('purchase_order_id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     const { error } = await supabase
       .from('purchase_orders')

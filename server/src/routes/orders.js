@@ -18,6 +18,7 @@ router.get('/', async (req, res, next) => {
         refunds(id, amount, is_partial),
         order_items(id, product_id, product_name, quantity, unit_price, discount, total, type)
       `)
+      .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
       .limit(parseInt(limit))
 
@@ -70,6 +71,7 @@ router.get('/:id', async (req, res, next) => {
       .from('orders')
       .select('*')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (orderError || !order) {
@@ -79,14 +81,14 @@ router.get('/:id', async (req, res, next) => {
     // Get user name
     let user_name = null
     if (order.user_id) {
-      const { data: u } = await supabase.from('users').select('full_name').eq('id', order.user_id).single()
+      const { data: u } = await supabase.from('users').select('full_name').eq('id', order.user_id).eq('tenant_id', req.user?.tenantId).single()
       user_name = u?.full_name || null
     }
 
     // Get customer name
     let customer_name = null
     if (order.customer_id) {
-      const { data: c } = await supabase.from('customers').select('name').eq('id', order.customer_id).single()
+      const { data: c } = await supabase.from('customers').select('name').eq('id', order.customer_id).eq('tenant_id', req.user?.tenantId).single()
       customer_name = c?.name || null
     }
 
@@ -95,18 +97,21 @@ router.get('/:id', async (req, res, next) => {
       .from('order_items')
       .select('*, products(name, is_refundable, unit_of_measure), product_name')
       .eq('order_id', order.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     // Get payments
     const { data: payments } = await supabase
       .from('payment_splits')
       .select('*')
       .eq('order_id', order.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     // Get refunds with items
     const { data: refunds } = await supabase
       .from('refunds')
       .select('*')
       .eq('order_id', order.id)
+      .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
 
     // Get refund items for all refunds on this order
@@ -117,6 +122,7 @@ router.get('/:id', async (req, res, next) => {
         .from('refund_items')
         .select('*')
         .in('refund_id', refundIds)
+        .eq('tenant_id', req.user?.tenantId)
       refundItems = ri || []
     }
 
@@ -160,6 +166,7 @@ router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
         .from('orders')
         .select('id')
         .eq('client_order_id', client_order_id)
+        .eq('tenant_id', req.user?.tenantId)
         .single()
       if (existing) {
         return res.status(200).json({ ...existing, duplicate: true })
@@ -172,6 +179,7 @@ router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
+        tenant_id: req.user?.tenantId,
         order_number,
         subtotal: subtotal || 0,
         discount_amount: discount_amount || 0,
@@ -207,23 +215,24 @@ router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
 // Background processing for order (stock, payments, accounting) — OPTIMIZED
 async function processOrderBackground(order, items, payments, customer_id, userId, order_number, total, promotion_id) {
   console.log(`[ORDER BG] Processing order ${order_number}`)
+  const tid = order.tenant_id
 
   // Determine tenant tier for lite mode (skip accounting for free)
   let isFreeTier = false
   try {
-    const { data: tenant } = await supabase.from('tenants').select('subscription_tier').eq('id', order.tenant_id).single()
+    const { data: tenant } = await supabase.from('tenants').select('subscription_tier').eq('id', tid).single()
     isFreeTier = !tenant || (tenant.subscription_tier || 'free') === 'free'
   } catch (e) {}
 
   // 1. Promotion (1 query)
   if (promotion_id) {
     try {
-      const { data: promo } = await supabase.from('promotions').select('used_count, max_uses').eq('id', promotion_id).single()
+      const { data: promo } = await supabase.from('promotions').select('used_count, max_uses').eq('id', promotion_id).eq('tenant_id', tid).single()
       if (promo) {
         const newCount = (promo.used_count || 0) + 1
         const updateData = { used_count: newCount }
         if (promo.max_uses && newCount >= promo.max_uses) updateData.is_active = false
-        await supabase.from('promotions').update(updateData).eq('id', promotion_id)
+        await supabase.from('promotions').update(updateData).eq('id', promotion_id).eq('tenant_id', tid)
       }
     } catch (e) { console.error('[ORDER BG] Promotion update failed:', e.message) }
   }
@@ -237,6 +246,7 @@ async function processOrderBackground(order, items, payments, customer_id, userI
       if (item.product_id) productItems.push({ id: item.product_id, qty })
       return {
         order_id: order.id,
+        tenant_id: tid,
         product_id: item.product_id || null,
         product_name: item.product_name || null,
         quantity: qty,
@@ -253,16 +263,16 @@ async function processOrderBackground(order, items, payments, customer_id, userI
   if (productItems.length > 0) {
     try {
       const productIds = productItems.map(i => i.id)
-      const { data: products } = await supabase.from('products').select('id, stock_quantity').in('id', productIds)
+      const { data: products } = await supabase.from('products').select('id, stock_quantity').in('id', productIds).eq('tenant_id', tid)
       const stockMap = {}
       if (products) products.forEach(p => { stockMap[p.id] = p.stock_quantity || 0 })
 
       await Promise.all(productItems.map(item =>
-        supabase.from('products').update({ stock_quantity: Math.max(0, (stockMap[item.id] || 0) - item.qty), updated_at: new Date().toISOString() }).eq('id', item.id)
+        supabase.from('products').update({ stock_quantity: Math.max(0, (stockMap[item.id] || 0) - item.qty), updated_at: new Date().toISOString() }).eq('id', item.id).eq('tenant_id', tid)
       ))
 
       await supabase.from('stock_movements').insert(productItems.map(item => ({
-        product_id: item.id, type: 'sale', quantity: -item.qty, reference_id: order.id, notes: `Order ${order_number}`
+        tenant_id: tid, product_id: item.id, type: 'sale', quantity: -item.qty, reference_id: order.id, notes: `Order ${order_number}`
       })))
     } catch (e) { console.error('[ORDER BG] Stock update failed:', e.message) }
   }
@@ -270,15 +280,15 @@ async function processOrderBackground(order, items, payments, customer_id, userI
   // 4. Customer loyalty (2 queries)
   if (customer_id) {
     try {
-      const { data: setting } = await supabase.from('store_settings').select('value').eq('key', 'loyaltyPointsPerCurrency').single()
+      const { data: setting } = await supabase.from('store_settings').select('value').eq('key', 'loyaltyPointsPerCurrency').eq('tenant_id', tid).single()
       const pointsPerCurrency = parseFloat(setting?.value) || 0
-      const { data: customer } = await supabase.from('customers').select('loyalty_points, total_spent').eq('id', customer_id).single()
+      const { data: customer } = await supabase.from('customers').select('loyalty_points, total_spent').eq('id', customer_id).eq('tenant_id', tid).single()
       if (customer) {
         await supabase.from('customers').update({
           loyalty_points: (customer.loyalty_points || 0) + Math.floor(total * pointsPerCurrency),
           total_spent: (customer.total_spent || 0) + total,
           updated_at: new Date().toISOString()
-        }).eq('id', customer_id)
+        }).eq('id', customer_id).eq('tenant_id', tid)
       }
     } catch (e) { console.error('[ORDER BG] Loyalty update failed:', e.message) }
   }
@@ -287,7 +297,7 @@ async function processOrderBackground(order, items, payments, customer_id, userI
   if (payments && payments.length > 0) {
     try {
       await supabase.from('payment_splits').insert(payments.map(p => ({
-        order_id: order.id, method: p.method, amount: p.amount, reference: p.reference || null
+        tenant_id: tid, order_id: order.id, method: p.method, amount: p.amount, reference: p.reference || null
       })))
     } catch (e) { console.error('[ORDER BG] Payment splits failed:', e.message) }
   }
@@ -298,15 +308,15 @@ async function processOrderBackground(order, items, payments, customer_id, userI
       const { createJournalEntry } = await import('../services/accountingEngine.js')
 
       // Batch fetch accounts (1 query instead of 3-5)
-      const { data: accounts } = await supabase.from('accounts').select('id, code').in('code', ['1010', '1020', '1030'])
+      const { data: accounts } = await supabase.from('accounts').select('id, code').in('code', ['1010', '1020', '1030']).eq('tenant_id', tid)
       const accountMap = {}
       if (accounts) accounts.forEach(a => { accountMap[a.code] = a })
 
       let arAccount = accountMap['1030']
       if (customer_id) {
-        const { data: cust } = await supabase.from('customers').select('account_code').eq('id', customer_id).single()
+        const { data: cust } = await supabase.from('customers').select('account_code').eq('id', customer_id).eq('tenant_id', tid).single()
         if (cust?.account_code && cust.account_code !== '1030') {
-          const { data } = await supabase.from('accounts').select('id, code').eq('code', cust.account_code).single()
+          const { data } = await supabase.from('accounts').select('id, code').eq('code', cust.account_code).eq('tenant_id', tid).single()
           if (data) arAccount = data
         }
       }
@@ -323,7 +333,7 @@ async function processOrderBackground(order, items, payments, customer_id, userI
           if (lines.length > 0) {
             const entry = await createJournalEntry({ date, description: `Payment: ${paymentNumber}`, reference: paymentNumber, sourceType: 'payment', sourceId: null, lines, createdBy: userId })
             await supabase.from('payments').insert({
-              payment_number: paymentNumber, payment_type: 'inbound', method: p.method,
+              tenant_id: tid, payment_number: paymentNumber, payment_type: 'inbound', method: p.method,
               amount: parseFloat(p.amount), reference: p.reference || null,
               payment_date: date, recorded_by: userId, journal_entry_id: entry.id,
             })
@@ -341,19 +351,19 @@ async function processOrderBackground(order, items, payments, customer_id, userI
       const prodIds = items.filter(i => i.product_id).map(i => i.product_id)
       let costMap = {}
       if (prodIds.length > 0) {
-        const { data: prods } = await supabase.from('products').select('id, cost_price').in('id', prodIds)
+        const { data: prods } = await supabase.from('products').select('id, cost_price').in('id', prodIds).eq('tenant_id', tid)
         if (prods) prods.forEach(p => { costMap[p.id] = p.cost_price || 0 })
       }
       const itemsWithCost = items.map(item => ({ ...item, cost_price: costMap[item.product_id] || 0 }))
 
       let customerInfo = null
       if (customer_id) {
-        const { data: cust } = await supabase.from('customers').select('id, name, account_code').eq('id', customer_id).single()
+        const { data: cust } = await supabase.from('customers').select('id, name, account_code').eq('id', customer_id).eq('tenant_id', tid).single()
         customerInfo = cust
       }
       const journalEntry = await postOrderJournal(order, itemsWithCost, customerInfo)
       if (journalEntry) {
-        await supabase.from('orders').update({ journal_entry_id: journalEntry.id }).eq('id', order.id)
+        await supabase.from('orders').update({ journal_entry_id: journalEntry.id }).eq('id', order.id).eq('tenant_id', tid)
       }
     } catch (e) { console.error('[ORDER BG] Order journal failed:', e.message) }
   }
@@ -361,7 +371,7 @@ async function processOrderBackground(order, items, payments, customer_id, userI
   // 8. Log activity (1 query)
   try {
     await supabase.from('activity_log').insert({
-      tenant_id: order.tenant_id || null, user_id: userId, action: 'created',
+      tenant_id: tid, user_id: userId, action: 'created',
       entity_type: 'order', entity_id: order.id, entity_name: order_number,
       details: { total, items_count: items.length }
     })
@@ -379,6 +389,7 @@ router.patch('/:id/status', async (req, res, next) => {
       .from('orders')
       .select('id')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (!existing) {
@@ -389,6 +400,7 @@ router.patch('/:id/status', async (req, res, next) => {
       .from('orders')
       .update({ payment_status: status })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
 

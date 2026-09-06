@@ -22,6 +22,7 @@ router.get('/', async (req, res, next) => {
     const offset = (page - 1) * limit
 
     let query = supabase.from('products').select('*, suppliers(name)', { count: 'exact' })
+      .eq('tenant_id', req.user?.tenantId)
 
     if (category_id) {
       query = query.eq('category_id', category_id)
@@ -54,6 +55,7 @@ router.get('/:id', [
       .from('products')
       .select('*')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (error || !data) {
@@ -75,6 +77,7 @@ router.get('/barcode/:barcode', [
       .from('products')
       .select('*')
       .eq('barcode', req.params.barcode)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (error || !data) {
@@ -108,6 +111,7 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
         .from('products')
         .select('id')
         .eq('sku', sku)
+        .eq('tenant_id', req.user?.tenantId)
         .single()
       if (existing) {
         return res.status(409).json({ error: 'SKU already exists' })
@@ -120,6 +124,7 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
         .from('products')
         .select('id')
         .eq('barcode', barcode)
+        .eq('tenant_id', req.user?.tenantId)
         .single()
       if (existing) {
         return res.status(409).json({ error: 'Barcode already exists' })
@@ -134,6 +139,7 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
     const { data, error } = await supabase
       .from('products')
       .insert({
+        tenant_id: req.user?.tenantId,
         name,
         sku: sku || null,
         barcode: barcode || null,
@@ -189,6 +195,7 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
       .from('products')
       .select('*')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (!existing) {
@@ -204,6 +211,7 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
         .from('products')
         .select('id')
         .eq('sku', sku)
+        .eq('tenant_id', req.user?.tenantId)
         .neq('id', req.params.id)
         .single()
       if (dupSku) {
@@ -217,6 +225,7 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
         .from('products')
         .select('id')
         .eq('barcode', barcode)
+        .eq('tenant_id', req.user?.tenantId)
         .neq('id', req.params.id)
         .single()
       if (dupBarcode) {
@@ -251,6 +260,7 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
         updated_at: new Date().toISOString()
       })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
 
@@ -265,7 +275,7 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
         const movement = { id: data.id, quantity: Math.abs(stockDiff) }
         let supplierInfo = null
         if (data.supplier_id) {
-          const { data: supp } = await supabase.from('suppliers').select('id, name, account_code').eq('id', data.supplier_id).single()
+          const { data: supp } = await supabase.from('suppliers').select('id, name, account_code').eq('id', data.supplier_id).eq('tenant_id', req.user?.tenantId).single()
           supplierInfo = supp
         }
         if (stockDiff > 0) {
@@ -293,6 +303,7 @@ router.delete('/:id', authenticateToken, requirePermission('inventory_edit'), [
       .from('products')
       .select('*')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (!existing) {
@@ -303,6 +314,7 @@ router.delete('/:id', authenticateToken, requirePermission('inventory_edit'), [
       .from('products')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     if (error) throw error
     req.logActivity({ action: 'deleted', entity_type: 'product', entity_id: req.params.id })

@@ -141,6 +141,7 @@ router.post('/calculate', async (req, res, next) => {
         .from('products')
         .select('id, commission_rate')
         .in('id', productIds)
+        .eq('tenant_id', req.user?.tenantId)
       if (products) products.forEach(p => { productMap[p.id] = p.commission_rate || 0 })
     }
 
@@ -293,6 +294,7 @@ router.post('/bulk-calculate', async (req, res, next) => {
         .from('products')
         .select('id, commission_rate')
         .in('id', [...allProductIds])
+        .eq('tenant_id', req.user?.tenantId)
       if (products) products.forEach(p => { productMap[p.id] = p.commission_rate || 0 })
     }
 

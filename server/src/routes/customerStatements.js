@@ -42,6 +42,7 @@ router.get('/customer/:customerId', async (req, res, next) => {
         .from('payment_splits')
         .select('*')
         .in('order_id', orderIds)
+        .eq('tenant_id', req.user?.tenantId)
         .order('created_at', { ascending: false })
 
       payments = (splits || []).map(p => ({

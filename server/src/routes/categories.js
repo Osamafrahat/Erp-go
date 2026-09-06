@@ -19,6 +19,7 @@ router.get('/', async (req, res, next) => {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .order('name')
 
     if (error) throw error
@@ -37,7 +38,7 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), [
 
     const { data, error } = await supabase
       .from('categories')
-      .insert({ name, description: description || null })
+      .insert({ tenant_id: req.user?.tenantId, name, description: description || null })
       .select()
       .single()
 
@@ -61,6 +62,7 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
       .from('categories')
       .update({ name, description: description || null })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
 
@@ -81,6 +83,7 @@ router.delete('/:id', authenticateToken, requirePermission('inventory_edit'), [
       .from('categories')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     if (error) throw error
     req.logActivity({ action: 'deleted', entity_type: 'category', entity_id: req.params.id })

@@ -20,6 +20,7 @@ router.get('/movements', async (req, res, next) => {
     let query = supabase
       .from('stock_movements')
       .select('*, products(name)')
+      .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
       .limit(parseInt(limit))
 
@@ -47,12 +48,14 @@ router.post('/receive', [
     const qty = parseFloat(quantity)
     const newSupplierId = supplier_id ? parseInt(supplier_id) : null
     const newCostPrice = cost_price !== undefined ? parseFloat(cost_price) : null
+    const tid = req.user?.tenantId
 
     // Get current product
     const { data: product } = await supabase
       .from('products')
       .select('stock_quantity, cost_price, name, sku, barcode, supplier_id, category_id, price, low_stock_threshold, image_url, description')
       .eq('id', pid)
+      .eq('tenant_id', tid)
       .single()
 
     if (!product) {
@@ -72,6 +75,7 @@ router.post('/receive', [
         .select('id, stock_quantity, cost_price')
         .eq('name', product.name)
         .eq('supplier_id', newSupplierId)
+        .eq('tenant_id', tid)
         .maybeSingle()
 
       if (existingDup) {
@@ -84,6 +88,7 @@ router.post('/receive', [
         const { data: newProduct, error: dupError } = await supabase
           .from('products')
           .insert({
+            tenant_id: tid,
             name: product.name,
             sku: product.sku ? `${product.sku}-S${newSupplierId}` : null,
             barcode: newBarcode,
@@ -118,6 +123,7 @@ router.post('/receive', [
         updated_at: new Date().toISOString()
       })
       .eq('id', targetProductId)
+      .eq('tenant_id', tid)
 
     if (updateError) throw updateError
 
@@ -125,6 +131,7 @@ router.post('/receive', [
     const { data, error } = await supabase
       .from('stock_movements')
       .insert({
+        tenant_id: tid,
         product_id: targetProductId,
         type: 'receive',
         quantity: qty,
@@ -147,6 +154,7 @@ router.post('/receive', [
             .from('suppliers')
             .select('id, name, account_code')
             .eq('id', effectiveSupplierId)
+            .eq('tenant_id', tid)
             .single()
           supplierInfo = supp
         }
@@ -178,12 +186,14 @@ router.post('/adjust', [
   try {
     const { product_id, quantity, notes } = req.body
     const pid = parseInt(product_id)
+    const tid = req.user?.tenantId
 
     // Get current stock
     const { data: product } = await supabase
       .from('products')
       .select('stock_quantity')
       .eq('id', pid)
+      .eq('tenant_id', tid)
       .single()
 
     if (!product) {
@@ -200,6 +210,7 @@ router.post('/adjust', [
         updated_at: new Date().toISOString()
       })
       .eq('id', pid)
+      .eq('tenant_id', tid)
 
     if (updateError) throw updateError
 
@@ -207,6 +218,7 @@ router.post('/adjust', [
     const { data, error } = await supabase
       .from('stock_movements')
       .insert({
+        tenant_id: tid,
         product_id: pid,
         type: 'adjust',
         quantity,
@@ -220,7 +232,7 @@ router.post('/adjust', [
     // Auto-post to accounting journal
     try {
       const { postStockAdjustJournal } = await import('../services/accountingEngine.js')
-      const { data: productFull } = await supabase.from('products').select('name, cost_price').eq('id', product_id).single()
+      const { data: productFull } = await supabase.from('products').select('name, cost_price').eq('id', product_id).eq('tenant_id', tid).single()
       if (productFull) await postStockAdjustJournal(data, productFull)
     } catch (accErr) {
       console.error('Accounting auto-post failed:', accErr.message)
