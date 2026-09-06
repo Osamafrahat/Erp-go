@@ -50,6 +50,7 @@ export async function checkExpiredSubscriptions() {
   try {
     const now = new Date().toISOString()
 
+    // 1. Check expired paid subscriptions
     const { data: expiredTenants, error } = await supabase
       .from('tenants')
       .select('id, name, subscription_tier')
@@ -60,42 +61,87 @@ export async function checkExpiredSubscriptions() {
 
     if (error) throw error
 
-    if (!expiredTenants || expiredTenants.length === 0) {
-      console.log('[SubscriptionExpiry] No expired subscriptions found.')
-      return
+    if (expiredTenants && expiredTenants.length > 0) {
+      console.log(`[SubscriptionExpiry] Found ${expiredTenants.length} expired paid subscription(s)`)
+
+      for (const tenant of expiredTenants) {
+        const { error: updateErr } = await supabase
+          .from('tenants')
+          .update({
+            subscription_tier: 'free',
+            subscription_status: 'active',
+            subscription_expires_at: null,
+            max_products: FREE_TIER_LIMITS.max_products,
+            max_users: FREE_TIER_LIMITS.max_users,
+            max_orders_monthly: FREE_TIER_LIMITS.max_orders_monthly,
+            renewal_note: `Your ${tenant.subscription_tier} plan has expired. Please renew to restore your limits.`,
+            updated_at: now,
+          })
+          .eq('id', tenant.id)
+
+        if (updateErr) {
+          console.error(`[SubscriptionExpiry] Failed to downgrade tenant ${tenant.id}:`, updateErr.message)
+        } else {
+          console.log(`[SubscriptionExpiry] Tenant ${tenant.id} (${tenant.name}) downgraded to free (was ${tenant.subscription_tier})`)
+          await logActivity({
+            user_name: 'System',
+            action: 'expired',
+            entity_type: 'subscription',
+            entity_id: tenant.id,
+            entity_name: tenant.name,
+            details: { from_tier: tenant.subscription_tier, to_tier: 'free', reason: 'subscription_expired' },
+            tenant_id: tenant.id,
+          })
+        }
+      }
     }
 
-    console.log(`[SubscriptionExpiry] Found ${expiredTenants.length} expired subscription(s)`)
+    // 2. Check expired trials (trial_ends_at has passed, still in trialing status)
+    const { data: expiredTrials, error: trialError } = await supabase
+      .from('tenants')
+      .select('id, name, subscription_tier')
+      .eq('subscription_status', 'trialing')
+      .not('trial_ends_at', 'is', null)
+      .lte('trial_ends_at', now)
 
-    for (const tenant of expiredTenants) {
-      const { error: updateErr } = await supabase
-        .from('tenants')
-        .update({
-          subscription_tier: 'free',
-          subscription_status: 'active',
-          subscription_expires_at: null,
-          max_products: FREE_TIER_LIMITS.max_products,
-          max_users: FREE_TIER_LIMITS.max_users,
-          max_orders_monthly: FREE_TIER_LIMITS.max_orders_monthly,
-          renewal_note: `Your ${tenant.subscription_tier} plan has expired. Please renew to restore your limits.`,
-          updated_at: now,
-        })
-        .eq('id', tenant.id)
+    if (trialError) throw trialError
 
-      if (updateErr) {
-        console.error(`[SubscriptionExpiry] Failed to downgrade tenant ${tenant.id}:`, updateErr.message)
-      } else {
-        console.log(`[SubscriptionExpiry] Tenant ${tenant.id} (${tenant.name}) downgraded to free (was ${tenant.subscription_tier})`)
-        await logActivity({
-          user_name: 'System',
-          action: 'expired',
-          entity_type: 'subscription',
-          entity_id: tenant.id,
-          entity_name: tenant.name,
-          details: { from_tier: tenant.subscription_tier, to_tier: 'free', reason: 'subscription_expired' },
-          tenant_id: tenant.id,
-        })
+    if (expiredTrials && expiredTrials.length > 0) {
+      console.log(`[SubscriptionExpiry] Found ${expiredTrials.length} expired trial(s)`)
+
+      for (const tenant of expiredTrials) {
+        const { error: updateErr } = await supabase
+          .from('tenants')
+          .update({
+            subscription_status: 'active',
+            subscription_tier: 'free',
+            max_products: FREE_TIER_LIMITS.max_products,
+            max_users: FREE_TIER_LIMITS.max_users,
+            max_orders_monthly: FREE_TIER_LIMITS.max_orders_monthly,
+            renewal_note: 'Your 14-day trial has ended. Upgrade to Pro or Enterprise to continue.',
+            updated_at: now,
+          })
+          .eq('id', tenant.id)
+
+        if (updateErr) {
+          console.error(`[SubscriptionExpiry] Failed to expire trial for tenant ${tenant.id}:`, updateErr.message)
+        } else {
+          console.log(`[SubscriptionExpiry] Tenant ${tenant.id} (${tenant.name}) trial expired, moved to free`)
+          await logActivity({
+            user_name: 'System',
+            action: 'expired',
+            entity_type: 'subscription',
+            entity_id: tenant.id,
+            entity_name: tenant.name,
+            details: { from_tier: 'trial', to_tier: 'free', reason: 'trial_expired' },
+            tenant_id: tenant.id,
+          })
+        }
       }
+    }
+
+    if ((!expiredTenants || expiredTenants.length === 0) && (!expiredTrials || expiredTrials.length === 0)) {
+      console.log('[SubscriptionExpiry] No expired subscriptions or trials found.')
     }
   } catch (err) {
     console.error('[SubscriptionExpiry] Error:', err.message)
