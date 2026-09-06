@@ -366,11 +366,17 @@ async function processOrderBackground(order, items, payments, customer_id, userI
     }
   } catch (e) { console.error('[ORDER BG] Order journal failed:', e.message) }
 
-  // Log activity (skip if no request context)
+  // Log activity (background, no request context available)
   try {
-    if (typeof req.logActivity === 'function') {
-      req.logActivity({ action: 'created', entity_type: 'order', entity_id: order.id, entity_name: order_number, details: { total, items_count: items.length } })
-    }
+    await supabase.from('activity_log').insert({
+      tenant_id: order.tenant_id || null,
+      user_id: userId,
+      action: 'created',
+      entity_type: 'order',
+      entity_id: order.id,
+      entity_name: order_number,
+      details: { total, items_count: items.length }
+    })
   } catch (e) {}
 
   console.log(`[ORDER BG] Order ${order_number} processing complete`)

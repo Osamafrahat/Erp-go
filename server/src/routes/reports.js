@@ -33,18 +33,21 @@ router.get('/sales', async (req, res, next) => {
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: false })
 
     if (ordersError) throw ordersError
 
+    const safeOrders = orders || []
+
     // Calculate stats
-    const totalSales = orders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0)
-    const totalOrders = orders.length
+    const totalSales = safeOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0)
+    const totalOrders = safeOrders.length
     const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0
 
     // Get order items for top products
-    const orderIds = orders.map(o => o.id)
+    const orderIds = safeOrders.map(o => o.id)
     let itemsSold = 0
     let topProducts = []
 
@@ -111,20 +114,23 @@ router.get('/stock', async (req, res, next) => {
     const { data: products, error: productsError } = await supabase
       .from('products')
       .select('*, categories(name)')
+      .eq('tenant_id', req.user.tenantId)
       .order('name')
 
     if (productsError) throw productsError
 
-    const totalProducts = products.length
-    const lowStockProducts = products.filter(p => p.stock_quantity <= (p.low_stock_threshold || 10))
+    const safeProducts = products || []
+
+    const totalProducts = safeProducts.length
+    const lowStockProducts = safeProducts.filter(p => p.stock_quantity <= (p.low_stock_threshold || 10))
     const lowStockCount = lowStockProducts.length
-    const totalValue = products.reduce((sum, p) => sum + ((p.stock_quantity || 0) * (p.price || 0)), 0)
-    const totalCost = products.reduce((sum, p) => sum + ((p.stock_quantity || 0) * (p.cost_price || 0)), 0)
+    const totalValue = safeProducts.reduce((sum, p) => sum + ((p.stock_quantity || 0) * (p.price || 0)), 0)
+    const totalCost = safeProducts.reduce((sum, p) => sum + ((p.stock_quantity || 0) * (p.cost_price || 0)), 0)
     const potentialProfit = totalValue - totalCost
 
     // Category breakdown with cost
     const categoryMap = {}
-    products.forEach(p => {
+    safeProducts.forEach(p => {
       const catName = p.categories?.name || 'Uncategorized'
       if (!categoryMap[catName]) {
         categoryMap[catName] = { name: catName, value: 0, cost: 0 }
@@ -189,14 +195,17 @@ router.get('/expenses', async (req, res, next) => {
     const { data: expenses, error } = await supabase
       .from('expenses')
       .select('*')
+      .eq('tenant_id', req.user.tenantId)
       .gte('created_at', startDate.toISOString())
 
     if (error) throw error
 
-    const totalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0)
+    const safeExpenses = expenses || []
+
+    const totalExpenses = safeExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0)
 
     const categoryMap = {}
-    expenses.forEach(e => {
+    safeExpenses.forEach(e => {
       const cat = e.category || 'Other'
       if (!categoryMap[cat]) categoryMap[cat] = { name: cat, total: 0 }
       categoryMap[cat].total += parseFloat(e.amount) || 0
@@ -208,7 +217,7 @@ router.get('/expenses', async (req, res, next) => {
       const date = new Date()
       date.setDate(date.getDate() - i)
       const dateStr = date.toISOString().split('T')[0]
-      const dayTotal = expenses
+      const dayTotal = safeExpenses
         .filter(e => e.created_at?.startsWith(dateStr))
         .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0)
       dailyExpenses.unshift({ date: dateStr, expenses: dayTotal })
@@ -216,7 +225,7 @@ router.get('/expenses', async (req, res, next) => {
 
     res.json({
       totalExpenses,
-      expenseCount: expenses.length,
+      expenseCount: safeExpenses.length,
       categoryBreakdown: Object.values(categoryMap).sort((a, b) => b.total - a.total),
       dailyExpenses
     })
@@ -250,9 +259,9 @@ router.get('/profit-loss', async (req, res, next) => {
     }
 
     const [ordersRes, expensesRes, refundsRes] = await Promise.all([
-      supabase.from('orders').select('total, created_at').gte('created_at', startDate.toISOString()),
-      supabase.from('expenses').select('amount, created_at').gte('created_at', startDate.toISOString()),
-      supabase.from('refunds').select('amount, created_at').gte('created_at', startDate.toISOString()),
+      supabase.from('orders').select('total, created_at').eq('tenant_id', req.user.tenantId).gte('created_at', startDate.toISOString()),
+      supabase.from('expenses').select('amount, created_at').eq('tenant_id', req.user.tenantId).gte('created_at', startDate.toISOString()),
+      supabase.from('refunds').select('amount, created_at').eq('tenant_id', req.user.tenantId).gte('created_at', startDate.toISOString()),
     ])
 
     const orders = ordersRes.data || []

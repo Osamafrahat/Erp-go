@@ -63,16 +63,18 @@ router.get('/summary', async (req, res, next) => {
     const { data, error } = await query
     if (error) throw error
 
+    const safeData = data || []
+
     // Group by category
     const summary = {}
-    data.forEach(expense => {
+    safeData.forEach(expense => {
       if (!summary[expense.category]) {
         summary[expense.category] = 0
       }
       summary[expense.category] += expense.amount
     })
 
-    const total = data.reduce((sum, e) => sum + e.amount, 0)
+    const total = safeData.reduce((sum, e) => sum + e.amount, 0)
 
     res.json({ summary, total })
   } catch (err) {

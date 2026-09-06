@@ -16,6 +16,7 @@ const router = Router()
 router.post('/test', async (req, res, next) => {
   try {
     const { data: settings } = await supabase.from('store_settings').select('*').eq('tenant_id', req.user?.tenantId).limit(1).single()
+    if (!settings) return res.status(400).json({ error: 'Store settings not found. Please configure ETA settings first.' })
     const config = getEtaConfig(settings)
 
     if (!config.clientId || !config.clientSecret) {
@@ -36,6 +37,7 @@ router.post('/submit', async (req, res, next) => {
     if (!order_id) return res.status(400).json({ error: 'order_id is required' })
 
     const { data: settings } = await supabase.from('store_settings').select('*').eq('tenant_id', req.user?.tenantId).limit(1).single()
+    if (!settings) return res.status(400).json({ error: 'Store settings not found. Please configure ETA settings first.' })
     const config = getEtaConfig(settings)
 
     if (!config.clientId || !config.clientSecret) {
@@ -106,6 +108,7 @@ router.get('/status/:etaUUID', async (req, res, next) => {
   try {
     const { etaUUID } = req.params
     const { data: settings } = await supabase.from('store_settings').select('*').eq('tenant_id', req.user?.tenantId).limit(1).single()
+    if (!settings) return res.status(400).json({ error: 'Store settings not found' })
     const config = getEtaConfig(settings)
 
     const status = await getDocumentStatus(etaUUID, config)
@@ -120,6 +123,7 @@ router.post('/qr', async (req, res, next) => {
   try {
     const { order_id } = req.body
     const { data: settings } = await supabase.from('store_settings').select('*').eq('tenant_id', req.user?.tenantId).limit(1).single()
+    if (!settings) return res.status(400).json({ error: 'Store settings not found' })
     const config = getEtaConfig(settings)
 
     const { data: order } = await supabase

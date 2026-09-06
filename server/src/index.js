@@ -86,21 +86,21 @@ app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), stri
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean)
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (server-to-server, curl, Postman)
+    // Allow requests with no origin (server-to-server, curl, Postman, mobile apps)
     if (!origin) return callback(null, true)
-    
+
     if (allowedOrigins.length === 0) {
-      // No origins configured — allow all in dev, reject in production
+      // No origins configured — allow all in dev, block in production without crash
       if (process.env.NODE_ENV !== 'production') {
         return callback(null, true)
       }
-      return callback(new Error('CORS not configured'))
+      return callback(null, false)
     }
-    
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true)
     } else {
-      callback(new Error('Not allowed by CORS'))
+      callback(null, false)
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -207,6 +207,14 @@ async function initAccounting() {
     console.error('Accounting init failed (non-fatal):', err.message)
   }
 }
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+})
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err)
+})
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`)

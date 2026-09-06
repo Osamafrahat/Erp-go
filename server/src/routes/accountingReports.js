@@ -18,32 +18,34 @@ router.get('/trial-balance', async (req, res) => {
     const { data: accounts, error } = await query
     if (error) throw error
 
+    const safeAccounts = accounts || []
+
     // Group by type
     const grouped = {
-      asset: accounts.filter(a => a.account_type === 'asset'),
-      liability: accounts.filter(a => a.account_type === 'liability'),
-      equity: accounts.filter(a => a.account_type === 'equity'),
-      revenue: accounts.filter(a => a.account_type === 'revenue'),
-      expense: accounts.filter(a => a.account_type === 'expense'),
+      asset: safeAccounts.filter(a => a.account_type === 'asset'),
+      liability: safeAccounts.filter(a => a.account_type === 'liability'),
+      equity: safeAccounts.filter(a => a.account_type === 'equity'),
+      revenue: safeAccounts.filter(a => a.account_type === 'revenue'),
+      expense: safeAccounts.filter(a => a.account_type === 'expense'),
     }
 
-    const totalDebit = accounts
+    const totalDebit = safeAccounts
       .filter(a => ['asset', 'expense'].includes(a.account_type) && a.balance > 0)
       .reduce((sum, a) => sum + a.balance, 0)
 
-    const totalCredit = accounts
+    const totalCredit = safeAccounts
       .filter(a => ['liability', 'equity', 'revenue'].includes(a.account_type) && a.balance > 0)
       .reduce((sum, a) => sum + a.balance, 0)
 
     // Also include negative balances on the opposite side
-    const totalDebitAll = accounts
+    const totalDebitAll = safeAccounts
       .filter(a => a.balance > 0)
       .reduce((sum, a) => {
         if (['asset', 'expense'].includes(a.account_type)) return sum + a.balance
         return sum
       }, 0)
 
-    const totalCreditAll = accounts
+    const totalCreditAll = safeAccounts
       .filter(a => a.balance > 0)
       .reduce((sum, a) => {
         if (['liability', 'equity', 'revenue'].includes(a.account_type)) return sum + a.balance
@@ -75,9 +77,11 @@ router.get('/balance-sheet', async (req, res) => {
 
     if (error) throw error
 
-    const assets = accounts.filter(a => a.account_type === 'asset')
-    const liabilities = accounts.filter(a => a.account_type === 'liability')
-    const equity = accounts.filter(a => a.account_type === 'equity')
+    const safeAccounts = accounts || []
+
+    const assets = safeAccounts.filter(a => a.account_type === 'asset')
+    const liabilities = safeAccounts.filter(a => a.account_type === 'liability')
+    const equity = safeAccounts.filter(a => a.account_type === 'equity')
 
     const totalAssets = assets.reduce((sum, a) => sum + a.balance, 0)
     const totalLiabilities = liabilities.reduce((sum, a) => sum + a.balance, 0)
@@ -112,11 +116,13 @@ router.get('/profit-loss', async (req, res) => {
     const { data: lines, error } = await entryQuery
     if (error) throw error
 
+    const safeLines = lines || []
+
     // Group by revenue and expense accounts
     const revenueMap = {}
     const expenseMap = {}
 
-    for (const line of lines) {
+    for (const line of safeLines) {
       const account = line.accounts
       if (!account) continue
 

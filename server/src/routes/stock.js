@@ -100,6 +100,7 @@ router.post('/receive', [
           .single()
 
         if (dupError) throw dupError
+        if (!newProduct) throw new Error('Failed to create product variant')
         targetProductId = newProduct.id
         targetProduct = { ...product, stock_quantity: 0, cost_price: newCostPrice || product.cost_price }
       }
