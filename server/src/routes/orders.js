@@ -204,27 +204,70 @@ router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
   }
 })
 
-// Background processing for order (stock, payments, accounting)
+// Background processing for order (stock, payments, accounting) — OPTIMIZED
 async function processOrderBackground(order, items, payments, customer_id, userId, order_number, total, promotion_id) {
   console.log(`[ORDER BG] Processing order ${order_number}`)
 
-  // Increment promotion used_count
+  // Determine tenant tier for lite mode (skip accounting for free)
+  let isFreeTier = false
+  try {
+    const { data: tenant } = await supabase.from('tenants').select('subscription_tier').eq('id', order.tenant_id).single()
+    isFreeTier = !tenant || (tenant.subscription_tier || 'free') === 'free'
+  } catch (e) {}
+
+  // 1. Promotion (1 query)
   if (promotion_id) {
     try {
       const { data: promo } = await supabase.from('promotions').select('used_count, max_uses').eq('id', promotion_id).single()
       if (promo) {
         const newCount = (promo.used_count || 0) + 1
         const updateData = { used_count: newCount }
-        if (promo.max_uses && newCount >= promo.max_uses) {
-          updateData.is_active = false
-        }
+        if (promo.max_uses && newCount >= promo.max_uses) updateData.is_active = false
         await supabase.from('promotions').update(updateData).eq('id', promotion_id)
-        console.log(`[ORDER BG] Promotion ${promotion_id} used_count incremented to ${newCount}`)
       }
     } catch (e) { console.error('[ORDER BG] Promotion update failed:', e.message) }
   }
 
-  // Update customer loyalty points
+  // 2. Batch insert order items (1 query instead of N)
+  const productItems = []
+  if (items && items.length > 0) {
+    const insertRows = items.map(item => {
+      const qty = parseFloat(item.quantity)
+      const itemTotal = qty * item.unit_price - (item.discount || 0)
+      if (item.product_id) productItems.push({ id: item.product_id, qty })
+      return {
+        order_id: order.id,
+        product_id: item.product_id || null,
+        product_name: item.product_name || null,
+        quantity: qty,
+        unit_price: item.unit_price,
+        discount: item.discount || 0,
+        total: itemTotal,
+        type: item._type || 'product'
+      }
+    })
+    try { await supabase.from('order_items').insert(insertRows) } catch (e) { console.error('[ORDER BG] order_items insert failed:', e.message) }
+  }
+
+  // 3. Batch stock update (3 queries instead of 4N)
+  if (productItems.length > 0) {
+    try {
+      const productIds = productItems.map(i => i.id)
+      const { data: products } = await supabase.from('products').select('id, stock_quantity').in('id', productIds)
+      const stockMap = {}
+      if (products) products.forEach(p => { stockMap[p.id] = p.stock_quantity || 0 })
+
+      await Promise.all(productItems.map(item =>
+        supabase.from('products').update({ stock_quantity: Math.max(0, (stockMap[item.id] || 0) - item.qty), updated_at: new Date().toISOString() }).eq('id', item.id)
+      ))
+
+      await supabase.from('stock_movements').insert(productItems.map(item => ({
+        product_id: item.id, type: 'sale', quantity: -item.qty, reference_id: order.id, notes: `Order ${order_number}`
+      })))
+    } catch (e) { console.error('[ORDER BG] Stock update failed:', e.message) }
+  }
+
+  // 4. Customer loyalty (2 queries)
   if (customer_id) {
     try {
       const { data: setting } = await supabase.from('store_settings').select('value').eq('key', 'loyaltyPointsPerCurrency').single()
@@ -240,94 +283,43 @@ async function processOrderBackground(order, items, payments, customer_id, userI
     } catch (e) { console.error('[ORDER BG] Loyalty update failed:', e.message) }
   }
 
-  // Create order items and update stock
-  for (const item of items) {
-    try {
-      const qty = parseFloat(item.quantity)
-      const itemTotal = qty * item.unit_price - (item.discount || 0)
-
-      await supabase.from('order_items').insert({
-        order_id: order.id,
-        product_id: item.product_id || null,
-        product_name: item.product_name || null,
-        quantity: qty,
-        unit_price: item.unit_price,
-        discount: item.discount || 0,
-        total: itemTotal,
-        type: item._type || 'product'
-      })
-
-      // Update stock directly (skip RPC) - only for product items
-      if (item.product_id) {
-        const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', item.product_id).single()
-        if (product) {
-          await supabase.from('products').update({
-            stock_quantity: Math.max(0, product.stock_quantity - qty),
-            updated_at: new Date().toISOString()
-          }).eq('id', item.product_id)
-        }
-
-        // Record stock movement
-        await supabase.from('stock_movements').insert({
-          product_id: item.product_id,
-          type: 'sale',
-          quantity: -qty,
-          reference_id: order.id,
-          notes: `Order ${order_number}`
-        })
-      }
-    } catch (e) { console.error(`[ORDER BG] Stock update failed for item ${item.product_id}:`, e.message) }
-  }
-
-  // Create payment splits and journal entries
+  // 5. Payment splits (1 query)
   if (payments && payments.length > 0) {
     try {
-      const paymentInserts = payments.map(p => ({
-        order_id: order.id,
-        method: p.method,
-        amount: p.amount,
-        reference: p.reference || null
-      }))
-      await supabase.from('payment_splits').insert(paymentInserts)
+      await supabase.from('payment_splits').insert(payments.map(p => ({
+        order_id: order.id, method: p.method, amount: p.amount, reference: p.reference || null
+      })))
+    } catch (e) { console.error('[ORDER BG] Payment splits failed:', e.message) }
+  }
 
+  // 6. Accounting — SKIP for free tier (lite mode)
+  if (!isFreeTier && payments && payments.length > 0) {
+    try {
       const { createJournalEntry } = await import('../services/accountingEngine.js')
 
-      async function findAcc(code) {
-        const { data } = await supabase.from('accounts').select('id, code').eq('code', code).single()
-        return data
-      }
+      // Batch fetch accounts (1 query instead of 3-5)
+      const { data: accounts } = await supabase.from('accounts').select('id, code').in('code', ['1010', '1020', '1030'])
+      const accountMap = {}
+      if (accounts) accounts.forEach(a => { accountMap[a.code] = a })
 
-      const cashAccount = await findAcc('1010')
-      const bankAccount = await findAcc('1020')
-
-      // Use customer-specific AR if available
-      let arAccount = null
+      let arAccount = accountMap['1030']
       if (customer_id) {
-        const { data: cust } = await supabase
-          .from('customers')
-          .select('account_code')
-          .eq('id', customer_id)
-          .single()
-        if (cust?.account_code) {
+        const { data: cust } = await supabase.from('customers').select('account_code').eq('id', customer_id).single()
+        if (cust?.account_code && cust.account_code !== '1030') {
           const { data } = await supabase.from('accounts').select('id, code').eq('code', cust.account_code).single()
-          arAccount = data
+          if (data) arAccount = data
         }
-      }
-      if (!arAccount) {
-        arAccount = await findAcc('1030')
       }
 
       for (const p of payments) {
         try {
-          const sourceAccount = p.method === 'cash' ? cashAccount : bankAccount
+          const sourceAccount = p.method === 'cash' ? accountMap['1010'] : accountMap['1020']
           const date = new Date().toISOString().split('T')[0]
           const rand = Math.floor(Math.random() * 9999).toString().padStart(4, '0')
           const paymentNumber = `PAY-${date.replace(/-/g, '')}-${rand}`
-
           const lines = []
           if (sourceAccount) lines.push({ accountId: sourceAccount.id, debit: parseFloat(p.amount), credit: 0, description: `Payment - ${paymentNumber}` })
           if (arAccount) lines.push({ accountId: arAccount.id, debit: 0, credit: parseFloat(p.amount), description: `AR - ${paymentNumber}` })
-
           if (lines.length > 0) {
             const entry = await createJournalEntry({ date, description: `Payment: ${paymentNumber}`, reference: paymentNumber, sourceType: 'payment', sourceId: null, lines, createdBy: userId })
             await supabase.from('payments').insert({
@@ -341,40 +333,36 @@ async function processOrderBackground(order, items, payments, customer_id, userI
     } catch (e) { console.error('[ORDER BG] Payment processing failed:', e.message) }
   }
 
-  // Post order journal
-  try {
-    const { postOrderJournal } = await import('../services/accountingEngine.js')
-    const itemsWithCost = await Promise.all(items.map(async (item) => {
-      const { data: product } = await supabase.from('products').select('cost_price').eq('id', item.product_id).single()
-      return { ...item, cost_price: product?.cost_price || 0 }
-    }))
+  // 7. Post order journal — SKIP for free tier
+  if (!isFreeTier) {
+    try {
+      const { postOrderJournal } = await import('../services/accountingEngine.js')
+      // Batch fetch cost prices (1 query instead of N)
+      const prodIds = items.filter(i => i.product_id).map(i => i.product_id)
+      let costMap = {}
+      if (prodIds.length > 0) {
+        const { data: prods } = await supabase.from('products').select('id, cost_price').in('id', prodIds)
+        if (prods) prods.forEach(p => { costMap[p.id] = p.cost_price || 0 })
+      }
+      const itemsWithCost = items.map(item => ({ ...item, cost_price: costMap[item.product_id] || 0 }))
 
-    // Fetch customer info for per-customer AR
-    let customerInfo = null
-    if (customer_id) {
-      const { data: cust } = await supabase
-        .from('customers')
-        .select('id, name, account_code')
-        .eq('id', customer_id)
-        .single()
-      customerInfo = cust
-    }
+      let customerInfo = null
+      if (customer_id) {
+        const { data: cust } = await supabase.from('customers').select('id, name, account_code').eq('id', customer_id).single()
+        customerInfo = cust
+      }
+      const journalEntry = await postOrderJournal(order, itemsWithCost, customerInfo)
+      if (journalEntry) {
+        await supabase.from('orders').update({ journal_entry_id: journalEntry.id }).eq('id', order.id)
+      }
+    } catch (e) { console.error('[ORDER BG] Order journal failed:', e.message) }
+  }
 
-    const journalEntry = await postOrderJournal(order, itemsWithCost, customerInfo)
-    if (journalEntry) {
-      await supabase.from('orders').update({ journal_entry_id: journalEntry.id }).eq('id', order.id)
-    }
-  } catch (e) { console.error('[ORDER BG] Order journal failed:', e.message) }
-
-  // Log activity (background, no request context available)
+  // 8. Log activity (1 query)
   try {
     await supabase.from('activity_log').insert({
-      tenant_id: order.tenant_id || null,
-      user_id: userId,
-      action: 'created',
-      entity_type: 'order',
-      entity_id: order.id,
-      entity_name: order_number,
+      tenant_id: order.tenant_id || null, user_id: userId, action: 'created',
+      entity_type: 'order', entity_id: order.id, entity_name: order_number,
       details: { total, items_count: items.length }
     })
   } catch (e) {}
