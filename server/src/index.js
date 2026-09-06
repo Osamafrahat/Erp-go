@@ -5,6 +5,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
 import { errorHandler } from './middleware/errorHandler.js'
 import { activityLogger } from './middleware/activityLogger.js'
@@ -75,7 +76,9 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }))
 
-app.use(express.static(clientDist))
+if (clientDistExists) {
+  app.use(express.static(clientDist))
+}
 
 app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), stripeWebhookHandler)
 
@@ -184,9 +187,11 @@ app.use('/api', (req, res) => {
   res.status(404).json({ error: 'Endpoint not found' })
 })
 
-app.get('/{*splat}', (req, res) => {
-  res.sendFile(path.join(clientDist, 'index.html'))
-})
+if (clientDistExists) {
+  app.get('/{*splat}', (req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'))
+  })
+}
 
 app.use(errorHandler)
 
