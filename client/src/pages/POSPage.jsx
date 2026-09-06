@@ -11,7 +11,7 @@ import Cart from '../components/pos/Cart'
 import PaymentModal from '../components/pos/PaymentModal'
 import BarcodeScanner from '../components/pos/BarcodeScanner'
 import ReceiptModal from '../components/pos/ReceiptModal'
-import { Search, Zap, User, Wrench, CreditCard, WifiOff } from 'lucide-react'
+import { Search, Zap, User, Wrench, CreditCard, WifiOff, Pause, Play } from 'lucide-react'
 
 export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -27,6 +27,8 @@ export default function POSPage() {
   const [services, setServices] = useState([])
   const [plans, setPlans] = useState([])
   const [activeTab, setActiveTab] = useState('products')
+  const [heldTransactions, setHeldTransactions] = useState([])
+  const [showHeld, setShowHeld] = useState(false)
   const searchInputRef = useRef(null)
   const barcodeInputRef = useRef(null)
   const barcodeTimeoutRef = useRef(null)
@@ -158,6 +160,29 @@ export default function POSPage() {
     return null
   }
 
+  const handleHold = () => {
+    if (items.length === 0) return
+    const held = {
+      id: Date.now(),
+      items: [...items],
+      total: items.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
+      customer: selectedCustomer,
+      timestamp: new Date().toISOString(),
+    }
+    setHeldTransactions(prev => [...prev, held])
+    useCartStore.getState().clearCart()
+    setSelectedCustomer(null)
+    toastSuccess(t('pos.transactionHeld') || 'Transaction held')
+  }
+
+  const handleRecall = (held) => {
+    useCartStore.getState().clearCart()
+    held.items.forEach(item => addItem(item.product, item.quantity))
+    setSelectedCustomer(held.customer || null)
+    setHeldTransactions(prev => prev.filter(h => h.id !== held.id))
+    setShowHeld(false)
+  }
+
   const handleQuickSale = async (product, quantity = 1) => {
     const added = addItem(product, quantity)
     if (!added) {
@@ -245,6 +270,47 @@ export default function POSPage() {
             <Zap className="w-5 h-5" />
             <span className="hidden sm:inline">{t('pos.scan')}</span>
           </button>
+          {items.length > 0 && (
+            <button
+              onClick={handleHold}
+              className="px-4 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 flex items-center gap-2 shrink-0"
+            >
+              <Pause className="w-5 h-5" />
+              <span className="hidden sm:inline">{t('pos.hold') || 'Hold'}</span>
+            </button>
+          )}
+          {heldTransactions.length > 0 && (
+            <div className="relative shrink-0">
+              <button
+                onClick={() => setShowHeld(!showHeld)}
+                className="px-4 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 flex items-center gap-2"
+              >
+                <Play className="w-5 h-5" />
+                <span className="hidden sm:inline">{t('pos.recall') || 'Recall'}</span>
+                <span className="ml-1 bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{heldTransactions.length}</span>
+              </button>
+              {showHeld && (
+                <div className="absolute z-20 top-full right-0 mt-1 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-64 overflow-auto">
+                  <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('pos.heldTransactions') || 'Held Transactions'}</p>
+                  </div>
+                  {heldTransactions.map(held => (
+                    <button
+                      key={held.id}
+                      onClick={() => handleRecall(held)}
+                      className="w-full px-3 py-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{held.items.length} {t('pos.items') || 'items'}</p>
+                        <p className="text-xs text-gray-500">{formatCurrency(held.total)}</p>
+                      </div>
+                      <Play className="w-4 h-4 text-emerald-500" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Products / Services / Subscriptions Tabs */}

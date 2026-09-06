@@ -387,4 +387,76 @@ export const paymobApi = {
   verify: (intentionId) => api.get(`/billing/paymob/verify?intention_id=${intentionId}`),
 }
 
+// Cash Shifts API
+export const cashShiftsApi = {
+  getAll: (params) => api.get('/cash-shifts', { params }),
+  getActive: () => api.get('/cash-shifts/active'),
+  open: (data) => api.post('/cash-shifts', data),
+  close: (id, data) => api.patch(`/cash-shifts/${id}/close`, data),
+  getById: (id) => api.get(`/cash-shifts/${id}`),
+  getOrders: (id) => api.get(`/cash-shifts/${id}/orders`),
+  getSummary: () => api.get('/cash-shifts/summary'),
+}
+
+// Product Variants API
+export const productVariantsApi = {
+  getByProduct: (productId) => api.get(`/product-variants/product/${productId}`),
+  create: (data) => api.post('/product-variants', data),
+  update: (id, data) => api.put(`/product-variants/${id}`, data),
+  delete: (id) => api.delete(`/product-variants/${id}`),
+  adjustStock: (id, data) => api.patch(`/product-variants/${id}/stock`, data),
+}
+
+// Credit Sales API
+export const creditSalesApi = {
+  getAll: (params) => api.get('/credit-sales', { params }),
+  create: (data) => api.post('/credit-sales', data),
+  pay: (id, data) => api.post(`/credit-sales/${id}/pay`, data),
+  getByCustomer: (customerId) => api.get(`/credit-sales/customer/${customerId}`),
+  getStats: () => api.get('/credit-sales/stats'),
+  update: (id, data) => api.patch(`/credit-sales/${id}`, data),
+}
+
+// Product Batches API (Expiry Tracking)
+export const productBatchesApi = {
+  getAll: (params) => api.get('/product-batches', { params }),
+  create: (data) => api.post('/product-batches', data),
+  update: (id, data) => api.put(`/product-batches/${id}`, data),
+  delete: (id) => api.delete(`/product-batches/${id}`),
+  getExpiring: () => api.get('/product-batches/expiring'),
+  getExpired: () => api.get('/product-batches/expired'),
+}
+
+// Purchase Orders API
+export const purchaseOrdersApi = {
+  getAll: (params) => api.get('/purchase-orders', { params }),
+  create: (data) => api.post('/purchase-orders', data),
+  getById: (id) => api.get(`/purchase-orders/${id}`),
+  update: (id, data) => api.put(`/purchase-orders/${id}`, data),
+  receive: (id) => api.patch(`/purchase-orders/${id}/receive`),
+  delete: (id) => api.delete(`/purchase-orders/${id}`),
+  getStats: () => api.get('/purchase-orders/stats'),
+}
+
+// Commissions API
+export const commissionsApi = {
+  getAll: (params) => api.get('/commissions', { params }),
+  getStats: () => api.get('/commissions/stats'),
+  getByEmployee: (employeeId) => api.get(`/commissions/employee/${employeeId}`),
+  calculate: (data) => api.post('/commissions/calculate', data),
+  approve: (id) => api.patch(`/commissions/${id}/approve`),
+  pay: (id) => api.patch(`/commissions/${id}/pay`),
+  bulkCalculate: (data) => api.post('/commissions/bulk-calculate', data),
+}
+
+// Customer Statements API
+export const customerStatementsApi = {
+  getStatement: (customerId, params) => api.get(`/customer-statements/customer/${customerId}`, { params }),
+}
+
+// Dead Stock API (extends reportsApi)
+export const deadStockApi = {
+  get: (params) => api.get('/reports/dead-stock', { params }),
+}
+
 export default api

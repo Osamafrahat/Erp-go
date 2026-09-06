@@ -51,6 +51,13 @@ import billingRouter, { stripeWebhookHandler } from './routes/billing.js'
 import paymobRouter from './routes/paymob.js'
 import tenantRouter from './routes/tenant.js'
 import superAdminRouter from './routes/superAdmin.js'
+import commissionsRouter from './routes/commissions.js'
+import customerStatementsRouter from './routes/customerStatements.js'
+import cashShiftsRouter from './routes/cashShifts.js'
+import productVariantsRouter from './routes/productVariants.js'
+import creditSalesRouter from './routes/creditSales.js'
+import productBatchesRouter from './routes/productBatches.js'
+import purchaseOrdersRouter from './routes/purchaseOrders.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -173,6 +180,13 @@ app.use('/api/billing', billingRouter)
 app.use('/api/billing/paymob', paymobRouter)
 app.use('/api/tenant', authenticateToken, setTenantContext, tenantRouter)
 app.use('/api/super-admin', authenticateToken, superAdminRouter)
+app.use('/api/commissions', authenticateToken, setTenantContext, activityLogger, commissionsRouter)
+app.use('/api/customer-statements', authenticateToken, setTenantContext, activityLogger, customerStatementsRouter)
+app.use('/api/cash-shifts', authenticateToken, setTenantContext, activityLogger, cashShiftsRouter)
+app.use('/api/product-variants', authenticateToken, setTenantContext, activityLogger, productVariantsRouter)
+app.use('/api/credit-sales', authenticateToken, setTenantContext, activityLogger, creditSalesRouter)
+app.use('/api/product-batches', authenticateToken, setTenantContext, activityLogger, productBatchesRouter)
+app.use('/api/purchase-orders', authenticateToken, setTenantContext, activityLogger, purchaseOrdersRouter)
 
 app.get('/api/health', (req, res) => {
   const emailConfigured = !!(process.env.RESEND_API_KEY)

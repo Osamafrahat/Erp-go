@@ -290,4 +290,75 @@ router.get('/profit-loss', async (req, res, next) => {
   }
 })
 
+// Dead Stock Report - products not sold in X days
+router.get('/dead-stock', async (req, res, next) => {
+  try {
+    const { days = 90, category_id } = req.query
+    const cutoffDate = new Date()
+    cutoffDate.setDate(cutoffDate.getDate() - parseInt(days))
+    const cutoffStr = cutoffDate.toISOString()
+
+    // Get all products
+    let productQuery = supabase
+      .from('products')
+      .select('id, name, sku, stock_quantity, cost_price, price, category_id, categories(name)')
+      .eq('tenant_id', req.user.tenantId)
+      .gt('stock_quantity', 0)
+
+    if (category_id) {
+      productQuery = productQuery.eq('category_id', category_id)
+    }
+
+    const { data: products, error: prodErr } = await productQuery
+    if (prodErr) throw prodErr
+
+    // Get last sale date for each product via order_items + orders
+    const { data: lastSales, error: salesErr } = await supabase
+      .from('order_items')
+      .select('product_id, orders!inner(created_at, tenant_id)')
+      .eq('tenant_id', req.user.tenantId)
+      .lte('orders.created_at', cutoffStr)
+      .order('created_at', { ascending: false })
+
+    if (salesErr) throw salesErr
+
+    // Build map of last sale per product
+    const lastSaleMap = {}
+    ;(lastSales || []).forEach(item => {
+      if (!lastSaleMap[item.product_id]) {
+        lastSaleMap[item.product_id] = item.orders.created_at
+      }
+    })
+
+    // Also check recent sales (after cutoff) to exclude recently sold
+    const { data: recentSales } = await supabase
+      .from('order_items')
+      .select('product_id')
+      .eq('tenant_id', req.user.tenantId)
+      .gt('orders.created_at', cutoffStr)
+
+    const recentlySoldIds = new Set((recentSales || []).map(s => s.product_id))
+
+    // Dead stock = products with stock > 0 but NOT sold recently
+    const deadStock = (products || [])
+      .filter(p => !recentlySoldIds.has(p.id))
+      .map(p => ({
+        ...p,
+        last_sold: lastSaleMap[p.id] || null,
+        days_since_sale: lastSaleMap[p.id]
+          ? Math.floor((Date.now() - new Date(lastSaleMap[p.id]).getTime()) / (1000 * 60 * 60 * 24))
+          : null,
+        stock_value: (p.stock_quantity || 0) * (p.cost_price || 0),
+        category_name: p.categories?.name || null,
+      }))
+      .sort((a, b) => (b.days_since_sale || 999) - (a.days_since_sale || 999))
+
+    const totalValue = deadStock.reduce((sum, p) => sum + p.stock_value, 0)
+
+    res.json({ items: deadStock, total_items: deadStock.length, total_value: totalValue })
+  } catch (err) {
+    next(err)
+  }
+})
+
 export default router

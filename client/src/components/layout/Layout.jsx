@@ -42,6 +42,11 @@ import {
   Crown,
   Sparkles,
   Shield,
+  Banknote,
+  GitBranch,
+  ShoppingCart,
+  ClipboardList,
+  AlertTriangle,
 } from 'lucide-react'
 import ChatWidget from '../ChatWidget'
 
@@ -112,6 +117,9 @@ export default function Layout({ children }) {
   if (canAccess('/refunds')) {
     salesItems.push({ name: t('nav.refunds') || 'Refunds', href: '/refunds', icon: RotateCcw })
   }
+  if (canAccess('/credit-sales')) {
+    salesItems.push({ name: t('nav.creditSales') || 'Credit Sales', href: '/credit-sales', icon: Banknote })
+  }
   if (currentUser?.role !== 'SUPER_ADMIN') {
     salesItems.push({ name: t('nav.invoices') || 'Invoices', href: '/invoices', icon: FileText })
   }
@@ -135,8 +143,14 @@ export default function Layout({ children }) {
   if (canAccess('/inventory')) {
     inventoryItems.push({ name: t('nav.inventory'), href: '/inventory', icon: Package })
   }
+  if (canAccess('/product-variants')) {
+    inventoryItems.push({ name: t('nav.productVariants') || 'Variants', href: '/product-variants', icon: GitBranch })
+  }
   if (canAccess('/suppliers')) {
     inventoryItems.push({ name: t('nav.suppliers'), href: '/suppliers', icon: Truck })
+  }
+  if (canAccess('/purchase-orders')) {
+    inventoryItems.push({ name: t('nav.purchaseOrders') || 'Purchase Orders', href: '/purchase-orders', icon: ClipboardList })
   }
   if (inventoryItems.length > 0) {
     groups.push({ key: 'inventory', label: t('nav.groupInventory') || 'Inventory', items: inventoryItems })
@@ -171,6 +185,9 @@ export default function Layout({ children }) {
       hrItems.push({ name: t('nav.shifts') || 'Shifts', href: '/hr/shifts', icon: Briefcase })
     }
     hrItems.push({ name: t('nav.performance') || 'Performance', href: '/hr/performance', icon: Award })
+    if (canAccess('/commissions')) {
+      hrItems.push({ name: t('nav.commissions') || 'Commissions', href: '/commissions', icon: DollarSign })
+    }
   } else if (canAccess('/hr/shifts/view') || canAccess('/hr/leave/request')) {
     // Non-managers with basic HR access: shifts view (read-only) + leave request
     if (currentUser?.role !== 'SUPER_ADMIN') {
@@ -184,12 +201,19 @@ export default function Layout({ children }) {
 
   // -- Reporting --
   if (canAccess('/reports')) {
+    const reportingItems = [
+      { name: t('nav.reports'), href: '/reports', icon: BarChart3 },
+    ]
+    if (canAccess('/cash-shifts')) {
+      reportingItems.push({ name: t('nav.cashShifts') || 'Cash Shifts', href: '/cash-shifts', icon: Banknote })
+    }
+    if (canAccess('/dead-stock')) {
+      reportingItems.push({ name: t('nav.deadStock') || 'Dead Stock', href: '/dead-stock', icon: AlertTriangle })
+    }
     groups.push({
       key: 'reporting',
       label: t('nav.groupReporting') || 'Reporting',
-      items: [
-        { name: t('nav.reports'), href: '/reports', icon: BarChart3 },
-      ]
+      items: reportingItems,
     })
   }
 
