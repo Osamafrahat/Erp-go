@@ -117,7 +117,6 @@ export default function ProductList({ products, canEdit, onEdit, onDelete, onPri
     if (unit === 'liter') return 'L'
     if (unit === 'meter') return 'm'
     if (unit === 'box') return 'box'
-    if (unit === 'tape') return 'tape'
     return 'pcs'
   }
 

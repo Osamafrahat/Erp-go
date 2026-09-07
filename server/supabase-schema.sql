@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS products (
   max_stock INTEGER DEFAULT 0,
   is_refundable BOOLEAN DEFAULT true,
   unit_of_measure TEXT DEFAULT 'quantity',
+  pieces_per_box INTEGER DEFAULT NULL,
   image_url TEXT,
   specifications JSONB DEFAULT '[]',
   is_active BOOLEAN DEFAULT true,
@@ -318,7 +319,8 @@ CREATE TABLE IF NOT EXISTS order_items (
   unit_price NUMERIC NOT NULL DEFAULT 0,
   discount NUMERIC DEFAULT 0,
   total NUMERIC NOT NULL DEFAULT 0,
-  type TEXT DEFAULT 'product'
+  type TEXT DEFAULT 'product',
+  sell_mode TEXT DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS payment_splits (

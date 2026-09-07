@@ -18,6 +18,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
     low_stock_threshold: '10',
     is_refundable: true,
     unit_of_measure: 'quantity',
+    pieces_per_box: '',
     image_url: '',
     specifications: [],
     is_active: true,
@@ -37,6 +38,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
         low_stock_threshold: product.low_stock_threshold?.toString() || '10',
         is_refundable: product.is_refundable ?? true,
         unit_of_measure: product.unit_of_measure || 'quantity',
+        pieces_per_box: product.pieces_per_box?.toString() || '',
         image_url: product.image_url || '',
         specifications: Array.isArray(product.specifications) ? product.specifications : [],
         is_active: product.is_active ?? true,
@@ -96,6 +98,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
         low_stock_threshold: parseInt(formData.low_stock_threshold),
         category_id: formData.category_id ? parseInt(formData.category_id) : null,
         supplier_id: formData.supplier_id ? parseInt(formData.supplier_id) : null,
+        pieces_per_box: formData.unit_of_measure === 'box' && formData.pieces_per_box ? parseInt(formData.pieces_per_box) : null,
         specifications: formData.specifications.filter(s => s.name.trim() && s.value.trim()),
       })
     } finally {
@@ -349,9 +352,28 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
               <option value="liter">{t('inventory.unitLiter')}</option>
               <option value="meter">{t('inventory.unitMeter')}</option>
               <option value="box">{t('inventory.unitBox')}</option>
-              <option value="tape">{t('inventory.unitTape')}</option>
             </select>
           </div>
+
+          {/* Pieces per Box (only when unit = box) */}
+          {formData.unit_of_measure === 'box' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.piecesPerBox') || 'Pieces per Box'}
+              </label>
+              <input
+                type="number"
+                name="pieces_per_box"
+                min="1"
+                step="1"
+                value={formData.pieces_per_box}
+                onChange={handleChange}
+                placeholder={t('inventory.enterPiecesPerBox') || 'e.g. 12'}
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                required
+              />
+            </div>
+          )}
 
           {/* Refundable */}
           <div className="flex items-center gap-3">

@@ -13,9 +13,16 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
   const { t, toastError } = useAppStore()
   const [qtyModal, setQtyModal] = useState(null)
   const [qtyValue, setQtyValue] = useState('')
+  const [boxModal, setBoxModal] = useState(null)
+  const [boxSellMode, setBoxSellMode] = useState(null)
+  const [boxPieceQty, setBoxPieceQty] = useState('')
 
   const isSplittable = (product) => {
     return product.unit_of_measure && product.unit_of_measure !== 'quantity'
+  }
+
+  const isBoxProduct = (product) => {
+    return product.unit_of_measure === 'box' && product.pieces_per_box
   }
 
   const isOutOfStock = (product) => {
@@ -27,7 +34,11 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
       toastError(t('pos.outOfStock') || 'Out of stock')
       return
     }
-    if (isSplittable(product)) {
+    if (isBoxProduct(product)) {
+      setBoxModal(product)
+      setBoxSellMode(null)
+      setBoxPieceQty('')
+    } else if (isSplittable(product)) {
       setQtyModal(product)
       setQtyValue('')
     } else {
@@ -46,6 +57,42 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
       setQtyModal(null)
       setQtyValue('')
     }
+  }
+
+  const handleBoxSellWhole = () => {
+    if (boxModal) {
+      const stock = boxModal.stock_quantity || 0
+      const needed = boxModal.pieces_per_box
+      if (stock < needed) {
+        toastError(`${t('pos.insufficientStock') || 'Insufficient stock'} (${t('inventory.inStock')}: ${stock} pcs, need ${needed})`)
+        return
+      }
+      onAddToCart(boxModal, 1, 'box')
+      setBoxModal(null)
+      setBoxSellMode(null)
+    }
+  }
+
+  const handleBoxSellPieces = () => {
+    const qty = parseInt(boxPieceQty)
+    if (boxModal && qty > 0) {
+      if (boxModal.stock_quantity !== undefined && boxModal.stock_quantity !== null && qty > boxModal.stock_quantity) {
+        toastError(`${t('pos.insufficientStock') || 'Insufficient stock'} (${t('inventory.inStock')}: ${boxModal.stock_quantity})`)
+        return
+      }
+      onAddToCart(boxModal, qty, 'pieces')
+      setBoxModal(null)
+      setBoxSellMode(null)
+      setBoxPieceQty('')
+    }
+  }
+
+  const getUnitLabel = (product) => {
+    if (product.unit_of_measure === 'kilo') return 'kg'
+    if (product.unit_of_measure === 'liter') return 'L'
+    if (product.unit_of_measure === 'meter') return 'm'
+    if (product.unit_of_measure === 'box') return 'box'
+    return ''
   }
 
   if (products.length === 0) {
@@ -99,7 +146,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
                   {formatCurrency(product.price)}
                   {isSplittable(product) && (
                     <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1">
-                      /{product.unit_of_measure === 'kilo' ? 'kg' : product.unit_of_measure === 'liter' ? 'L' : product.unit_of_measure === 'meter' ? 'm' : product.unit_of_measure === 'box' ? 'box' : product.unit_of_measure === 'tape' ? 'tape' : ''}
+                      /{getUnitLabel(product)}
                     </span>
                   )}
                 </p>
@@ -134,7 +181,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
               <div className="flex items-center justify-center gap-2 py-2 bg-primary-50 dark:bg-primary-900/30 text-primary-600 rounded-lg">
                 <Plus className="w-4 h-4" />
                 <span className="text-sm font-medium">
-                  {isSplittable(product) ? t('pos.enterWeight') || 'Enter Qty' : t('pos.addToCart')}
+                  {isBoxProduct(product) || isSplittable(product) ? t('pos.enterWeight') || 'Enter Qty' : t('pos.addToCart')}
                 </span>
               </div>
             </div>
@@ -142,13 +189,103 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
         ))}
       </div>
 
-      {/* Quantity Input Modal for Splittable Items */}
+      {/* Box Sell Modal */}
+      {boxModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setBoxModal(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold mb-1">{boxModal.name}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+              {formatCurrency(boxModal.price)} / box ({boxModal.pieces_per_box} pcs)
+            </p>
+            {boxModal.pieces_per_box > 0 && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                {formatCurrency(boxModal.price / boxModal.pieces_per_box)} / piece
+              </p>
+            )}
+
+            {!boxSellMode && (
+              <div className="space-y-2">
+                <button
+                  onClick={() => setBoxSellMode('box')}
+                  className="w-full py-3 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
+                >
+                  {t('pos.sellWholeBox') || 'Sell Whole Box'}
+                </button>
+                <button
+                  onClick={() => setBoxSellMode('pieces')}
+                  className="w-full py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  {t('pos.sellPieces') || 'Sell Pieces'}
+                </button>
+              </div>
+            )}
+
+            {boxSellMode === 'box' && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Deducts {boxModal.pieces_per_box} pieces from stock
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setBoxSellMode(null)}
+                    className="flex-1 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium"
+                  >
+                    {t('common.back') || 'Back'}
+                  </button>
+                  <button
+                    onClick={handleBoxSellWhole}
+                    className="flex-1 py-2 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700"
+                  >
+                    {t('cart.add') || 'Add'} (1 box)
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {boxSellMode === 'pieces' && (
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('pos.enterPieces') || 'Enter number of pieces'}
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  min="1"
+                  autoFocus
+                  value={boxPieceQty}
+                  onChange={(e) => setBoxPieceQty(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleBoxSellPieces()}
+                  placeholder="0"
+                  className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setBoxSellMode(null)}
+                    className="flex-1 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium"
+                  >
+                    {t('common.back') || 'Back'}
+                  </button>
+                  <button
+                    onClick={handleBoxSellPieces}
+                    disabled={!boxPieceQty || parseInt(boxPieceQty) <= 0}
+                    className="flex-1 py-2 rounded-lg bg-primary-600 text-white font-medium disabled:opacity-50"
+                  >
+                    {t('cart.add') || 'Add'} ({boxPieceQty || '0'} pcs)
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Quantity Input Modal for Kilo/Liter/Meter */}
       {qtyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setQtyModal(null)}>
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold mb-1">{qtyModal.name}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              {formatCurrency(qtyModal.price)} / {qtyModal.unit_of_measure === 'kilo' ? 'kg' : qtyModal.unit_of_measure === 'liter' ? 'L' : qtyModal.unit_of_measure === 'meter' ? 'm' : qtyModal.unit_of_measure === 'box' ? 'box' : qtyModal.unit_of_measure === 'tape' ? 'tape' : ''}
+              {formatCurrency(qtyModal.price)} / {getUnitLabel(qtyModal)}
             </p>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {t('pos.enterWeight') || 'Enter quantity'}
@@ -176,7 +313,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
                 disabled={!qtyValue || parseFloat(qtyValue) <= 0}
                 className="flex-1 py-2 rounded-lg bg-primary-600 text-white font-medium disabled:opacity-50"
               >
-                {t('cart.add')} ({qtyValue || '0'} {qtyModal.unit_of_measure === 'kilo' ? 'kg' : qtyModal.unit_of_measure === 'liter' ? 'L' : qtyModal.unit_of_measure === 'meter' ? 'm' : qtyModal.unit_of_measure === 'box' ? 'box' : qtyModal.unit_of_measure === 'tape' ? 'tape' : ''})
+                {t('cart.add')} ({qtyValue || '0'} {getUnitLabel(qtyModal)})
               </button>
             </div>
           </div>

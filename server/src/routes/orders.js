@@ -243,7 +243,7 @@ async function processOrderBackground(order, items, payments, customer_id, userI
     const insertRows = items.map(item => {
       const qty = parseFloat(item.quantity)
       const itemTotal = qty * item.unit_price - (item.discount || 0)
-      if (item.product_id) productItems.push({ id: item.product_id, qty })
+      if (item.product_id) productItems.push({ id: item.product_id, qty, sell_mode: item.sell_mode || null })
       return {
         order_id: order.id,
         tenant_id: tid,
@@ -253,7 +253,8 @@ async function processOrderBackground(order, items, payments, customer_id, userI
         unit_price: item.unit_price,
         discount: item.discount || 0,
         total: itemTotal,
-        type: item._type || 'product'
+        type: item._type || 'product',
+        sell_mode: item.sell_mode || null
       }
     })
     try { await supabase.from('order_items').insert(insertRows) } catch (e) { console.error('[ORDER BG] order_items insert failed:', e.message) }
@@ -263,17 +264,29 @@ async function processOrderBackground(order, items, payments, customer_id, userI
   if (productItems.length > 0) {
     try {
       const productIds = productItems.map(i => i.id)
-      const { data: products } = await supabase.from('products').select('id, stock_quantity').in('id', productIds).eq('tenant_id', tid)
+      const { data: products } = await supabase.from('products').select('id, stock_quantity, pieces_per_box, unit_of_measure').in('id', productIds).eq('tenant_id', tid)
       const stockMap = {}
-      if (products) products.forEach(p => { stockMap[p.id] = p.stock_quantity || 0 })
+      if (products) products.forEach(p => { stockMap[p.id] = { stock: p.stock_quantity || 0, pieces_per_box: p.pieces_per_box, unit_of_measure: p.unit_of_measure } })
 
-      await Promise.all(productItems.map(item =>
-        supabase.from('products').update({ stock_quantity: Math.max(0, (stockMap[item.id] || 0) - item.qty), updated_at: new Date().toISOString() }).eq('id', item.id).eq('tenant_id', tid)
-      ))
+      await Promise.all(productItems.map(item => {
+        const info = stockMap[item.id] || { stock: 0, pieces_per_box: null }
+        // For box units sold as box, deduct quantity * pieces_per_box
+        const deductQty = item.sell_mode === 'box' && info.pieces_per_box
+          ? item.qty * info.pieces_per_box
+          : item.qty
+        return supabase.from('products').update({ stock_quantity: Math.max(0, (info.stock || 0) - deductQty), updated_at: new Date().toISOString() }).eq('id', item.id).eq('tenant_id', tid)
+      }))
 
-      await supabase.from('stock_movements').insert(productItems.map(item => ({
-        tenant_id: tid, product_id: item.id, type: 'sale', quantity: -item.qty, reference_id: order.id, notes: `Order ${order_number}`
-      })))
+      await supabase.from('stock_movements').insert(productItems.map(item => {
+        const info = stockMap[item.id] || { pieces_per_box: null }
+        const deductQty = item.sell_mode === 'box' && info.pieces_per_box
+          ? item.qty * info.pieces_per_box
+          : item.qty
+        return {
+          tenant_id: tid, product_id: item.id, type: 'sale', quantity: -deductQty, reference_id: order.id,
+          notes: `Order ${order_number}${item.sell_mode === 'box' ? ' (box sale)' : item.sell_mode === 'pieces' ? ' (piece sale)' : ''}`
+        }
+      }))
     } catch (e) { console.error('[ORDER BG] Stock update failed:', e.message) }
   }
 

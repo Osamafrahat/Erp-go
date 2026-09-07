@@ -519,22 +519,35 @@ export default function POSPage() {
               // Build order items for products + services (both are one-time sales)
               // Note: Subscriptions are handled separately via quickCreate and their own journal entries
               const allOrderItems = [
-                ...productItems.map(item => ({
-                  product_id: item.product.id,
-                  product_name: item.product.name,
-                  quantity: item.quantity,
-                  unit_price: item.product.price,
-                  _type: 'product',
-                })),
+                ...productItems.map(item => {
+                  const isBoxSale = item.sellMode === 'box'
+                  const isPieceSale = item.sellMode === 'pieces'
+                  const unitPrice = isPieceSale && item.product.pieces_per_box
+                    ? item.product.price / item.product.pieces_per_box
+                    : item.product.price
+                  return {
+                    product_id: item.product.id,
+                    product_name: item.product.name,
+                    quantity: item.quantity,
+                    unit_price: unitPrice,
+                    sell_mode: item.sellMode || null,
+                    _type: 'product',
+                  }
+                }),
                 ...serviceItems.map(item => ({
                   product_name: item.product.name,
                   quantity: item.quantity,
                   unit_price: item.product.price,
+                  sell_mode: null,
                   _type: 'service',
                 })),
               ]
 
-              const productSubtotal = productItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+              const productSubtotal = productItems.reduce((sum, item) => {
+                const isPieceSale = item.sellMode === 'pieces' && item.product.pieces_per_box
+                const unitPrice = isPieceSale ? item.product.price / item.product.pieces_per_box : item.product.price
+                return sum + (unitPrice * item.quantity)
+              }, 0)
               const serviceSubtotal = serviceItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
               const orderSubtotal = productSubtotal + serviceSubtotal
 

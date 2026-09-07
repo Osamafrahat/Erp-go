@@ -1,6 +1,14 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+const getItemPrice = (item) => {
+  const { product, quantity, sellMode } = item
+  if (sellMode === 'pieces' && product.pieces_per_box) {
+    return (product.price / product.pieces_per_box) * quantity
+  }
+  return product.price * quantity
+}
+
 export const useCartStore = create(
   persist(
     (set, get) => ({
@@ -9,10 +17,12 @@ export const useCartStore = create(
       promoDiscount: 0,
       promoId: null,
 
-      addItem: (product, quantity = 1) => {
+      addItem: (product, quantity = 1, sellMode = null) => {
         const state = get()
         const isService = product._type === 'service'
-        const existingItem = state.items.find(item => item.product.id === product.id && item.product._type === product._type)
+        const existingItem = state.items.find(
+          item => item.product.id === product.id && item.product._type === product._type && item.sellMode === sellMode
+        )
         const currentQty = existingItem ? existingItem.quantity : 0
         const newQty = currentQty + quantity
 
@@ -32,31 +42,31 @@ export const useCartStore = create(
           if (existingItem) {
             return {
               items: state.items.map(item =>
-                item.product.id === product.id && item.product._type === product._type
+                item.product.id === product.id && item.product._type === product._type && item.sellMode === sellMode
                   ? { ...item, quantity: item.quantity + quantity }
                   : item
               )
             }
           }
-          return { items: [...state.items, { product, quantity }] }
+          return { items: [...state.items, { product, quantity, sellMode }] }
         })
         return true
       },
 
-      removeItem: (productId, itemType) => set((state) => ({
-        items: state.items.filter(item => !(item.product.id === productId && item.product._type === itemType))
+      removeItem: (productId, itemType, sellMode) => set((state) => ({
+        items: state.items.filter(item => !(item.product.id === productId && item.product._type === itemType && item.sellMode === sellMode))
       })),
 
-      updateQuantity: (productId, quantity, itemType) => {
+      updateQuantity: (productId, quantity, itemType, sellMode) => {
         if (quantity <= 0) {
           set((state) => ({
-            items: state.items.filter(item => !(item.product.id === productId && item.product._type === itemType))
+            items: state.items.filter(item => !(item.product.id === productId && item.product._type === itemType && item.sellMode === sellMode))
           }))
           return true
         }
 
         const state = get()
-        const item = state.items.find(i => i.product.id === productId && i.product._type === itemType)
+        const item = state.items.find(i => i.product.id === productId && i.product._type === itemType && i.sellMode === sellMode)
         if (!item) return false
 
         // Stock validation (only for products)
@@ -69,7 +79,7 @@ export const useCartStore = create(
 
         set((state) => ({
           items: state.items.map(i =>
-            i.product.id === productId && i.product._type === itemType ? { ...i, quantity } : i
+            i.product.id === productId && i.product._type === itemType && i.sellMode === sellMode ? { ...i, quantity } : i
           )
         }))
         return true
@@ -82,22 +92,28 @@ export const useCartStore = create(
 
       getSubtotal: () => {
         const { items } = get()
-        return items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+        return items.reduce((sum, item) => sum + getItemPrice(item), 0)
       },
 
       getProductSubtotal: () => {
         const { items } = get()
-        return items.filter(item => item.product._type !== 'service' && item.product._type !== 'subscription').reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+        return items
+          .filter(item => item.product._type !== 'service' && item.product._type !== 'subscription')
+          .reduce((sum, item) => sum + getItemPrice(item), 0)
       },
 
       getNonProductSubtotal: () => {
         const { items } = get()
-        return items.filter(item => item.product._type === 'service' || item.product._type === 'subscription').reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+        return items
+          .filter(item => item.product._type === 'service' || item.product._type === 'subscription')
+          .reduce((sum, item) => sum + getItemPrice(item), 0)
       },
 
       getServiceSubtotal: () => {
         const { items } = get()
-        return items.filter(item => item.product._type === 'service').reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+        return items
+          .filter(item => item.product._type === 'service')
+          .reduce((sum, item) => sum + getItemPrice(item), 0)
       },
 
       getDiscount: () => {

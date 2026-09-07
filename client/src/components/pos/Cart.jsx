@@ -55,6 +55,23 @@ export default memo(function Cart({ onCheckout }) {
     setPromoError('')
   }
 
+  const getItemPrice = (item) => {
+    if (item.sellMode === 'pieces' && item.product.pieces_per_box) {
+      return (item.product.price / item.product.pieces_per_box) * item.quantity
+    }
+    return item.product.price * item.quantity
+  }
+
+  const getUnitLabel = (product, sellMode) => {
+    if (sellMode === 'box') return 'box'
+    if (sellMode === 'pieces') return 'pcs'
+    if (product.unit_of_measure === 'kilo') return 'kg'
+    if (product.unit_of_measure === 'liter') return 'L'
+    if (product.unit_of_measure === 'meter') return 'm'
+    if (product.unit_of_measure === 'box') return 'box'
+    return 'pcs'
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex-1 flex flex-col overflow-hidden min-h-0">
       {/* Header */}
@@ -88,7 +105,7 @@ export default memo(function Cart({ onCheckout }) {
           <div className="space-y-3">
             {items.map((item) => (
               <div
-                key={item.product.id}
+                key={`${item.product.id}-${item.sellMode || 'default'}`}
                 className="flex gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
               >
                 {/* Product Image */}
@@ -115,39 +132,24 @@ export default memo(function Cart({ onCheckout }) {
                         {t('services.service') || 'Service'}
                       </span>
                     )}
+                    {item.sellMode && (
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
+                        {item.sellMode === 'box' ? 'box' : 'pcs'}
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {formatCurrency(item.product.price)}
+                    {item.sellMode === 'pieces' && item.product.pieces_per_box
+                      ? formatCurrency(item.product.price / item.product.pieces_per_box) + ' / pcs'
+                      : formatCurrency(item.product.price) + (item.product.unit_of_measure !== 'quantity' ? ' / ' + getUnitLabel(item.product, item.sellMode) : '')}
                   </p>
 
                   {/* Quantity Controls */}
                   <div className="flex items-center gap-2 mt-2">
-                    {item.product.unit_of_measure && item.product.unit_of_measure !== 'quantity' ? (
-                      <>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          value={item.quantity}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value)
-                            if (val > 0) {
-                              const updated = updateQuantity(item.product.id, val, item.product._type)
-                              if (!updated) {
-                                toastError(`${t('pos.insufficientStock') || 'Insufficient stock'} (${t('inventory.inStock')}: ${item.product.stock_quantity})`)
-                              }
-                            }
-                          }}
-                          className="w-20 px-2 py-1 text-sm text-center rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
-                        />
-                        <span className="text-xs text-gray-500">
-                          {item.product.unit_of_measure === 'kilo' ? 'kg' : item.product.unit_of_measure === 'liter' ? 'L' : item.product.unit_of_measure === 'meter' ? 'm' : item.product.unit_of_measure === 'box' ? 'box' : item.product.unit_of_measure === 'tape' ? 'tape' : ''}
-                        </span>
-                      </>
-                    ) : (
+                    {item.sellMode === 'box' ? (
                       <>
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.product._type)}
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.product._type, item.sellMode)}
                           className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
                         >
                           <Minus className="w-4 h-4 md:w-3 md:h-3" />
@@ -155,7 +157,49 @@ export default memo(function Cart({ onCheckout }) {
                         <span className="w-8 text-center font-medium">{item.quantity}</span>
                         <button
                           onClick={() => {
-                            const updated = updateQuantity(item.product.id, item.quantity + 1, item.product._type)
+                            const updated = updateQuantity(item.product.id, item.quantity + 1, item.product._type, item.sellMode)
+                            if (!updated) {
+                              toastError(`${t('pos.insufficientStock') || 'Insufficient stock'} (${t('inventory.inStock')}: ${item.product.stock_quantity})`)
+                            }
+                          }}
+                          className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
+                        >
+                          <Plus className="w-4 h-4 md:w-3 md:h-3" />
+                        </button>
+                        <span className="text-xs text-gray-500">box</span>
+                      </>
+                    ) : item.sellMode === 'pieces' || (item.product.unit_of_measure && item.product.unit_of_measure !== 'quantity') ? (
+                      <>
+                        <input
+                          type="number"
+                          step="1"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value)
+                            if (val > 0) {
+                              const updated = updateQuantity(item.product.id, val, item.product._type, item.sellMode)
+                              if (!updated) {
+                                toastError(`${t('pos.insufficientStock') || 'Insufficient stock'} (${t('inventory.inStock')}: ${item.product.stock_quantity})`)
+                              }
+                            }
+                          }}
+                          className="w-20 px-2 py-1 text-sm text-center rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+                        />
+                        <span className="text-xs text-gray-500">{getUnitLabel(item.product, item.sellMode)}</span>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.product._type, item.sellMode)}
+                          className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
+                        >
+                          <Minus className="w-4 h-4 md:w-3 md:h-3" />
+                        </button>
+                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                        <button
+                          onClick={() => {
+                            const updated = updateQuantity(item.product.id, item.quantity + 1, item.product._type, item.sellMode)
                             if (!updated) {
                               toastError(`${t('pos.insufficientStock') || 'Insufficient stock'} (${t('inventory.inStock')}: ${item.product.stock_quantity})`)
                             }
@@ -172,12 +216,12 @@ export default memo(function Cart({ onCheckout }) {
                 {/* Item Total & Remove */}
                 <div className="text-right flex flex-col justify-between">
                   <button
-                    onClick={() => removeItem(item.product.id, item.product._type)}
+                    onClick={() => removeItem(item.product.id, item.product._type, item.sellMode)}
                     className="text-gray-400 hover:text-red-500 p-1.5 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
                   >
                     <X className="w-5 h-5" />
                   </button>
-                  <p className="font-semibold">{formatCurrency(item.product.price * item.quantity)}</p>
+                  <p className="font-semibold">{formatCurrency(getItemPrice(item))}</p>
                 </div>
               </div>
             ))}
