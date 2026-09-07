@@ -43,7 +43,6 @@ import {
   Sparkles,
   Shield,
    Banknote,
-   GitBranch,
    ClipboardList,
    AlertTriangle,
 } from 'lucide-react'
@@ -141,9 +140,6 @@ export default function Layout({ children }) {
   const inventoryItems = []
   if (canAccess('/inventory')) {
     inventoryItems.push({ name: t('nav.inventory'), href: '/inventory', icon: Package })
-  }
-  if (canAccess('/product-variants')) {
-    inventoryItems.push({ name: t('nav.productVariants') || 'Variants', href: '/product-variants', icon: GitBranch })
   }
   if (canAccess('/suppliers')) {
     inventoryItems.push({ name: t('nav.suppliers'), href: '/suppliers', icon: Truck })

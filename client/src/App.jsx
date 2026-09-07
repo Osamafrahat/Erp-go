@@ -47,7 +47,6 @@ const PricingPage = lazy(() => import('./pages/PricingPage'))
 const BillingPage = lazy(() => import('./pages/BillingPage'))
 const SuperAdminPage = lazy(() => import('./pages/SuperAdminPage'))
 const CashShiftPage = lazy(() => import('./pages/CashShiftPage'))
-const ProductVariantsPage = lazy(() => import('./pages/ProductVariantsPage'))
 const CreditSalesPage = lazy(() => import('./pages/CreditSalesPage'))
 const PurchaseOrdersPage = lazy(() => import('./pages/PurchaseOrdersPage'))
 const CommissionsPage = lazy(() => import('./pages/CommissionsPage'))
@@ -149,7 +148,6 @@ function App() {
                 <Route path="/service-plans" element={<ProtectedRoute><Layout><ServicePlansPage /></Layout></ProtectedRoute>} />
                 <Route path="/subscriptions" element={<ProtectedRoute><Layout><SubscriptionsPage /></Layout></ProtectedRoute>} />
                 <Route path="/cash-shifts" element={<ProtectedRoute><Layout><CashShiftPage /></Layout></ProtectedRoute>} />
-                <Route path="/product-variants" element={<ProtectedRoute><Layout><ProductVariantsPage /></Layout></ProtectedRoute>} />
                 <Route path="/credit-sales" element={<ProtectedRoute><Layout><CreditSalesPage /></Layout></ProtectedRoute>} />
                 <Route path="/purchase-orders" element={<ProtectedRoute><Layout><PurchaseOrdersPage /></Layout></ProtectedRoute>} />
                 <Route path="/commissions" element={<ProtectedRoute><Layout><CommissionsPage /></Layout></ProtectedRoute>} />

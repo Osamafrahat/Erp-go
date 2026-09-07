@@ -54,7 +54,6 @@ import superAdminRouter from './routes/superAdmin.js'
 import commissionsRouter from './routes/commissions.js'
 import customerStatementsRouter from './routes/customerStatements.js'
 import cashShiftsRouter from './routes/cashShifts.js'
-import productVariantsRouter from './routes/productVariants.js'
 import creditSalesRouter from './routes/creditSales.js'
 import productBatchesRouter from './routes/productBatches.js'
 import purchaseOrdersRouter from './routes/purchaseOrders.js'
@@ -183,7 +182,6 @@ app.use('/api/super-admin', authenticateToken, superAdminRouter)
 app.use('/api/commissions', authenticateToken, setTenantContext, activityLogger, commissionsRouter)
 app.use('/api/customer-statements', authenticateToken, setTenantContext, activityLogger, customerStatementsRouter)
 app.use('/api/cash-shifts', authenticateToken, setTenantContext, activityLogger, cashShiftsRouter)
-app.use('/api/product-variants', authenticateToken, setTenantContext, activityLogger, productVariantsRouter)
 app.use('/api/credit-sales', authenticateToken, setTenantContext, activityLogger, creditSalesRouter)
 app.use('/api/product-batches', authenticateToken, setTenantContext, activityLogger, productBatchesRouter)
 app.use('/api/purchase-orders', authenticateToken, setTenantContext, activityLogger, purchaseOrdersRouter)

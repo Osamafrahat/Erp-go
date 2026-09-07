@@ -315,7 +315,6 @@ router.delete('/tenants/:id', async (req, res) => {
     await safeDel('credit_payments', `tenant_id = ${tid}`)
     await safeDel('commissions', `tenant_id = ${tid}`)
     await safeDel('cash_shifts', `tenant_id = ${tid}`)
-    await safeDel('product_variants', `tenant_id = ${tid}`)
     await safeDel('product_batches', `tenant_id = ${tid}`)
     await safeDel('saved_payment_methods', `tenant_id = ${tid}`)
     await safeDel('messages', `tenant_id = ${tid}`)

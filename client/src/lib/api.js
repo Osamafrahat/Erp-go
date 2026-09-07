@@ -398,15 +398,6 @@ export const cashShiftsApi = {
   getSummary: () => api.get('/cash-shifts/summary'),
 }
 
-// Product Variants API
-export const productVariantsApi = {
-  getByProduct: (productId) => api.get(`/product-variants/product/${productId}`),
-  create: (data) => api.post('/product-variants', data),
-  update: (id, data) => api.put(`/product-variants/${id}`, data),
-  delete: (id) => api.delete(`/product-variants/${id}`),
-  adjustStock: (id, data) => api.patch(`/product-variants/${id}/stock`, data),
-}
-
 // Credit Sales API
 export const creditSalesApi = {
   getAll: (params) => api.get('/credit-sales', { params }),
