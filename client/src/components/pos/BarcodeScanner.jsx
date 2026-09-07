@@ -1,20 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAppStore } from '../../stores/appStore'
-import { X, Camera, Keyboard, Check } from 'lucide-react'
+import { X, Camera, Keyboard, Check, Loader2 } from 'lucide-react'
 
 export default function BarcodeScanner({ onScan, onClose }) {
   const { t } = useAppStore()
   const [mode, setMode] = useState('manual')
   const [manualInput, setManualInput] = useState('')
   const [isScanning, setIsScanning] = useState(false)
+  const [cameraLoading, setCameraLoading] = useState(false)
   const [scanCount, setScanCount] = useState(0)
   const [lastScanned, setLastScanned] = useState('')
   const [lastProductName, setLastProductName] = useState('')
   const [flash, setFlash] = useState(false)
+  const [cameraError, setCameraError] = useState('')
   const inputRef = useRef(null)
   const scannerRef = useRef(null)
   const lastScanRef = useRef('')
   const lastScanTimeRef = useRef(0)
+  const containerRef = useRef(null)
 
   useEffect(() => {
     if (mode === 'manual') {
@@ -24,9 +27,7 @@ export default function BarcodeScanner({ onScan, onClose }) {
 
   useEffect(() => {
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {})
-      }
+      stopCameraScanner()
     }
   }, [])
 
@@ -56,10 +57,32 @@ export default function BarcodeScanner({ onScan, onClose }) {
 
   const startCameraScanner = async () => {
     try {
+      setCameraLoading(true)
+      setCameraError('')
       setMode('camera')
-      setIsScanning(true)
+
+      // Wait for DOM to render
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       const { Html5Qrcode } = await import('html5-qrcode')
+
+      // Clean up any existing instance
+      if (scannerRef.current) {
+        try { await scannerRef.current.stop() } catch (e) {}
+        scannerRef.current = null
+      }
+
+      // Make sure container exists
+      const container = document.getElementById('barcode-scanner')
+      if (!container) {
+        setCameraError('Scanner container not found')
+        setCameraLoading(false)
+        setMode('manual')
+        return
+      }
+
+      // Clear previous content
+      container.innerHTML = ''
 
       const scanner = new Html5Qrcode('barcode-scanner')
       scannerRef.current = scanner
@@ -69,27 +92,43 @@ export default function BarcodeScanner({ onScan, onClose }) {
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
         },
         (decodedText) => {
           handleScanResult(decodedText)
         },
         () => {}
       )
+
+      setIsScanning(true)
+      setCameraLoading(false)
     } catch (err) {
       console.error('Camera scanner error:', err)
       setIsScanning(false)
+      setCameraLoading(false)
       setMode('manual')
-      alert(t('scanner.cameraError'))
+      setCameraError(err.message || 'Could not access camera')
     }
   }
 
-  const stopCameraScanner = () => {
+  const stopCameraScanner = async () => {
     if (scannerRef.current) {
-      scannerRef.current.stop().catch(() => {})
+      try { await scannerRef.current.stop() } catch (e) {}
+      try { scannerRef.current.clear() } catch (e) {}
       scannerRef.current = null
     }
     setIsScanning(false)
+  }
+
+  const switchToManual = async () => {
+    await stopCameraScanner()
     setMode('manual')
+    setCameraError('')
+  }
+
+  const switchToCamera = async () => {
+    await stopCameraScanner()
+    startCameraScanner()
   }
 
   return (
@@ -137,10 +176,7 @@ export default function BarcodeScanner({ onScan, onClose }) {
         <div className="p-4">
           <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <button
-              onClick={() => {
-                stopCameraScanner()
-                setMode('manual')
-              }}
+              onClick={switchToManual}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${
                 mode === 'manual'
                   ? 'bg-white dark:bg-gray-600 shadow-sm'
@@ -151,14 +187,15 @@ export default function BarcodeScanner({ onScan, onClose }) {
               {t('scanner.manual')}
             </button>
             <button
-              onClick={startCameraScanner}
+              onClick={switchToCamera}
+              disabled={cameraLoading}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-colors ${
                 mode === 'camera'
                   ? 'bg-white dark:bg-gray-600 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400'
               }`}
             >
-              <Camera className="w-4 h-4" />
+              {cameraLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
               {t('scanner.camera')}
             </button>
           </div>
@@ -168,6 +205,11 @@ export default function BarcodeScanner({ onScan, onClose }) {
         <div className="p-4">
           {mode === 'manual' ? (
             <form onSubmit={handleManualSubmit} className="space-y-4">
+              {cameraError && (
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <p className="text-sm text-red-600 dark:text-red-400">{cameraError}</p>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t('scanner.enterBarcode')}
@@ -193,9 +235,16 @@ export default function BarcodeScanner({ onScan, onClose }) {
           ) : (
             <div className="space-y-4">
               <div
+                ref={containerRef}
                 id="barcode-scanner"
                 className="w-full h-64 bg-gray-900 rounded-lg overflow-hidden"
               />
+              {cameraLoading && (
+                <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <p className="text-sm">Starting camera...</p>
+                </div>
+              )}
               {isScanning && (
                 <div className="text-center text-gray-500 dark:text-gray-400">
                   <p className="animate-pulse">{t('scanner.pointCamera')}</p>
@@ -203,7 +252,7 @@ export default function BarcodeScanner({ onScan, onClose }) {
                 </div>
               )}
               <button
-                onClick={stopCameraScanner}
+                onClick={switchToManual}
                 className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600"
               >
                 {t('scanner.cancelCamera')}
