@@ -12,6 +12,14 @@ const validate = (req, res, next) => {
   next()
 }
 
+const flattenShift = (shift) => {
+  if (!shift) return shift
+  const { users, ...rest } = shift
+  return { ...rest, cashier_name: users?.full_name || null }
+}
+
+const flattenShifts = (shifts) => (shifts || []).map(flattenShift)
+
 // Get shift summary stats
 router.get('/summary', async (req, res, next) => {
   try {
@@ -30,7 +38,7 @@ router.get('/summary', async (req, res, next) => {
       : 0
     const totalProfit = closedShifts.reduce((sum, s) => sum + parseFloat(s.profit || 0), 0)
 
-    res.json({ total_shifts: totalShifts, avg_variance: avgVariance, total_profit: totalProfit })
+    res.json({ total_shifts: totalShifts, average_variance: avgVariance, total_profit: totalProfit })
   } catch (err) {
     next(err)
   }
@@ -50,7 +58,7 @@ router.get('/active', async (req, res, next) => {
       .maybeSingle()
 
     if (error) throw error
-    res.json(data)
+    res.json(flattenShift(data))
   } catch (err) {
     next(err)
   }
@@ -74,7 +82,7 @@ router.get('/', async (req, res, next) => {
 
     const { data, error } = await query
     if (error) throw error
-    res.json(data || [])
+    res.json(flattenShifts(data))
   } catch (err) {
     next(err)
   }
@@ -114,7 +122,7 @@ router.post('/', [
       .single()
 
     if (error) throw error
-    res.status(201).json(data)
+    res.status(201).json(flattenShift(data))
   } catch (err) {
     next(err)
   }
@@ -151,7 +159,7 @@ router.get('/:id', async (req, res, next) => {
       }
     }
 
-    res.json({ ...shift, order_summary: orderSummary })
+    res.json({ ...flattenShift(shift), order_summary: orderSummary })
   } catch (err) {
     next(err)
   }
@@ -232,7 +240,7 @@ router.patch('/:id/close', [
       .single()
 
     if (error) throw error
-    res.json(data)
+    res.json(flattenShift(data))
   } catch (err) {
     next(err)
   }

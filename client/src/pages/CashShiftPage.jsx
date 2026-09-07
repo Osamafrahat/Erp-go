@@ -113,7 +113,7 @@ export default function CashShiftPage() {
   }
 
   const expectedCash = activeShift
-    ? parseFloat(activeShift.opening_balance) + parseFloat(activeShift.expected_cash || 0)
+    ? parseFloat(activeShift.opening_balance || 0)
     : 0
 
   const currentVariance = closeForm.actual_cash
@@ -274,7 +274,11 @@ export default function CashShiftPage() {
                       {shift.closed_at ? new Date(shift.closed_at).toLocaleString() : '—'}
                     </td>
                     <td className="px-5 py-4 text-sm text-right text-gray-900 dark:text-white">{formatCurrency(shift.opening_balance)}</td>
-                    <td className="px-5 py-4 text-sm text-right text-gray-900 dark:text-white">{formatCurrency(shift.expected_cash)}</td>
+                    <td className="px-5 py-4 text-sm text-right text-gray-900 dark:text-white">
+                      {shift.status === 'closed'
+                        ? formatCurrency(parseFloat(shift.opening_balance || 0) + parseFloat(shift.closing_balance || 0))
+                        : formatCurrency(shift.opening_balance)}
+                    </td>
                     <td className="px-5 py-4 text-sm text-right text-gray-900 dark:text-white">
                       {shift.actual_cash != null ? formatCurrency(shift.actual_cash) : '—'}
                     </td>

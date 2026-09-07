@@ -294,7 +294,20 @@ router.get('/profit-loss', async (req, res, next) => {
 // Dead Stock Report - products not sold in X days
 router.get('/dead-stock', async (req, res, next) => {
   try {
-    const { days = 90, from_date, to_date, category_id } = req.query
+    const { days = 90, from_date, to_date, category_id, category } = req.query
+
+    // Resolve category name to category_id if needed
+    let resolvedCategoryId = category_id
+    if (category && !category_id) {
+      const { data: cat } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('tenant_id', req.user.tenantId)
+        .eq('name', category)
+        .limit(1)
+        .maybeSingle()
+      if (cat) resolvedCategoryId = cat.id
+    }
 
     // Support both from_date/to_date (from client) and days fallback
     let cutoffDate
@@ -313,8 +326,8 @@ router.get('/dead-stock', async (req, res, next) => {
       .eq('tenant_id', req.user.tenantId)
       .gt('stock_quantity', 0)
 
-    if (category_id) {
-      productQuery = productQuery.eq('category_id', category_id)
+    if (resolvedCategoryId) {
+      productQuery = productQuery.eq('category_id', resolvedCategoryId)
     }
 
     const { data: products, error: prodErr } = await productQuery
