@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
-import { reportsApi } from '../lib/api'
+import { deadStockApi } from '../lib/api'
 import {
   AlertTriangle,
   Calendar,
@@ -36,12 +36,12 @@ export default function DeadStockReportPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await reportsApi.getDeadStock({
+      const res = await deadStockApi.get({
         from_date: dateRange.from,
         to_date: dateRange.to,
         category: categoryFilter === 'all' ? undefined : categoryFilter
       })
-      const data = res.data || []
+      const data = res.data?.items || res.data || []
       setItems(data)
 
       const cats = [...new Set(data.map((i) => i.category).filter(Boolean))]
