@@ -42,7 +42,7 @@ router.get('/customer/:customerId', async (req, res, next) => {
   try {
     const { data, error } = await supabase
       .from('credit_sales')
-      .select('*, orders(id, total, created_at), customers(name)')
+      .select('*, orders(id, order_number, total, created_at), customers(name)')
       .eq('tenant_id', req.user?.tenantId)
       .eq('customer_id', req.params.customerId)
       .order('created_at', { ascending: false })
@@ -61,7 +61,7 @@ router.get('/', async (req, res, next) => {
 
     let query = supabase
       .from('credit_sales')
-      .select('*, orders(id, total, created_at), customers(name)')
+      .select('*, orders(id, order_number, total, created_at), customers(name)')
       .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
 
@@ -100,7 +100,7 @@ router.post('/', [
         paid_amount: 0,
         created_at: new Date().toISOString(),
       })
-      .select('*, orders(id, total, created_at), customers(name)')
+      .select('*, orders(id, order_number, total, created_at), customers(name)')
       .single()
 
     if (error) throw error
@@ -132,18 +132,29 @@ router.post('/:id/pay', [
     const newRemainingAmount = parseFloat(creditSale.total_amount) - newPaidAmount
     const newStatus = newRemainingAmount <= 0 ? 'paid' : 'partial'
 
+    // Log payment to credit_payments table
+    await supabase
+      .from('credit_payments')
+      .insert({
+        tenant_id: req.user?.tenantId,
+        credit_sale_id: creditSale.id,
+        amount: parseFloat(amount),
+        payment_method: payment_method || 'cash',
+        reference: reference || null,
+        notes: null,
+        created_at: new Date().toISOString(),
+      })
+
     const { data, error } = await supabase
       .from('credit_sales')
       .update({
         paid_amount: newPaidAmount,
         remaining_amount: Math.max(0, newRemainingAmount),
         status: newStatus,
-        payment_method: payment_method || creditSale.payment_method,
-        reference: reference || creditSale.reference,
       })
       .eq('id', req.params.id)
       .eq('tenant_id', req.user?.tenantId)
-      .select('*, orders(id, total, created_at), customers(name)')
+      .select('*, orders(id, order_number, total, created_at), customers(name)')
       .single()
 
     if (error) throw error
@@ -163,7 +174,7 @@ router.patch('/:id', async (req, res, next) => {
       .update({ status, due_date, notes })
       .eq('id', req.params.id)
       .eq('tenant_id', req.user?.tenantId)
-      .select('*, orders(id, total, created_at), customers(name)')
+      .select('*, orders(id, order_number, total, created_at), customers(name)')
       .single()
 
     if (error) throw error

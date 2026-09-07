@@ -30,7 +30,6 @@ export default function CreditSalesPage() {
     method: 'cash',
     reference: ''
   })
-  const [customerBalances, setCustomerBalances] = useState([])
 
   const fetchData = async () => {
     try {
@@ -52,10 +51,13 @@ export default function CreditSalesPage() {
     fetchData()
   }, [filter])
 
+  const getCustomerName = (sale) => sale.customers?.name || sale.customer_name || '—'
+  const getOrderRef = (sale) => sale.orders?.order_number || sale.orders?.id || '—'
+
   const openPaymentModal = (sale) => {
     setSelectedSale(sale)
     setPaymentForm({
-      amount: sale.remaining?.toString() || '',
+      amount: sale.remaining_amount?.toString() || '',
       method: 'cash',
       reference: ''
     })
@@ -68,7 +70,7 @@ export default function CreditSalesPage() {
       toastError('Please enter a valid payment amount')
       return
     }
-    if (parseFloat(paymentForm.amount) > parseFloat(selectedSale.remaining)) {
+    if (parseFloat(paymentForm.amount) > parseFloat(selectedSale.remaining_amount)) {
       toastError('Payment amount cannot exceed remaining balance')
       return
     }
@@ -76,7 +78,7 @@ export default function CreditSalesPage() {
       setSubmitting(true)
       await creditSalesApi.pay(selectedSale.id, {
         amount: parseFloat(paymentForm.amount),
-        method: paymentForm.method,
+        payment_method: paymentForm.method,
         reference: paymentForm.reference
       })
       toastSuccess('Payment recorded successfully')
@@ -122,18 +124,19 @@ export default function CreditSalesPage() {
 
   const filteredSales = sales.filter(
     (s) =>
-      s.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.order_number?.toLowerCase().includes(searchTerm.toLowerCase())
+      getCustomerName(s).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getOrderRef(s).toString().toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const buildCustomerBalances = () => {
     const map = {}
     sales.forEach((s) => {
       if (s.status === 'paid') return
+      const name = getCustomerName(s)
       if (!map[s.customer_id]) {
-        map[s.customer_id] = { name: s.customer_name, total_owed: 0, sale_count: 0 }
+        map[s.customer_id] = { name, total_owed: 0, sale_count: 0 }
       }
-      map[s.customer_id].total_owed += parseFloat(s.remaining || 0)
+      map[s.customer_id].total_owed += parseFloat(s.remaining_amount || 0)
       map[s.customer_id].sale_count += 1
     })
     return Object.values(map).sort((a, b) => b.total_owed - a.total_owed)
@@ -250,11 +253,11 @@ export default function CreditSalesPage() {
                   ) : (
                     filteredSales.map((sale) => (
                       <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                        <td className="px-5 py-4 text-sm font-medium text-gray-900 dark:text-white">{sale.customer_name}</td>
-                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300 font-mono">{sale.order_number}</td>
-                        <td className="px-5 py-4 text-sm text-right text-gray-900 dark:text-white">{formatCurrency(sale.total)}</td>
-                        <td className="px-5 py-4 text-sm text-right text-green-600 dark:text-green-400">{formatCurrency(sale.paid)}</td>
-                        <td className="px-5 py-4 text-sm text-right text-red-600 dark:text-red-400 font-medium">{formatCurrency(sale.remaining)}</td>
+                        <td className="px-5 py-4 text-sm font-medium text-gray-900 dark:text-white">{getCustomerName(sale)}</td>
+                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300 font-mono">{getOrderRef(sale)}</td>
+                        <td className="px-5 py-4 text-sm text-right text-gray-900 dark:text-white">{formatCurrency(sale.total_amount)}</td>
+                        <td className="px-5 py-4 text-sm text-right text-green-600 dark:text-green-400">{formatCurrency(sale.paid_amount)}</td>
+                        <td className="px-5 py-4 text-sm text-right text-red-600 dark:text-red-400 font-medium">{formatCurrency(sale.remaining_amount)}</td>
                         <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                           {sale.due_date ? new Date(sale.due_date).toLocaleDateString() : '—'}
                         </td>
@@ -325,15 +328,15 @@ export default function CreditSalesPage() {
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{t('customer') || 'Customer'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{selectedSale.customer_name}</span>
+                <span className="font-medium text-gray-900 dark:text-white">{getCustomerName(selectedSale)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{t('order') || 'Order'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{selectedSale.order_number}</span>
+                <span className="font-medium text-gray-900 dark:text-white">{getOrderRef(selectedSale)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{t('remaining') || 'Remaining'}</span>
-                <span className="font-semibold text-red-600 dark:text-red-400">{formatCurrency(selectedSale.remaining)}</span>
+                <span className="font-semibold text-red-600 dark:text-red-400">{formatCurrency(selectedSale.remaining_amount)}</span>
               </div>
             </div>
             <form onSubmit={handleRecordPayment} className="space-y-4">
@@ -343,7 +346,7 @@ export default function CreditSalesPage() {
                   type="number"
                   step="0.01"
                   min="0.01"
-                  max={selectedSale.remaining}
+                  max={selectedSale.remaining_amount}
                   value={paymentForm.amount}
                   onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
