@@ -80,25 +80,17 @@ router.get('/active/stats', async (req, res, next) => {
     if (shiftError) throw shiftError
     if (!shift) return res.json(null)
 
-    const { data: orders } = await supabase
+    // Find orders by user + date range (no shift_id dependency)
+    const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('total, payment_method')
       .eq('tenant_id', req.user?.tenantId)
-      .eq('shift_id', shift.id)
+      .eq('user_id', req.user.id)
       .gte('created_at', shift.opened_at)
 
-    let orderList = orders || []
+    if (ordersError) console.error('[SHIFT STATS] Orders query failed:', ordersError.message)
 
-    // Fallback: if shift_id column wasn't migrated, find orders by user + date
-    if (orderList.length === 0) {
-      const { data: fallbackOrders } = await supabase
-        .from('orders')
-        .select('total, payment_method')
-        .eq('tenant_id', req.user?.tenantId)
-        .eq('user_id', req.user.id)
-        .gte('created_at', shift.opened_at)
-      orderList = fallbackOrders || []
-    }
+    const orderList = orders || []
 
     const totalOrders = orderList.length
     const totalCash = orderList
