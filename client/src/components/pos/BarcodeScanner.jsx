@@ -14,10 +14,12 @@ export default function BarcodeScanner({ onScan, onClose }) {
   const [flash, setFlash] = useState(false)
   const [cameraError, setCameraError] = useState('')
   const inputRef = useRef(null)
-  const scannerRef = useRef(null)
+  const videoRef = useRef(null)
+  const streamRef = useRef(null)
+  const animFrameRef = useRef(null)
   const lastScanRef = useRef('')
   const lastScanTimeRef = useRef(0)
-  const containerRef = useRef(null)
+  const detectorRef = useRef(null)
 
   useEffect(() => {
     if (mode === 'manual') {
@@ -27,7 +29,7 @@ export default function BarcodeScanner({ onScan, onClose }) {
 
   useEffect(() => {
     return () => {
-      stopCameraScanner()
+      stopCamera()
     }
   }, [])
 
@@ -55,80 +57,115 @@ export default function BarcodeScanner({ onScan, onClose }) {
     }
   }
 
-  const startCameraScanner = async () => {
+  const scanFrame = useCallback(() => {
+    if (!videoRef.current || !detectorRef.current || videoRef.current.readyState < 2) {
+      animFrameRef.current = requestAnimationFrame(scanFrame)
+      return
+    }
+
+    detectorRef.current.detectFromVideo(videoRef.current).then(barcodes => {
+      if (barcodes.length > 0) {
+        const barcode = barcodes[0].rawValue
+        if (barcode) {
+          handleScanResult(barcode)
+        }
+      }
+    }).catch(() => {})
+
+    animFrameRef.current = requestAnimationFrame(scanFrame)
+  }, [handleScanResult])
+
+  const startCamera = async () => {
     try {
       setCameraLoading(true)
       setCameraError('')
       setMode('camera')
 
-      // Wait for DOM to render
+      // Check if BarcodeDetector is natively supported, otherwise use @zxing/library
+      let useNative = 'BarcodeDetector' in window
+
+      if (useNative) {
+        // Try native BarcodeDetector
+        try {
+          const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'] })
+          detectorRef.current = { detectFromVideo: (video) => detector.detect(video) }
+        } catch (e) {
+          useNative = false
+        }
+      }
+
+      if (!useNative) {
+        const { BrowserMultiFormatReader } = await import('@zxing/library')
+        const reader = new BrowserMultiFormatReader()
+        detectorRef.current = {
+          detectFromVideo: async (video) => {
+            try {
+              const result = await reader.decodeOnceFromVideoDevice(undefined, video)
+              return result ? [{ rawValue: result.getText() }] : []
+            } catch (e) {
+              return []
+            }
+          }
+        }
+      }
+
+      // Get camera stream
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      })
+      streamRef.current = stream
+
+      // Wait for DOM
       await new Promise(resolve => setTimeout(resolve, 100))
 
-      const { Html5Qrcode } = await import('html5-qrcode')
-
-      // Clean up any existing instance
-      if (scannerRef.current) {
-        try { await scannerRef.current.stop() } catch (e) {}
-        scannerRef.current = null
-      }
-
-      // Make sure container exists
-      const container = document.getElementById('barcode-scanner')
-      if (!container) {
-        setCameraError('Scanner container not found')
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        await videoRef.current.play()
+        setIsScanning(true)
         setCameraLoading(false)
-        setMode('manual')
-        return
+        // Start scanning loop
+        animFrameRef.current = requestAnimationFrame(scanFrame)
       }
-
-      // Clear previous content
-      container.innerHTML = ''
-
-      const scanner = new Html5Qrcode('barcode-scanner')
-      scannerRef.current = scanner
-
-      await scanner.start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-        },
-        (decodedText) => {
-          handleScanResult(decodedText)
-        },
-        () => {}
-      )
-
-      setIsScanning(true)
-      setCameraLoading(false)
     } catch (err) {
-      console.error('Camera scanner error:', err)
+      console.error('Camera error:', err)
       setIsScanning(false)
       setCameraLoading(false)
       setMode('manual')
-      setCameraError(err.message || 'Could not access camera')
+      if (err.name === 'NotAllowedError') {
+        setCameraError('Camera permission denied. Please allow camera access in your browser settings.')
+      } else if (err.name === 'NotFoundError') {
+        setCameraError('No camera found on this device.')
+      } else {
+        setCameraError(err.message || 'Could not access camera')
+      }
     }
   }
 
-  const stopCameraScanner = async () => {
-    if (scannerRef.current) {
-      try { await scannerRef.current.stop() } catch (e) {}
-      try { scannerRef.current.clear() } catch (e) {}
-      scannerRef.current = null
+  const stopCamera = () => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current)
+      animFrameRef.current = null
     }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    detectorRef.current = null
     setIsScanning(false)
   }
 
-  const switchToManual = async () => {
-    await stopCameraScanner()
+  const switchToManual = () => {
+    stopCamera()
     setMode('manual')
     setCameraError('')
   }
 
-  const switchToCamera = async () => {
-    await stopCameraScanner()
-    startCameraScanner()
+  const switchToCamera = () => {
+    stopCamera()
+    startCamera()
   }
 
   return (
@@ -146,7 +183,7 @@ export default function BarcodeScanner({ onScan, onClose }) {
           </div>
           <button
             onClick={() => {
-              stopCameraScanner()
+              stopCamera()
               onClose()
             }}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -234,11 +271,24 @@ export default function BarcodeScanner({ onScan, onClose }) {
             </form>
           ) : (
             <div className="space-y-4">
-              <div
-                ref={containerRef}
-                id="barcode-scanner"
-                className="w-full h-64 bg-gray-900 rounded-lg overflow-hidden"
-              />
+              <div className="relative w-full h-64 bg-gray-900 rounded-lg overflow-hidden">
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                  playsInline
+                  muted
+                />
+                {/* Scan overlay */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-56 h-56 border-2 border-white/50 rounded-lg">
+                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-primary-500 rounded-tl-lg" />
+                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-primary-500 rounded-tr-lg" />
+                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-primary-500 rounded-bl-lg" />
+                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-primary-500 rounded-br-lg" />
+                    <div className="absolute top-1/2 left-2 right-2 h-0.5 bg-primary-500/70 animate-pulse" />
+                  </div>
+                </div>
+              </div>
               {cameraLoading && (
                 <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
                   <Loader2 className="w-5 h-5 animate-spin" />
