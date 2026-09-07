@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
-import { productVariantsApi } from '../lib/api'
+import { productVariantsApi, productsApi } from '../lib/api'
 import {
   Package,
   Plus,
@@ -52,10 +52,7 @@ export default function ProductVariantsPage() {
 
   const loadProducts = async () => {
     try {
-      const res = await productVariantsApi.getByProduct ? null : null
-      // Fetch all products from the API
-      const response = await fetch('/api/products', { credentials: 'include' })
-      const data = await response.json()
+      const { data } = await productsApi.getAll()
       setProducts(data.data || data || [])
     } catch (err) {
       toastError(err.message || 'Failed to load products')

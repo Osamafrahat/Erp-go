@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
-import { purchaseOrdersApi } from '../lib/api'
+import { purchaseOrdersApi, suppliersApi, productsApi } from '../lib/api'
 import {
   ShoppingCart,
   Plus,
@@ -54,11 +54,11 @@ export default function PurchaseOrdersPage() {
   const loadDropdowns = async () => {
     try {
       const [supRes, prodRes] = await Promise.all([
-        fetch('/api/suppliers', { credentials: 'include' }).then((r) => r.json()),
-        fetch('/api/products', { credentials: 'include' }).then((r) => r.json())
+        suppliersApi.getAll(),
+        productsApi.getAll()
       ])
-      setSuppliers(supRes.data || supRes || [])
-      setProducts(prodRes.data || prodRes || [])
+      setSuppliers(supRes.data.data || supRes.data || [])
+      setProducts(prodRes.data.data || prodRes.data || [])
     } catch (err) {
       // silent
     }
