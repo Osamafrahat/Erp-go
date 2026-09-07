@@ -20,7 +20,7 @@ router.post('/checkout', authenticateToken, requireManager, async (req, res) => 
     const publicKey = process.env.PAYMOB_PUBLIC_KEY
     const cardIntegrationId = process.env.PAYMOB_CARD_INTEGRATION_ID
     const walletIntegrationId = process.env.PAYMOB_WALLET_INTEGRATION_ID
-    const webhookUrl = 'https://erp-go-crimson-wind-2087.fly.dev/api/billing/paymob/webhook'
+    const webhookUrl = `${process.env.BACKEND_URL || 'https://erp-go-crimson-wind-2087.fly.dev'}/api/billing/paymob/webhook`
     const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/pricing`
 
     if (!secretKey || !publicKey || !cardIntegrationId) {
@@ -485,7 +485,7 @@ router.post('/tokenize', authenticateToken, requireManager, async (req, res) => 
     const secretKey = process.env.PAYMOB_SECRET_KEY
     const publicKey = process.env.PAYMOB_PUBLIC_KEY
     const cardIntegrationId = process.env.PAYMOB_CARD_INTEGRATION_ID
-    const webhookUrl = 'https://erp-go-crimson-wind-2087.fly.dev/api/billing/paymob/webhook'
+    const webhookUrl = `${process.env.BACKEND_URL || 'https://erp-go-crimson-wind-2087.fly.dev'}/api/billing/paymob/webhook`
     const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/billing`
 
     if (!secretKey || !publicKey || !cardIntegrationId) {

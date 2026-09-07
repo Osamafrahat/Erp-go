@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS tenants (
   id BIGSERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   slug TEXT NOT NULL UNIQUE,
-  logo TEXT,
+  logo_url TEXT,
   address TEXT,
   phone TEXT,
   email TEXT,

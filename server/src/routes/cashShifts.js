@@ -162,7 +162,7 @@ router.get('/:id/orders', async (req, res, next) => {
   try {
     const { data: shift, error: shiftError } = await supabase
       .from('cash_shifts')
-      .select('opened_at, closed_at')
+      .select('status, opened_at, closed_at')
       .eq('id', req.params.id)
       .eq('tenant_id', req.user?.tenantId)
       .single()
