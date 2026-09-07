@@ -3,6 +3,7 @@ import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { superAdminApi } from '../lib/api'
 import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard, Database } from 'lucide-react'
+import ConfirmModal from '../components/ConfirmModal'
 
 const tierColors = {
   free: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
@@ -284,6 +285,7 @@ function TenantsTab({ t, showToast }) {
   const [actionLoading, setActionLoading] = useState(null)
   const [showCreate, setShowCreate] = useState(false)
   const [detailTenant, setDetailTenant] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const limit = 15
 
   const statusLabels = {
@@ -341,13 +343,17 @@ function TenantsTab({ t, showToast }) {
   }
 
   const handleDelete = async (tenantId, tenantName) => {
-    if (!window.confirm(t('admin.deleteConfirm') || `Delete "${tenantName}" and ALL its data?`)) return
-    setActionLoading(tenantId)
+    setDeleteTarget({ id: tenantId, name: tenantName })
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    setActionLoading(deleteTarget.id)
     try {
-      await superAdminApi.deleteTenant(tenantId)
-      setTenants(prev => prev.filter(t => t.id !== tenantId))
+      await superAdminApi.deleteTenant(deleteTarget.id)
+      setTenants(prev => prev.filter(t => t.id !== deleteTarget.id))
       showToast(t('admin.tenantDeleted') || 'Deleted')
-    } catch (err) { showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error') } finally { setActionLoading(null) }
+    } catch (err) { showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error') } finally { setActionLoading(null); setDeleteTarget(null) }
   }
 
   const totalPages = Math.ceil(total / limit)
@@ -452,6 +458,15 @@ function TenantsTab({ t, showToast }) {
 
       {showCreate && <CreateTenantModal t={t} showToast={showToast} onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); fetchTenants() }} />}
       {detailTenant && <TenantDetailModal t={t} tenantId={detailTenant.id} onClose={() => setDetailTenant(null)} />}
+      <ConfirmModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        title={t('admin.deleteConfirm') || 'Delete Tenant'}
+        message={deleteTarget ? `Delete "${deleteTarget.name}" and ALL its data? This cannot be undone.` : ''}
+        confirmText={t('common.delete') || 'Delete'}
+        type="danger"
+      />
     </>
   )
 }

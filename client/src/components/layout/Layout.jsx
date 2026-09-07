@@ -42,11 +42,10 @@ import {
   Crown,
   Sparkles,
   Shield,
-  Banknote,
-  GitBranch,
-  ShoppingCart,
-  ClipboardList,
-  AlertTriangle,
+   Banknote,
+   GitBranch,
+   ClipboardList,
+   AlertTriangle,
 } from 'lucide-react'
 import ChatWidget from '../ChatWidget'
 

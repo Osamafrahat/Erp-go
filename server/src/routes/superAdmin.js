@@ -279,41 +279,85 @@ router.delete('/tenants/:id', async (req, res) => {
       .single()
     if (findErr || !tenant) return res.status(404).json({ error: 'Tenant not found' })
 
-    // Child tables first ( deepest dependencies ), then parent tables
-    const tables = [
-      // Deepest children first
-      'refund_items', 'order_items', 'payment_splits', 'journal_entry_lines',
-      'stock_movements', 'payroll_items', 'shift_assignments', 'review_criteria',
-      'subscription_payments', 'credit_payments', 'purchase_order_items',
-      'commissions', 'cash_shifts', 'product_variants', 'product_batches',
-      'saved_payment_methods', 'messages',
-      // Mid-level
-      'refunds', 'orders', 'payments', 'journal_entries', 'expenses',
-      'attendance', 'leave_requests', 'performance_reviews', 'payroll',
-      'subscriptions', 'credit_sales', 'purchase_orders',
-      'promotions', 'activities', 'activity_log',
-      // Top-level entities
-      'products', 'categories', 'customers', 'employees', 'suppliers',
-      'shifts', 'leave_types', 'services', 'service_plans',
-      'accounts', 'account_balances', 'store_settings',
-      'users', 'tenant_payments',
-      // Tenant itself last
-      'tenants',
-    ]
+    const tid = tenantId
 
-    for (const table of tables) {
-      try {
-        await supabase.from(table).delete().eq('tenant_id', tenantId)
-      } catch (e) {
-        // Table might not exist or have no tenant_id column — skip silently
-      }
+    // Helper: safe delete via exec_sql (uses SECURITY DEFINER to bypass FK constraints)
+    const safeDel = async (table, where) => {
+      const { error } = await supabase.rpc('exec_sql', {
+        sql: `DELETE FROM ${table} WHERE ${where};`
+      })
+      if (error) console.error(`[SuperAdmin] Delete ${table}: ${error.message}`)
     }
 
-    // Final safety: delete tenant by ID in case it wasn't deleted above
-    await supabase.from('tenants').delete().eq('id', tenantId)
+    // 1. Collect parent IDs first
+    const { data: orders } = await supabase.from('orders').select('id').eq('tenant_id', tid)
+    const { data: journals } = await supabase.from('journal_entries').select('id').eq('tenant_id', tid)
+    const { data: pays } = await supabase.from('payroll').select('id').eq('tenant_id', tid)
+    const { data: pos } = await supabase.from('purchase_orders').select('id').eq('tenant_id', tid)
+    const { data: refs } = await supabase.from('refunds').select('id').eq('tenant_id', tid)
+
+    const oIds = (orders || []).map(r => r.id)
+    const jIds = (journals || []).map(r => r.id)
+    const pIds = (pays || []).map(r => r.id)
+    const poIds = (pos || []).map(r => r.id)
+    const rIds = (refs || []).map(r => r.id)
+
+    // 2. Delete deepest children via exec_sql
+    if (oIds.length) await safeDel('order_items', `order_id IN (${oIds.join(',')})`)
+    if (rIds.length) await safeDel('refund_items', `refund_id IN (${rIds.join(',')})`)
+    if (jIds.length) await safeDel('journal_entry_lines', `journal_entry_id IN (${jIds.join(',')})`)
+    if (pIds.length) await safeDel('payroll_items', `payroll_id IN (${pIds.join(',')})`)
+    if (poIds.length) await safeDel('purchase_order_items', `purchase_order_id IN (${poIds.join(',')})`)
+    await safeDel('payment_splits', `tenant_id = ${tid}`)
+    await safeDel('stock_movements', `tenant_id = ${tid}`)
+    await safeDel('review_criteria', `tenant_id = ${tid}`)
+    await safeDel('subscription_payments', `tenant_id = ${tid}`)
+    await safeDel('credit_payments', `tenant_id = ${tid}`)
+    await safeDel('commissions', `tenant_id = ${tid}`)
+    await safeDel('cash_shifts', `tenant_id = ${tid}`)
+    await safeDel('product_variants', `tenant_id = ${tid}`)
+    await safeDel('product_batches', `tenant_id = ${tid}`)
+    await safeDel('saved_payment_methods', `tenant_id = ${tid}`)
+    await safeDel('messages', `tenant_id = ${tid}`)
+
+    // 3. Mid-level
+    await safeDel('refunds', `tenant_id = ${tid}`)
+    await safeDel('orders', `tenant_id = ${tid}`)
+    await safeDel('payments', `tenant_id = ${tid}`)
+    await safeDel('journal_entries', `tenant_id = ${tid}`)
+    await safeDel('expenses', `tenant_id = ${tid}`)
+    await safeDel('attendance', `tenant_id = ${tid}`)
+    await safeDel('leave_requests', `tenant_id = ${tid}`)
+    await safeDel('performance_reviews', `tenant_id = ${tid}`)
+    await safeDel('payroll', `tenant_id = ${tid}`)
+    await safeDel('subscriptions', `tenant_id = ${tid}`)
+    await safeDel('credit_sales', `tenant_id = ${tid}`)
+    await safeDel('purchase_orders', `tenant_id = ${tid}`)
+    await safeDel('promotions', `tenant_id = ${tid}`)
+    await safeDel('activity_log', `tenant_id = ${tid}`)
+
+    // 4. Top-level
+    await safeDel('products', `tenant_id = ${tid}`)
+    await safeDel('categories', `tenant_id = ${tid}`)
+    await safeDel('customers', `tenant_id = ${tid}`)
+    await safeDel('employees', `tenant_id = ${tid}`)
+    await safeDel('suppliers', `tenant_id = ${tid}`)
+    await safeDel('shifts', `tenant_id = ${tid}`)
+    await safeDel('leave_types', `tenant_id = ${tid}`)
+    await safeDel('services', `tenant_id = ${tid}`)
+    await safeDel('service_plans', `tenant_id = ${tid}`)
+    await safeDel('accounts', `tenant_id = ${tid}`)
+    await safeDel('account_balances', `tenant_id = ${tid}`)
+    await safeDel('store_settings', `tenant_id = ${tid}`)
+    await safeDel('users', `tenant_id = ${tid}`)
+    await safeDel('tenant_payments', `tenant_id = ${tid}`)
+
+    // 5. Tenant itself
+    await safeDel('tenants', `id = ${tid}`)
 
     res.json({ message: `Tenant "${tenant.name}" and all its data have been permanently deleted` })
   } catch (err) {
+    console.error('[SuperAdmin] Delete tenant error:', err.message)
     res.status(500).json({ error: err.message })
   }
 })
