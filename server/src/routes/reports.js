@@ -56,6 +56,7 @@ router.get('/sales', async (req, res, next) => {
         .from('order_items')
         .select('*, products(name)')
         .in('order_id', orderIds)
+        .eq('tenant_id', req.user.tenantId)
 
       if (orderItems) {
         itemsSold = orderItems.reduce((sum, i) => sum + (i.quantity || 0), 0)

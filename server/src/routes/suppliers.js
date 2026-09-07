@@ -19,6 +19,7 @@ router.get('/', async (req, res, next) => {
     const { data, error } = await supabase
       .from('suppliers')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .order('name')
 
     if (error) throw error
@@ -31,6 +32,7 @@ router.get('/', async (req, res, next) => {
           .from('accounts')
           .select('balance')
           .eq('code', supplier.account_code)
+          .eq('tenant_id', req.user?.tenantId)
           .single()
         balance = account?.balance || 0
       }
@@ -52,6 +54,7 @@ router.get('/:id', [
       .from('suppliers')
       .select('*')
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (error || !data) {
@@ -75,6 +78,7 @@ router.post('/', authenticateToken, requirePermission('suppliers_edit'), [
     const { data, error } = await supabase
       .from('suppliers')
       .insert({
+        tenant_id: req.user?.tenantId,
         name,
         contact_person: contact_person || null,
         email: email || null,
@@ -93,6 +97,7 @@ router.post('/', authenticateToken, requirePermission('suppliers_edit'), [
       .from('suppliers')
       .update({ account_code: accountCode })
       .eq('id', data.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     data.account_code = accountCode
 
@@ -122,6 +127,7 @@ router.put('/:id', authenticateToken, requirePermission('suppliers_edit'), [
         notes: notes || null
       })
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
 
@@ -142,6 +148,7 @@ router.delete('/:id', authenticateToken, requirePermission('suppliers_edit'), [
       .from('suppliers')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     if (error) throw error
     req.logActivity({ action: 'deleted', entity_type: 'supplier', entity_id: req.params.id })

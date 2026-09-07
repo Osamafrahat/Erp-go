@@ -19,6 +19,7 @@ router.get('/', async (req, res, next) => {
     const { data, error } = await supabase
       .from('promotions')
       .select('*')
+      .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -41,6 +42,7 @@ router.post('/validate', [
       .select('*')
       .eq('code', code.toUpperCase())
       .eq('is_active', true)
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (error || !promo) {
@@ -82,6 +84,7 @@ router.post('/', authenticateToken, requirePermission('promotions_edit'), [
       .from('promotions')
       .select('id')
       .eq('code', code.toUpperCase())
+      .eq('tenant_id', req.user?.tenantId)
       .single()
 
     if (existing) {
@@ -91,6 +94,7 @@ router.post('/', authenticateToken, requirePermission('promotions_edit'), [
     const { data, error } = await supabase
       .from('promotions')
       .insert({
+        tenant_id: req.user?.tenantId,
         code: code.toUpperCase(),
         type,
         value,
@@ -132,6 +136,7 @@ router.put('/:id', authenticateToken, requirePermission('promotions_edit'), [
       .from('promotions')
       .update(updateData)
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
       .select()
       .single()
 
@@ -152,6 +157,7 @@ router.delete('/:id', authenticateToken, requirePermission('promotions_edit'), [
       .from('promotions')
       .delete()
       .eq('id', req.params.id)
+      .eq('tenant_id', req.user?.tenantId)
 
     if (error) throw error
     req.logActivity({ action: 'deleted', entity_type: 'promotion', entity_id: req.params.id })

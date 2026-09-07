@@ -6,11 +6,11 @@ import { sanitizeSearch } from '../helpers/search.js'
 const router = Router()
 
 // Helper: find account by code, auto-seed if missing
-async function findAccount(code) {
-  let { data } = await supabase.from('accounts').select('id').eq('code', code).single()
+async function findAccount(code, tenantId) {
+  let { data } = await supabase.from('accounts').select('id').eq('code', code).eq('tenant_id', tenantId).single()
   if (!data) {
     await seedChartOfAccounts()
-    const retry = await supabase.from('accounts').select('id').eq('code', code).single()
+    const retry = await supabase.from('accounts').select('id').eq('code', code).eq('tenant_id', tenantId).single()
     data = retry.data
   }
   return data
@@ -82,9 +82,9 @@ router.post('/', async (req, res) => {
     if (error) throw error
 
     // Auto-post journal entry
-    const cashAccount = await findAccount('1010')
-    const bankAccount = await findAccount('1020')
-    const arAccount = await findAccount('1030')
+    const cashAccount = await findAccount('1010', req.user.tenantId)
+    const bankAccount = await findAccount('1020', req.user.tenantId)
+    const arAccount = await findAccount('1030', req.user.tenantId)
 
     // For inbound payments from customers, use customer-specific AR account
     let customerArAccount = null
@@ -96,7 +96,7 @@ router.post('/', async (req, res) => {
         .eq('id', partner_id)
         .single()
       if (customer?.account_code) {
-        customerArAccount = await findAccount(customer.account_code)
+        customerArAccount = await findAccount(customer.account_code, req.user.tenantId)
       }
     }
     const effectiveArAccount = customerArAccount || arAccount
@@ -111,11 +111,11 @@ router.post('/', async (req, res) => {
         .eq('id', partner_id)
         .single()
       if (supplier?.account_code) {
-        apAccount = await findAccount(supplier.account_code)
+        apAccount = await findAccount(supplier.account_code, req.user.tenantId)
       }
     }
     if (!apAccount) {
-      apAccount = await findAccount('2010')
+      apAccount = await findAccount('2010', req.user.tenantId)
     }
 
     // Card, check, bank_transfer all settle to bank account

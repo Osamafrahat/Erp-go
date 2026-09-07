@@ -4153,7 +4153,7 @@ export const translations = {
     'admin.actionExpired': 'انتهت',
     'admin.actionLogin': 'دخول',
     'layout.upgrade': 'ترقية',
-    'layout.billing': 'الفواتير',
+    'layout.billing': 'الدفع',
     'layout.superAdmin': 'الإدارة العليا',
     'layout.groupSubscription': 'الاشتراك',
     'layout.trialBadge': 'تجربة',
