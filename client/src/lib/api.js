@@ -391,6 +391,7 @@ export const paymobApi = {
 export const cashShiftsApi = {
   getAll: (params) => api.get('/cash-shifts', { params }),
   getActive: () => api.get('/cash-shifts/active'),
+  getActiveStats: () => api.get('/cash-shifts/active/stats'),
   open: (data) => api.post('/cash-shifts', data),
   close: (id, data) => api.patch(`/cash-shifts/${id}/close`, data),
   getById: (id) => api.get(`/cash-shifts/${id}`),

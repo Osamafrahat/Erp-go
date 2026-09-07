@@ -64,6 +64,50 @@ router.get('/active', async (req, res, next) => {
   }
 })
 
+// Get real-time stats for active shift
+router.get('/active/stats', async (req, res, next) => {
+  try {
+    const { data: shift, error: shiftError } = await supabase
+      .from('cash_shifts')
+      .select('id, opening_balance, opened_at')
+      .eq('tenant_id', req.user?.tenantId)
+      .eq('user_id', req.user.id)
+      .eq('status', 'open')
+      .order('opened_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (shiftError) throw shiftError
+    if (!shift) return res.json(null)
+
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('total, payment_method')
+      .eq('tenant_id', req.user?.tenantId)
+      .eq('shift_id', shift.id)
+      .gte('created_at', shift.opened_at)
+
+    const orderList = orders || []
+    const totalOrders = orderList.length
+    const totalCash = orderList
+      .filter(o => o.payment_method === 'cash')
+      .reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
+    const totalSales = orderList.reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
+
+    res.json({
+      shift_id: shift.id,
+      opening_balance: parseFloat(shift.opening_balance),
+      total_orders: totalOrders,
+      total_cash: totalCash,
+      total_sales: totalSales,
+      expected_cash: parseFloat(shift.opening_balance) + totalCash,
+      opened_at: shift.opened_at,
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // Get all shifts
 router.get('/', async (req, res, next) => {
   try {

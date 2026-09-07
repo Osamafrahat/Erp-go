@@ -12,6 +12,7 @@ import PaymentModal from '../components/pos/PaymentModal'
 import BarcodeScanner from '../components/pos/BarcodeScanner'
 import ReceiptModal from '../components/pos/ReceiptModal'
 import { Search, Zap, User, Wrench, CreditCard, WifiOff, Pause, Play } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -30,6 +31,8 @@ export default function POSPage() {
   const [heldTransactions, setHeldTransactions] = useState([])
   const [showHeld, setShowHeld] = useState(false)
   const [activeShift, setActiveShift] = useState(null)
+  const [shiftStats, setShiftStats] = useState(null)
+  const [showCashBoxPanel, setShowCashBoxPanel] = useState(false)
   const [showCashBoxModal, setShowCashBoxModal] = useState(false)
   const [cashBoxBalance, setCashBoxBalance] = useState('')
   const [cashBoxNotes, setCashBoxNotes] = useState('')
@@ -43,6 +46,7 @@ export default function POSPage() {
   const { settings, t, toastSuccess, toastError } = useAppStore()
   const { currentUser } = useUserStore()
   const { isOnline, cacheData, loadCachedData, queueOrder } = useOfflineStore()
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchData()
@@ -53,8 +57,21 @@ export default function POSPage() {
     try {
       const res = await cashShiftsApi.getActive()
       setActiveShift(res.data || null)
+      if (res.data) {
+        fetchShiftStats()
+      }
     } catch (err) {
       setActiveShift(null)
+      setShiftStats(null)
+    }
+  }
+
+  const fetchShiftStats = async () => {
+    try {
+      const res = await cashShiftsApi.getActiveStats()
+      setShiftStats(res.data || null)
+    } catch (err) {
+      console.error('Failed to fetch shift stats:', err)
     }
   }
 
@@ -287,11 +304,52 @@ export default function POSPage() {
         </div>
       )}
 
-      {/* Cash Box Status */}
+      {/* Cash Box Panel */}
       {activeShift && (
-        <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-sm font-medium rounded-xl shrink-0">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          {t('pos.cashBoxOpen') || 'Cash Box Open'} — {formatCurrency(activeShift.opening_balance)}
+        <div className="shrink-0">
+          <button
+            onClick={() => setShowCashBoxPanel(!showCashBoxPanel)}
+            className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-sm font-medium rounded-xl hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors w-full"
+          >
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            {t('pos.cashBoxOpen') || 'Cash Box Open'}
+            {shiftStats && (
+              <span className="ml-auto text-xs opacity-75">
+                {t('pos.sales') || 'Sales'}: {formatCurrency(shiftStats.total_sales)}
+              </span>
+            )}
+          </button>
+
+          {showCashBoxPanel && shiftStats && (
+            <div className="mt-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-lg">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">{t('openingBalance') || 'Opening'}</p>
+                  <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{formatCurrency(shiftStats.opening_balance)}</p>
+                </div>
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                  <p className="text-xs text-green-600 dark:text-green-400 mb-1">{t('pos.totalCash') || 'Cash Received'}</p>
+                  <p className="text-lg font-bold text-green-700 dark:text-green-300">{formatCurrency(shiftStats.total_cash)}</p>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                  <p className="text-xs text-purple-600 dark:text-purple-400 mb-1">{t('pos.totalOrders') || 'Orders'}</p>
+                  <p className="text-lg font-bold text-purple-700 dark:text-purple-300">{shiftStats.total_orders}</p>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mb-1">{t('expectedCash') || 'Expected Cash'}</p>
+                  <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{formatCurrency(shiftStats.expected_cash)}</p>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => navigate('/cash-shift')}
+                  className="w-full py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                >
+                  {t('closeShift') || 'Close Shift'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -685,6 +743,7 @@ export default function POSPage() {
 
               if (navigator.onLine) {
                 fetchData()
+                fetchShiftStats()
               }
             } catch (err) {
               console.error('Failed to create order:', err)
