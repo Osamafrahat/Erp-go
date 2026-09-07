@@ -13,7 +13,8 @@ import {
   Truck,
   CheckCircle,
   Trash2,
-  FileText
+  FileText,
+  Send
 } from 'lucide-react'
 
 export default function PurchaseOrdersPage() {
@@ -131,6 +132,17 @@ export default function PurchaseOrdersPage() {
     }
   }
 
+  const handleSend = async (id) => {
+    if (!confirm('Mark this order as sent to supplier?')) return
+    try {
+      await purchaseOrdersApi.update(id, { status: 'sent' })
+      toastSuccess('Order marked as sent')
+      fetchData()
+    } catch (err) {
+      toastError(err.message || 'Failed to send order')
+    }
+  }
+
   const handleReceive = async (id) => {
     if (!confirm(t('confirmReceive') || 'Mark this order as received?')) return
     try {
@@ -183,10 +195,12 @@ export default function PurchaseOrdersPage() {
     }
   }
 
+  const getSupplierName = (po) => po.suppliers?.name || po.supplier_name || '—'
+
   const filteredOrders = orders.filter(
     (o) =>
-      o.po_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      o.order_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getSupplierName(o).toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   if (loading) {
@@ -232,7 +246,7 @@ export default function PurchaseOrdersPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">{t('pending') || 'Pending'}</p>
-              <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats?.pending || 0}</p>
+              <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats?.pending_count || 0}</p>
             </div>
           </div>
         </div>
@@ -243,7 +257,7 @@ export default function PurchaseOrdersPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">{t('received') || 'Received'}</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats?.received || 0}</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats?.received_count || 0}</p>
             </div>
           </div>
         </div>
@@ -313,8 +327,8 @@ export default function PurchaseOrdersPage() {
               ) : (
                 filteredOrders.map((po) => (
                   <tr key={po.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                    <td className="px-5 py-4 text-sm font-mono font-medium text-gray-900 dark:text-white">{po.po_number}</td>
-                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{po.supplier_name}</td>
+                    <td className="px-5 py-4 text-sm font-mono font-medium text-gray-900 dark:text-white">{po.order_number}</td>
+                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{getSupplierName(po)}</td>
                     <td className="px-5 py-4 text-sm text-center text-gray-600 dark:text-gray-300">{po.items_count || po.items?.length || 0}</td>
                     <td className="px-5 py-4 text-sm text-right text-gray-900 dark:text-white font-medium">{formatCurrency(po.total)}</td>
                     <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
@@ -331,6 +345,11 @@ export default function PurchaseOrdersPage() {
                         <button onClick={() => viewDetail(po.id)} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title={t('view') || 'View'}>
                           <Eye className="h-4 w-4" />
                         </button>
+                        {po.status === 'draft' && (
+                          <button onClick={() => handleSend(po.id)} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title={t('send') || 'Send'}>
+                            <Send className="h-4 w-4" />
+                          </button>
+                        )}
                         {(po.status === 'draft' || po.status === 'sent') && (
                           <button onClick={() => handleReceive(po.id)} className="p-1.5 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors" title={t('receive') || 'Receive'}>
                             <CheckCircle className="h-4 w-4" />
@@ -458,7 +477,7 @@ export default function PurchaseOrdersPage() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                {showDetail.po_number}
+                {showDetail.order_number}
               </h3>
               <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <X className="h-5 w-5" />
@@ -468,7 +487,7 @@ export default function PurchaseOrdersPage() {
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{t('supplier') || 'Supplier'}</p>
-                <p className="font-medium text-gray-900 dark:text-white">{showDetail.supplier_name}</p>
+                <p className="font-medium text-gray-900 dark:text-white">{getSupplierName(showDetail)}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{t('status') || 'Status'}</p>
@@ -513,7 +532,7 @@ export default function PurchaseOrdersPage() {
                       <td className="px-4 py-3 text-sm text-right text-gray-600 dark:text-gray-300">{item.quantity}</td>
                       <td className="px-4 py-3 text-sm text-right text-gray-600 dark:text-gray-300">{formatCurrency(item.unit_price)}</td>
                       <td className="px-4 py-3 text-sm text-right font-medium text-gray-900 dark:text-white">
-                        {formatCurrency(item.quantity * item.unit_price)}
+                        {formatCurrency(item.line_total || item.quantity * item.unit_price)}
                       </td>
                     </tr>
                   ))}

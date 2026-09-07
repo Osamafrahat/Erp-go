@@ -17,17 +17,18 @@ router.get('/stats', async (req, res, next) => {
   try {
     const { data, error } = await supabase
       .from('purchase_orders')
-      .select('id, total_amount, status')
+      .select('id, total, status')
       .eq('tenant_id', req.user?.tenantId)
 
     if (error) throw error
 
     const orders = data || []
     const totalOrders = orders.length
-    const totalValue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0)
-    const pendingCount = orders.filter(o => o.status === 'draft' || o.status === 'pending').length
+    const totalValue = orders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
+    const pendingCount = orders.filter(o => o.status === 'draft' || o.status === 'sent').length
+    const receivedCount = orders.filter(o => o.status === 'received').length
 
-    res.json({ total_orders: totalOrders, total_value: totalValue, pending_count: pendingCount })
+    res.json({ total_orders: totalOrders, total_value: totalValue, pending_count: pendingCount, received_count: receivedCount })
   } catch (err) {
     next(err)
   }
@@ -65,17 +66,29 @@ router.post('/', [
 
     const order_number = `PO-${Date.now()}`
 
-    let total_amount = 0
+    // Lookup product names from product IDs
+    const productIds = items.map(i => i.product_id).filter(Boolean)
+    let productNameMap = {}
+    if (productIds.length > 0) {
+      const { data: prods } = await supabase
+        .from('products')
+        .select('id, name')
+        .in('id', productIds)
+        .eq('tenant_id', req.user?.tenantId)
+      ;(prods || []).forEach(p => { productNameMap[p.id] = p.name })
+    }
+
+    let total = 0
     const processedItems = items.map(item => {
       const quantity = parseFloat(item.quantity)
-      const unit_cost = parseFloat(item.unit_cost)
-      const line_total = quantity * unit_cost
-      total_amount += line_total
+      const unit_price = parseFloat(item.unit_price)
+      const line_total = quantity * unit_price
+      total += line_total
       return {
         product_id: item.product_id,
-        product_name: item.product_name,
+        product_name: productNameMap[item.product_id] || item.product_name || 'Unknown',
         quantity,
-        unit_cost,
+        unit_price,
         line_total,
         received_quantity: 0,
       }
@@ -87,7 +100,7 @@ router.post('/', [
         tenant_id: req.user?.tenantId,
         supplier_id,
         order_number,
-        total_amount,
+        total,
         expected_date,
         notes,
         status: 'draft',
@@ -153,17 +166,23 @@ router.put('/:id', async (req, res, next) => {
   try {
     const { status, expected_date, notes, items } = req.body
 
+    const allowedStatuses = ['draft', 'sent', 'received', 'cancelled']
     const updateFields = {}
-    if (status !== undefined) updateFields.status = status
+    if (status !== undefined) {
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({ error: `Invalid status. Must be one of: ${allowedStatuses.join(', ')}` })
+      }
+      updateFields.status = status
+    }
     if (expected_date !== undefined) updateFields.expected_date = expected_date
     if (notes !== undefined) updateFields.notes = notes
 
     if (items && Array.isArray(items)) {
-      let total_amount = 0
+      let total = 0
       for (const item of items) {
-        total_amount += parseFloat(item.quantity) * parseFloat(item.unit_cost)
+        total += parseFloat(item.quantity) * parseFloat(item.unit_price)
       }
-      updateFields.total_amount = total_amount
+      updateFields.total = total
 
       await supabase
         .from('purchase_order_items')
@@ -175,10 +194,10 @@ router.put('/:id', async (req, res, next) => {
         purchase_order_id: req.params.id,
         tenant_id: req.user?.tenantId,
         product_id: item.product_id,
-        product_name: item.product_name,
+        product_name: item.product_name || 'Unknown',
         quantity: parseFloat(item.quantity),
-        unit_cost: parseFloat(item.unit_cost),
-        line_total: parseFloat(item.quantity) * parseFloat(item.unit_cost),
+        unit_price: parseFloat(item.unit_price),
+        line_total: parseFloat(item.quantity) * parseFloat(item.unit_price),
         received_quantity: item.received_quantity || 0,
       }))
 
