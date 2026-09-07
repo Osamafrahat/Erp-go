@@ -294,9 +294,16 @@ router.get('/profit-loss', async (req, res, next) => {
 // Dead Stock Report - products not sold in X days
 router.get('/dead-stock', async (req, res, next) => {
   try {
-    const { days = 90, category_id } = req.query
-    const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - parseInt(days))
+    const { days = 90, from_date, to_date, category_id } = req.query
+
+    // Support both from_date/to_date (from client) and days fallback
+    let cutoffDate
+    if (from_date) {
+      cutoffDate = new Date(from_date)
+    } else {
+      cutoffDate = new Date()
+      cutoffDate.setDate(cutoffDate.getDate() - parseInt(days))
+    }
     const cutoffStr = cutoffDate.toISOString()
 
     // Get all products
@@ -344,13 +351,21 @@ router.get('/dead-stock', async (req, res, next) => {
     const deadStock = (products || [])
       .filter(p => !recentlySoldIds.has(p.id))
       .map(p => ({
-        ...p,
+        id: p.id,
+        product_name: p.name,
+        sku: p.sku,
+        stock_quantity: p.stock_quantity,
+        current_stock: p.stock_quantity,
+        cost_price: p.cost_price,
+        price: p.price,
+        cost: p.cost_price,
+        category: p.categories?.name || null,
         last_sold: lastSaleMap[p.id] || null,
+        last_sold_date: lastSaleMap[p.id] || null,
         days_since_sale: lastSaleMap[p.id]
           ? Math.floor((Date.now() - new Date(lastSaleMap[p.id]).getTime()) / (1000 * 60 * 60 * 24))
           : null,
         stock_value: (p.stock_quantity || 0) * (p.cost_price || 0),
-        category_name: p.categories?.name || null,
       }))
       .sort((a, b) => (b.days_since_sale || 999) - (a.days_since_sale || 999))
 
