@@ -103,7 +103,7 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
 ], validate, async (req, res, next) => {
   try {
     const { name, sku, barcode, category_id, supplier_id, price, cost_price,
-            stock_quantity, low_stock_threshold, is_refundable, unit_of_measure, pieces_per_box, image_url, specifications } = req.body
+            stock_quantity, low_stock_threshold, is_refundable, unit_of_measure, pieces_per_box, image_url, specifications, commission_rate } = req.body
 
     // Check for duplicate SKU
     if (sku) {
@@ -153,7 +153,8 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
         unit_of_measure: unit_of_measure || 'quantity',
         pieces_per_box: unit_of_measure === 'box' ? (pieces_per_box || null) : null,
         image_url: image_url || null,
-        specifications: specifications || []
+        specifications: specifications || [],
+        commission_rate: commission_rate || 0
       })
       .select()
       .single()
@@ -204,7 +205,7 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
     }
 
     const { name, sku, barcode, category_id, supplier_id, price, cost_price,
-            stock_quantity, low_stock_threshold, is_refundable, unit_of_measure, pieces_per_box, image_url, specifications, is_active } = req.body
+            stock_quantity, low_stock_threshold, is_refundable, unit_of_measure, pieces_per_box, image_url, specifications, is_active, commission_rate } = req.body
 
     // Check for duplicate SKU (excluding current product)
     if (sku && sku !== existing.sku) {
@@ -259,6 +260,7 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
         image_url: image_url ?? existing.image_url,
         specifications: specifications ?? existing.specifications,
         is_active: is_active ?? existing.is_active,
+        commission_rate: commission_rate ?? existing.commission_rate,
         updated_at: new Date().toISOString()
       })
       .eq('id', req.params.id)

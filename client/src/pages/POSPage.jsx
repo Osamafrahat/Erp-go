@@ -4,7 +4,7 @@ import { useCartStore } from '../stores/cartStore'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { useOfflineStore } from '../stores/offlineStore'
-import { productsApi, categoriesApi, ordersApi, customersApi, servicesApi, servicePlansApi, subscriptionsApi } from '../lib/api'
+import { productsApi, categoriesApi, ordersApi, customersApi, servicesApi, servicePlansApi, subscriptionsApi, cashShiftsApi } from '../lib/api'
 import { formatCurrency, generateOrderNumber } from '../lib/utils'
 import ProductGrid from '../components/pos/ProductGrid'
 import Cart from '../components/pos/Cart'
@@ -29,6 +29,11 @@ export default function POSPage() {
   const [activeTab, setActiveTab] = useState('products')
   const [heldTransactions, setHeldTransactions] = useState([])
   const [showHeld, setShowHeld] = useState(false)
+  const [activeShift, setActiveShift] = useState(null)
+  const [showCashBoxModal, setShowCashBoxModal] = useState(false)
+  const [cashBoxBalance, setCashBoxBalance] = useState('')
+  const [cashBoxNotes, setCashBoxNotes] = useState('')
+  const [cashBoxSubmitting, setCashBoxSubmitting] = useState(false)
   const searchInputRef = useRef(null)
   const barcodeInputRef = useRef(null)
   const barcodeTimeoutRef = useRef(null)
@@ -41,7 +46,41 @@ export default function POSPage() {
 
   useEffect(() => {
     fetchData()
+    fetchActiveShift()
   }, [])
+
+  const fetchActiveShift = async () => {
+    try {
+      const res = await cashShiftsApi.getActive()
+      setActiveShift(res.data || null)
+    } catch (err) {
+      setActiveShift(null)
+    }
+  }
+
+  const handleOpenCashBox = async (e) => {
+    e.preventDefault()
+    if (!cashBoxBalance || parseFloat(cashBoxBalance) < 0) {
+      toastError('Please enter a valid opening balance')
+      return
+    }
+    try {
+      setCashBoxSubmitting(true)
+      await cashShiftsApi.open({
+        opening_balance: parseFloat(cashBoxBalance),
+        notes: cashBoxNotes
+      })
+      toastSuccess('Cash box opened')
+      setShowCashBoxModal(false)
+      setCashBoxBalance('')
+      setCashBoxNotes('')
+      await fetchActiveShift()
+    } catch (err) {
+      toastError(err.message || 'Failed to open cash box')
+    } finally {
+      setCashBoxSubmitting(false)
+    }
+  }
 
   useEffect(() => {
     searchInputRef.current?.focus()
@@ -245,6 +284,14 @@ export default function POSPage() {
         <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white text-sm font-medium rounded-xl shrink-0">
           <WifiOff className="w-4 h-4" />
           {t('offline.offline') || 'You are offline'} — {t('offline.ordersWillBeQueued') || 'Orders will be saved and synced when connected'}
+        </div>
+      )}
+
+      {/* Cash Box Status */}
+      {activeShift && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-sm font-medium rounded-xl shrink-0">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          {t('pos.cashBoxOpen') || 'Cash Box Open'} — {formatCurrency(activeShift.opening_balance)}
         </div>
       )}
 
@@ -459,7 +506,13 @@ export default function POSPage() {
         </div>
 
         <div className="flex-1">
-          <Cart onCheckout={() => setShowPayment(true)} />
+          <Cart onCheckout={() => {
+            if (!activeShift) {
+              setShowCashBoxModal(true)
+              return
+            }
+            setShowPayment(true)
+          }} />
         </div>
       </div>
 
@@ -568,6 +621,8 @@ export default function POSPage() {
                   promotion_id: null,
                   notes: serviceItems.length > 0 ? `Service sale - ${serviceItems.length} service(s)` : null,
                   created_at: new Date().toISOString(),
+                  shift_id: activeShift?.id || null,
+                  salesperson_id: currentUser?.employeeId || null,
                 }
 
                 if (navigator.onLine) {
@@ -658,6 +713,57 @@ export default function POSPage() {
             setLastOrder(null)
           }}
         />
+      )}
+
+      {/* Cash Box Modal — forced before first sale */}
+      {showCashBoxModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-md shadow-2xl">
+            <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
+              {t('pos.openCashBox') || 'Open Cash Box'}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {t('pos.openCashBoxDesc') || 'Enter the opening balance in the cash drawer'}
+            </p>
+            <form onSubmit={handleOpenCashBox} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t('cashDrawer.openingBalance') || 'Opening Balance'}
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  autoFocus
+                  value={cashBoxBalance}
+                  onChange={(e) => setCashBoxBalance(e.target.value)}
+                  className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t('cashDrawer.notes') || 'Notes'}
+                </label>
+                <textarea
+                  value={cashBoxNotes}
+                  onChange={(e) => setCashBoxNotes(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                  rows={2}
+                  placeholder={t('cashDrawer.optionalNotes') || 'Optional notes'}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={cashBoxSubmitting || !cashBoxBalance}
+                className="w-full py-3 rounded-lg bg-primary-600 text-white font-bold text-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+              >
+                {cashBoxSubmitting ? '...' : (t('pos.openCashBox') || 'Open Cash Box')}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   )

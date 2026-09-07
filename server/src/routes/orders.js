@@ -147,7 +147,8 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
   try {
     const { order_number, items, subtotal, discount_amount, tax_amount, total,
-      payment_method, payment_status, payments, customer_id, promotion_id, client_order_id, notes } = req.body
+      payment_method, payment_status, payments, customer_id, promotion_id, client_order_id, notes,
+      shift_id, salesperson_id } = req.body
 
     if (!order_number) {
       return res.status(400).json({ error: 'Order number is required' })
@@ -192,6 +193,8 @@ router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
         promotion_id: promotion_id || null,
         client_order_id: client_order_id || null,
         notes: notes || null,
+        shift_id: shift_id || null,
+        salesperson_id: salesperson_id || null,
         completed_at: new Date().toISOString()
       })
       .select()
@@ -203,7 +206,7 @@ router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
     res.status(201).json(order)
 
     // Everything below runs in background (fire and forget)
-    processOrderBackground(order, items, payments, customer_id, userId, order_number, total, promotion_id).catch(err => {
+    processOrderBackground(order, items, payments, customer_id, userId, order_number, total, promotion_id, salesperson_id).catch(err => {
       console.error('[ORDER BG] Error:', err.message)
     })
   } catch (err) {
@@ -213,7 +216,7 @@ router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
 })
 
 // Background processing for order (stock, payments, accounting) — OPTIMIZED
-async function processOrderBackground(order, items, payments, customer_id, userId, order_number, total, promotion_id) {
+async function processOrderBackground(order, items, payments, customer_id, userId, order_number, total, promotion_id, salesperson_id) {
   console.log(`[ORDER BG] Processing order ${order_number}`)
   const tid = order.tenant_id
 
@@ -389,6 +392,51 @@ async function processOrderBackground(order, items, payments, customer_id, userI
       details: { total, items_count: items.length }
     })
   } catch (e) {}
+
+  // 9. Auto-calculate commissions if salesperson assigned
+  if (salesperson_id) {
+    try {
+      const productItems = items.filter(i => i.product_id)
+      if (productItems.length > 0) {
+        const productIds = [...new Set(productItems.map(i => i.product_id))]
+        const { data: products } = await supabase
+          .from('products')
+          .select('id, commission_rate')
+          .in('id', productIds)
+          .eq('tenant_id', tid)
+
+        const rateMap = {}
+        if (products) products.forEach(p => { rateMap[p.id] = p.commission_rate || 0 })
+
+        const commissions = []
+        for (const item of productItems) {
+          const rate = rateMap[item.product_id] || 0
+          if (rate <= 0) continue
+          const qty = parseFloat(item.quantity || 0)
+          const price = parseFloat(item.unit_price || 0)
+          const disc = parseFloat(item.discount || 0)
+          const itemTotal = qty * price - disc
+          const commissionAmount = itemTotal * (rate / 100)
+          if (commissionAmount > 0) {
+            commissions.push({
+              tenant_id: tid,
+              order_id: order.id,
+              employee_id: salesperson_id,
+              product_id: item.product_id,
+              sale_amount: itemTotal,
+              commission_rate: rate,
+              commission_amount: commissionAmount,
+              status: 'pending',
+            })
+          }
+        }
+        if (commissions.length > 0) {
+          await supabase.from('commissions').insert(commissions)
+          console.log(`[ORDER BG] Created ${commissions.length} commission records for employee ${salesperson_id}`)
+        }
+      }
+    } catch (e) { console.error('[ORDER BG] Commission calculation failed:', e.message) }
+  }
 
   console.log(`[ORDER BG] Order ${order_number} processing complete`)
 }

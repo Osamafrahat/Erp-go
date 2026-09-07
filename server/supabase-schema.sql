@@ -303,6 +303,7 @@ CREATE TABLE IF NOT EXISTS orders (
   eta_status TEXT DEFAULT 'pending',
   eta_submitted_at TIMESTAMPTZ,
   salesperson_id BIGINT REFERENCES employees(id) ON DELETE SET NULL,
+  shift_id BIGINT REFERENCES cash_shifts(id) ON DELETE SET NULL,
   completed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE (tenant_id, order_number),

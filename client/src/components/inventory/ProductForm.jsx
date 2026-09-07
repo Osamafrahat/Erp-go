@@ -22,6 +22,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
     image_url: '',
     specifications: [],
     is_active: true,
+    commission_rate: '0',
   })
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
         image_url: product.image_url || '',
         specifications: Array.isArray(product.specifications) ? product.specifications : [],
         is_active: product.is_active ?? true,
+        commission_rate: product.commission_rate?.toString() || '0',
       })
     }
   }, [product])
@@ -100,6 +102,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
         supplier_id: formData.supplier_id ? parseInt(formData.supplier_id) : null,
         pieces_per_box: formData.unit_of_measure === 'box' && formData.pieces_per_box ? parseInt(formData.pieces_per_box) : null,
         specifications: formData.specifications.filter(s => s.name.trim() && s.value.trim()),
+        commission_rate: parseFloat(formData.commission_rate) || 0,
       })
     } finally {
       setIsSubmitting(false)
@@ -387,6 +390,24 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {t('inventory.isRefundable')}
             </label>
+          </div>
+
+          {/* Commission Rate */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('inventory.commissionRate') || 'Commission Rate (%)'}
+            </label>
+            <input
+              type="number"
+              name="commission_rate"
+              min="0"
+              max="100"
+              step="0.5"
+              value={formData.commission_rate}
+              onChange={handleChange}
+              placeholder="0"
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+            />
           </div>
 
           {/* Active Status */}

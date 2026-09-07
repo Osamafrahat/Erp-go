@@ -25,7 +25,7 @@ export default function CashShiftPage() {
   const [showCloseForm, setShowCloseForm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [openForm, setOpenForm] = useState({ opening_balance: '', notes: '' })
-  const [closeForm, setCloseForm] = useState({ actual_cash: '', notes: '' })
+  const [closeForm, setCloseForm] = useState({ closing_balance: '', actual_cash: '', notes: '' })
   const [elapsedTime, setElapsedTime] = useState('')
 
   const fetchData = async () => {
@@ -98,12 +98,13 @@ export default function CashShiftPage() {
     try {
       setSubmitting(true)
       await cashShiftsApi.close(activeShift.id, {
+        closing_balance: parseFloat(closeForm.closing_balance) || 0,
         actual_cash: parseFloat(closeForm.actual_cash),
         notes: closeForm.notes
       })
       toastSuccess('Cash shift closed successfully')
       setShowCloseForm(false)
-      setCloseForm({ actual_cash: '', notes: '' })
+      setCloseForm({ closing_balance: '', actual_cash: '', notes: '' })
       fetchData()
     } catch (err) {
       toastError(err.message || 'Failed to close shift')
@@ -113,7 +114,7 @@ export default function CashShiftPage() {
   }
 
   const expectedCash = activeShift
-    ? parseFloat(activeShift.opening_balance || 0)
+    ? parseFloat(activeShift.opening_balance || 0) + parseFloat(closeForm.closing_balance || 0)
     : 0
 
   const currentVariance = closeForm.actual_cash
@@ -360,7 +361,19 @@ export default function CashShiftPage() {
             </div>
             <form onSubmit={handleCloseShift} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('actualCash') || 'Actual Cash'}</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('closingBalance') || 'Closing Balance (collected)'}</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={closeForm.closing_balance}
+                  onChange={(e) => setCloseForm({ ...closeForm, closing_balance: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('actualCash') || 'Actual Cash (counted)'}</label>
                 <input
                   type="number"
                   step="0.01"
