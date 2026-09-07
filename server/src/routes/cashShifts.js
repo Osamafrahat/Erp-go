@@ -87,7 +87,19 @@ router.get('/active/stats', async (req, res, next) => {
       .eq('shift_id', shift.id)
       .gte('created_at', shift.opened_at)
 
-    const orderList = orders || []
+    let orderList = orders || []
+
+    // Fallback: if shift_id column wasn't migrated, find orders by user + date
+    if (orderList.length === 0) {
+      const { data: fallbackOrders } = await supabase
+        .from('orders')
+        .select('total, payment_method')
+        .eq('tenant_id', req.user?.tenantId)
+        .eq('user_id', req.user.id)
+        .gte('created_at', shift.opened_at)
+      orderList = fallbackOrders || []
+    }
+
     const totalOrders = orderList.length
     const totalCash = orderList
       .filter(o => o.payment_method === 'cash')
@@ -100,7 +112,7 @@ router.get('/active/stats', async (req, res, next) => {
       total_orders: totalOrders,
       total_cash: totalCash,
       total_sales: totalSales,
-      expected_cash: parseFloat(shift.opening_balance) + totalCash,
+      expected_cash: parseFloat(shift.opening_balance) + totalSales,
       opened_at: shift.opened_at,
     })
   } catch (err) {
