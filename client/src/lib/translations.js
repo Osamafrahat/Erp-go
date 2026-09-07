@@ -2144,6 +2144,9 @@ export const translations = {
 
     // Cash Shifts
     'cashDrawer': 'Cash Box',
+    'cashDrawer.openingBalance': 'Opening Balance',
+    'cashDrawer.notes': 'Notes',
+    'cashDrawer.optionalNotes': 'Optional notes',
     'openShift': 'Open Shift',
     'activeShift': 'Active Shift',
     'open': 'Open',
@@ -4386,6 +4389,9 @@ export const translations = {
 
     // Cash Shifts
     'cashDrawer': 'صندوق النقدية',
+    'cashDrawer.openingBalance': 'الرصيد الافتتاحي',
+    'cashDrawer.notes': 'ملاحظات',
+    'cashDrawer.optionalNotes': 'ملاحظات اختيارية',
     'openShift': 'فتح وردية',
     'activeShift': 'وردية نشطة',
     'open': 'مفتوح',
