@@ -34,6 +34,8 @@ export default function POSPage() {
   const [shiftStats, setShiftStats] = useState(null)
   const [showCashBoxPanel, setShowCashBoxPanel] = useState(false)
   const [showCashBoxModal, setShowCashBoxModal] = useState(false)
+  const [showCloseShiftModal, setShowCloseShiftModal] = useState(false)
+  const [closeShiftActual, setCloseShiftActual] = useState('')
   const [cashBoxBalance, setCashBoxBalance] = useState('')
   const [cashBoxNotes, setCashBoxNotes] = useState('')
   const [cashBoxSubmitting, setCashBoxSubmitting] = useState(false)
@@ -94,6 +96,31 @@ export default function POSPage() {
       await fetchActiveShift()
     } catch (err) {
       toastError(err.message || 'Failed to open cash box')
+    } finally {
+      setCashBoxSubmitting(false)
+    }
+  }
+
+  const handleCloseShift = async () => {
+    if (!closeShiftActual || parseFloat(closeShiftActual) < 0) {
+      toastError('Please enter a valid actual cash amount')
+      return
+    }
+    try {
+      setCashBoxSubmitting(true)
+      await cashShiftsApi.close(activeShift.id, {
+        closing_balance: parseFloat(closeShiftActual) || 0,
+        actual_cash: parseFloat(closeShiftActual),
+        notes: ''
+      })
+      toastSuccess('Cash box closed')
+      setShowCloseShiftModal(false)
+      setCloseShiftActual('')
+      setActiveShift(null)
+      setShiftStats(null)
+      setShowCashBoxPanel(false)
+    } catch (err) {
+      toastError(err.message || 'Failed to close cash box')
     } finally {
       setCashBoxSubmitting(false)
     }
@@ -344,7 +371,7 @@ export default function POSPage() {
                 </div>
                 <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <button
-                    onClick={() => navigate('/cash-shift')}
+                    onClick={() => setShowCloseShiftModal(true)}
                     className="w-full py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                   >
                     {t('closeShift') || 'Close Shift'}
@@ -820,6 +847,70 @@ export default function POSPage() {
               >
                 {cashBoxSubmitting ? '...' : (t('pos.openCashBox') || 'Open Cash Box')}
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Close Shift Modal */}
+      {showCloseShiftModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-md shadow-2xl">
+            <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
+              {t('closeShift') || 'Close Shift'}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {t('pos.closeCashBoxDesc') || 'Count the cash in the drawer and enter the amount'}
+            </p>
+            {shiftStats && (
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">{t('openingBalance') || 'Opening'}</span>
+                  <span className="font-medium">{formatCurrency(shiftStats.opening_balance)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">{t('pos.totalSales') || 'Total Sales'}</span>
+                  <span className="font-medium">{formatCurrency(shiftStats.total_sales)}</span>
+                </div>
+                <div className="flex justify-between text-sm border-t border-gray-200 dark:border-gray-600 pt-2">
+                  <span className="text-gray-500 font-medium">{t('expectedCash') || 'Expected Cash'}</span>
+                  <span className="font-bold text-primary-600">{formatCurrency(shiftStats.expected_cash)}</span>
+                </div>
+              </div>
+            )}
+            <form onSubmit={(e) => { e.preventDefault(); handleCloseShift() }} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t('actualCash') || 'Actual Cash (counted)'}
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  autoFocus
+                  value={closeShiftActual}
+                  onChange={(e) => setCloseShiftActual(e.target.value)}
+                  className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setShowCloseShiftModal(false); setCloseShiftActual('') }}
+                  className="flex-1 py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {t('cancel') || 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  disabled={cashBoxSubmitting || !closeShiftActual}
+                  className="flex-1 py-3 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  {cashBoxSubmitting ? '...' : (t('closeShift') || 'Close Shift')}
+                </button>
+              </div>
             </form>
           </div>
         </div>
