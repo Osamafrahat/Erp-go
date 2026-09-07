@@ -103,7 +103,7 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
 ], validate, async (req, res, next) => {
   try {
     const { name, sku, barcode, category_id, supplier_id, price, cost_price,
-            stock_quantity, low_stock_threshold, is_refundable, unit_of_measure, image_url, description } = req.body
+            stock_quantity, low_stock_threshold, is_refundable, unit_of_measure, image_url, specifications } = req.body
 
     // Check for duplicate SKU
     if (sku) {
@@ -152,7 +152,7 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
         is_refundable: is_refundable !== false,
         unit_of_measure: unit_of_measure || 'quantity',
         image_url: image_url || null,
-        description: description || null
+        specifications: specifications || []
       })
       .select()
       .single()
@@ -203,7 +203,7 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
     }
 
     const { name, sku, barcode, category_id, supplier_id, price, cost_price,
-            stock_quantity, low_stock_threshold, is_refundable, unit_of_measure, image_url, description, is_active } = req.body
+            stock_quantity, low_stock_threshold, is_refundable, unit_of_measure, image_url, specifications, is_active } = req.body
 
     // Check for duplicate SKU (excluding current product)
     if (sku && sku !== existing.sku) {
@@ -255,7 +255,7 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
         is_refundable: is_refundable ?? existing.is_refundable,
         unit_of_measure: unit_of_measure ?? existing.unit_of_measure,
         image_url: image_url ?? existing.image_url,
-        description: description ?? existing.description,
+        specifications: specifications ?? existing.specifications,
         is_active: is_active ?? existing.is_active,
         updated_at: new Date().toISOString()
       })

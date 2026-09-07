@@ -53,7 +53,7 @@ router.post('/receive', [
     // Get current product
     const { data: product } = await supabase
       .from('products')
-      .select('stock_quantity, cost_price, name, sku, barcode, supplier_id, category_id, price, low_stock_threshold, image_url, description')
+      .select('stock_quantity, cost_price, name, sku, barcode, supplier_id, category_id, price, low_stock_threshold, image_url, specifications')
       .eq('id', pid)
       .eq('tenant_id', tid)
       .single()
@@ -99,7 +99,7 @@ router.post('/receive', [
             stock_quantity: 0,
             low_stock_threshold: product.low_stock_threshold,
             image_url: product.image_url,
-            description: product.description,
+            specifications: product.specifications || [],
           })
           .select()
           .single()

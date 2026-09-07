@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS products (
   is_refundable BOOLEAN DEFAULT true,
   unit_of_measure TEXT DEFAULT 'quantity',
   image_url TEXT,
-  description TEXT,
+  specifications JSONB DEFAULT '[]',
   is_active BOOLEAN DEFAULT true,
   reorder_point INTEGER DEFAULT 0,
   reorder_quantity INTEGER DEFAULT 0,

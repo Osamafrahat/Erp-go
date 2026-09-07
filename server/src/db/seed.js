@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS products (
   is_refundable BOOLEAN DEFAULT true,
   unit_of_measure TEXT DEFAULT 'quantity',
   image_url TEXT,
-  description TEXT,
+  specifications JSONB DEFAULT '[]',
   is_active BOOLEAN DEFAULT true,
   supplier_id BIGINT REFERENCES suppliers(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT now(),

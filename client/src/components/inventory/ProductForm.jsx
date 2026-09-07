@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../../stores/appStore'
 import { generateSKU } from '../../lib/utils'
-import { X, RefreshCw } from 'lucide-react'
+import { X, RefreshCw, Plus, Trash2 } from 'lucide-react'
 
 export default function ProductForm({ product, categories, suppliers, onSave, onClose }) {
   const { t, toastError } = useAppStore()
@@ -19,7 +19,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
     is_refundable: true,
     unit_of_measure: 'quantity',
     image_url: '',
-    description: '',
+    specifications: [],
     is_active: true,
   })
 
@@ -38,7 +38,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
         is_refundable: product.is_refundable ?? true,
         unit_of_measure: product.unit_of_measure || 'quantity',
         image_url: product.image_url || '',
-        description: product.description || '',
+        specifications: Array.isArray(product.specifications) ? product.specifications : [],
         is_active: product.is_active ?? true,
       })
     }
@@ -54,6 +54,27 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
 
   const handleGenerateSKU = () => {
     setFormData(prev => ({ ...prev, sku: generateSKU() }))
+  }
+
+  const addSpec = () => {
+    setFormData(prev => ({
+      ...prev,
+      specifications: [...prev.specifications, { name: '', value: '' }]
+    }))
+  }
+
+  const removeSpec = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      specifications: prev.specifications.filter((_, i) => i !== index)
+    }))
+  }
+
+  const updateSpec = (index, field, val) => {
+    setFormData(prev => ({
+      ...prev,
+      specifications: prev.specifications.map((s, i) => i === index ? { ...s, [field]: val } : s)
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -75,6 +96,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
         low_stock_threshold: parseInt(formData.low_stock_threshold),
         category_id: formData.category_id ? parseInt(formData.category_id) : null,
         supplier_id: formData.supplier_id ? parseInt(formData.supplier_id) : null,
+        specifications: formData.specifications.filter(s => s.name.trim() && s.value.trim()),
       })
     } finally {
       setIsSubmitting(false)
@@ -270,19 +292,45 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
             </div>
           </div>
 
-          {/* Description */}
+          {/* Specifications */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('inventory.description')}
+              {t('inventory.specifications')}
             </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-              placeholder={t('inventory.descriptionPlaceholder')}
-            />
+            <div className="space-y-2">
+              {formData.specifications.map((spec, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={spec.name}
+                    onChange={(e) => updateSpec(i, 'name', e.target.value)}
+                    placeholder={t('inventory.specNamePlaceholder')}
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
+                  />
+                  <input
+                    type="text"
+                    value={spec.value}
+                    onChange={(e) => updateSpec(i, 'value', e.target.value)}
+                    placeholder={t('inventory.specValuePlaceholder')}
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSpec(i)}
+                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addSpec}
+                className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400"
+              >
+                <Plus className="w-4 h-4" /> {t('inventory.addSpec')}
+              </button>
+            </div>
           </div>
 
           {/* Unit of Measure */}
@@ -300,6 +348,8 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
               <option value="kilo">{t('inventory.unitKilo')}</option>
               <option value="liter">{t('inventory.unitLiter')}</option>
               <option value="meter">{t('inventory.unitMeter')}</option>
+              <option value="box">{t('inventory.unitBox')}</option>
+              <option value="tape">{t('inventory.unitTape')}</option>
             </select>
           </div>
 

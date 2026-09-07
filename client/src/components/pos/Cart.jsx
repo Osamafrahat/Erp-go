@@ -141,7 +141,7 @@ export default memo(function Cart({ onCheckout }) {
                           className="w-20 px-2 py-1 text-sm text-center rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
                         />
                         <span className="text-xs text-gray-500">
-                          {item.product.unit_of_measure === 'kilo' ? 'kg' : item.product.unit_of_measure === 'liter' ? 'L' : 'm'}
+                          {item.product.unit_of_measure === 'kilo' ? 'kg' : item.product.unit_of_measure === 'liter' ? 'L' : item.product.unit_of_measure === 'meter' ? 'm' : item.product.unit_of_measure === 'box' ? 'box' : item.product.unit_of_measure === 'tape' ? 'tape' : ''}
                         </span>
                       </>
                     ) : (

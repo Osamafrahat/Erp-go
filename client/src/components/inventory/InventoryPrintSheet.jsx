@@ -146,6 +146,8 @@ export default function InventoryPrintSheet({ products, categories, settings, us
                       {product.unit_of_measure === 'kilo' ? t('print.unitKg') :
                        product.unit_of_measure === 'liter' ? t('print.unitLiter') :
                        product.unit_of_measure === 'meter' ? t('print.unitMeter') :
+                       product.unit_of_measure === 'box' ? 'box' :
+                       product.unit_of_measure === 'tape' ? 'tape' :
                        t('print.unitPcs')}
                     </td>
                     <td style={{ padding: '4px 6px', borderBottom: '1px solid #ddd', fontWeight: 700, color: '#000' }}>

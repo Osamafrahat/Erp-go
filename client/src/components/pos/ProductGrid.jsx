@@ -99,7 +99,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
                   {formatCurrency(product.price)}
                   {isSplittable(product) && (
                     <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1">
-                      /{product.unit_of_measure === 'kilo' ? 'kg' : product.unit_of_measure === 'liter' ? 'L' : 'm'}
+                      /{product.unit_of_measure === 'kilo' ? 'kg' : product.unit_of_measure === 'liter' ? 'L' : product.unit_of_measure === 'meter' ? 'm' : product.unit_of_measure === 'box' ? 'box' : product.unit_of_measure === 'tape' ? 'tape' : ''}
                     </span>
                   )}
                 </p>
@@ -148,7 +148,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold mb-1">{qtyModal.name}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              {formatCurrency(qtyModal.price)} / {qtyModal.unit_of_measure === 'kilo' ? 'kg' : qtyModal.unit_of_measure === 'liter' ? 'L' : 'm'}
+              {formatCurrency(qtyModal.price)} / {qtyModal.unit_of_measure === 'kilo' ? 'kg' : qtyModal.unit_of_measure === 'liter' ? 'L' : qtyModal.unit_of_measure === 'meter' ? 'm' : qtyModal.unit_of_measure === 'box' ? 'box' : qtyModal.unit_of_measure === 'tape' ? 'tape' : ''}
             </p>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {t('pos.enterWeight') || 'Enter quantity'}
@@ -176,7 +176,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
                 disabled={!qtyValue || parseFloat(qtyValue) <= 0}
                 className="flex-1 py-2 rounded-lg bg-primary-600 text-white font-medium disabled:opacity-50"
               >
-                {t('cart.add')} ({qtyValue || '0'} {qtyModal.unit_of_measure === 'kilo' ? 'kg' : qtyModal.unit_of_measure === 'liter' ? 'L' : 'm'})
+                {t('cart.add')} ({qtyValue || '0'} {qtyModal.unit_of_measure === 'kilo' ? 'kg' : qtyModal.unit_of_measure === 'liter' ? 'L' : qtyModal.unit_of_measure === 'meter' ? 'm' : qtyModal.unit_of_measure === 'box' ? 'box' : qtyModal.unit_of_measure === 'tape' ? 'tape' : ''})
               </button>
             </div>
           </div>
