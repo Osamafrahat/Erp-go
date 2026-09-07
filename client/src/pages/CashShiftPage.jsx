@@ -18,6 +18,7 @@ import {
 export default function CashShiftPage() {
   const { t, toastSuccess, toastError } = useAppStore()
   const [activeShift, setActiveShift] = useState(null)
+  const [shiftStats, setShiftStats] = useState(null)
   const [shifts, setShifts] = useState([])
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -31,12 +32,14 @@ export default function CashShiftPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [activeRes, shiftsRes, summaryRes] = await Promise.all([
+      const [activeRes, shiftsRes, summaryRes, statsRes] = await Promise.all([
         cashShiftsApi.getActive(),
         cashShiftsApi.getAll(),
-        cashShiftsApi.getSummary()
+        cashShiftsApi.getSummary(),
+        cashShiftsApi.getActiveStats().catch(() => ({ data: null }))
       ])
       setActiveShift(activeRes.data)
+      setShiftStats(statsRes.data)
       setShifts(shiftsRes.data || [])
       setSummary(summaryRes.data)
     } catch (err) {
@@ -114,7 +117,7 @@ export default function CashShiftPage() {
   }
 
   const expectedCash = activeShift
-    ? parseFloat(activeShift.opening_balance || 0) + parseFloat(closeForm.closing_balance || 0)
+    ? parseFloat(activeShift.opening_balance || 0) + parseFloat(shiftStats?.total_sales || 0)
     : 0
 
   const currentVariance = closeForm.actual_cash

@@ -269,7 +269,16 @@ router.patch('/:id/close', [
       return res.status(400).json({ error: 'Shift is not open' })
     }
 
-    const expected_cash = parseFloat(shift.opening_balance) + parseFloat(closing_balance)
+    // Calculate expected cash from actual sales, not user input
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('total')
+      .eq('tenant_id', req.user?.tenantId)
+      .eq('user_id', req.user.id)
+      .gte('created_at', shift.opened_at)
+
+    const totalSales = (orders || []).reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
+    const expected_cash = parseFloat(shift.opening_balance) + totalSales
     const variance = parseFloat(actual_cash) - expected_cash
 
     const { data, error } = await supabase
