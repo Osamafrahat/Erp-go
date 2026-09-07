@@ -279,20 +279,37 @@ router.delete('/tenants/:id', async (req, res) => {
       .single()
     if (findErr || !tenant) return res.status(404).json({ error: 'Tenant not found' })
 
+    // Child tables first ( deepest dependencies ), then parent tables
     const tables = [
-      'order_items', 'orders', 'products', 'categories', 'customers',
-      'employees', 'attendance', 'leave_requests', 'leave_types', 'performance_reviews',
-      'payroll', 'shift_assignments', 'shifts', 'expenses', 'refunds',
-      'promotions', 'suppliers', 'stock_movements', 'store_settings',
-      'accounts', 'account_balances', 'journal_entries', 'journal_entry_lines', 'payments',
-      'services', 'service_plans', 'subscriptions', 'subscription_payments',
-      'activities', 'users',
+      // Deepest children first
+      'refund_items', 'order_items', 'payment_splits', 'journal_entry_lines',
+      'stock_movements', 'payroll_items', 'shift_assignments', 'review_criteria',
+      'subscription_payments', 'credit_payments', 'purchase_order_items',
+      'commissions', 'cash_shifts', 'product_variants', 'product_batches',
+      'saved_payment_methods', 'messages',
+      // Mid-level
+      'refunds', 'orders', 'payments', 'journal_entries', 'expenses',
+      'attendance', 'leave_requests', 'performance_reviews', 'payroll',
+      'subscriptions', 'credit_sales', 'purchase_orders',
+      'promotions', 'activities', 'activity_log',
+      // Top-level entities
+      'products', 'categories', 'customers', 'employees', 'suppliers',
+      'shifts', 'leave_types', 'services', 'service_plans',
+      'accounts', 'account_balances', 'store_settings',
+      'users', 'tenant_payments',
+      // Tenant itself last
+      'tenants',
     ]
 
     for (const table of tables) {
-      await supabase.from(table).delete().eq('tenant_id', tenantId)
+      try {
+        await supabase.from(table).delete().eq('tenant_id', tenantId)
+      } catch (e) {
+        // Table might not exist or have no tenant_id column — skip silently
+      }
     }
 
+    // Final safety: delete tenant by ID in case it wasn't deleted above
     await supabase.from('tenants').delete().eq('id', tenantId)
 
     res.json({ message: `Tenant "${tenant.name}" and all its data have been permanently deleted` })
