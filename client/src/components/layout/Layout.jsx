@@ -115,7 +115,7 @@ export default function Layout({ children }) {
   if (canAccess('/refunds')) {
     salesItems.push({ name: t('nav.refunds') || 'Refunds', href: '/refunds', icon: RotateCcw })
   }
-  if (canAccess('/credit-sales')) {
+  if (canAccess('/credit-sales') && currentUser?.role !== 'SUPER_ADMIN') {
     salesItems.push({ name: t('nav.creditSales') || 'Credit Sales', href: '/credit-sales', icon: Banknote })
   }
   if (currentUser?.role !== 'SUPER_ADMIN') {
@@ -144,7 +144,7 @@ export default function Layout({ children }) {
   if (canAccess('/suppliers')) {
     inventoryItems.push({ name: t('nav.suppliers'), href: '/suppliers', icon: Truck })
   }
-  if (canAccess('/purchase-orders')) {
+  if (canAccess('/purchase-orders') && currentUser?.role !== 'SUPER_ADMIN') {
     inventoryItems.push({ name: t('nav.purchaseOrders') || 'Purchase Orders', href: '/purchase-orders', icon: ClipboardList })
   }
   if (inventoryItems.length > 0) {
