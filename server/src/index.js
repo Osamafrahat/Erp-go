@@ -212,10 +212,7 @@ app.use(errorHandler)
 // Auto-initialize accounting data on startup
 async function initAccounting() {
   try {
-    const { seedChartOfAccounts, getCurrentPeriod } = await import('./services/accountingEngine.js')
-    await seedChartOfAccounts()
-    await getCurrentPeriod()
-    console.log('Accounting initialized: chart of accounts seeded, fiscal period ready')
+    console.log('Accounting: will auto-seed per tenant on first access')
   } catch (err) {
     console.error('Accounting init failed (non-fatal):', err.message)
   }

@@ -244,7 +244,7 @@ export default function ChartOfAccountsPage() {
                     <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold ${ACCOUNT_TYPES[type].color}`}>{ACCOUNT_TYPES[type].label}</span>
                     {items.length} {t('accounting.accountsCount')}
                   </h3>
-                  <span className="text-sm font-medium text-gray-500">{items.reduce((s, a) => s + a.balance, 0).toFixed(2)} EGP</span>
+                  <span className="text-sm font-medium text-gray-500">{items.reduce((s, a) => s + (a.balance || 0), 0).toFixed(2)} EGP</span>
                 </div>
                 <div className="overflow-x-auto">
                 <table className="w-full min-w-[450px]">
@@ -261,7 +261,7 @@ export default function ChartOfAccountsPage() {
                       <tr key={account.id} className="border-t border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                         <td className="px-6 py-3 text-sm font-mono font-bold">{account.code}</td>
                         <td className="px-6 py-3 text-sm font-medium">{getAccountName(account)}</td>
-                        <td className="px-6 py-3 text-sm font-medium text-end">{account.balance.toFixed(2)} EGP</td>
+                        <td className="px-6 py-3 text-sm font-medium text-end">{(account.balance || 0).toFixed(2)} EGP</td>
                         <td className="px-6 py-3 text-end">
                           <div className="flex items-center justify-end gap-1">
                             <button onClick={() => handleEdit(account)} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-primary-600"><Edit2 className="w-4 h-4" /></button>

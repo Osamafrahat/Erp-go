@@ -19,6 +19,14 @@ router.get('/', async (req, res) => {
 
     const { data, error } = await query
     if (error) throw error
+
+    // Auto-seed if no accounts exist for this tenant
+    if (!data || data.length === 0) {
+      await seedChartOfAccounts(req.user.tenantId)
+      const { data: seeded } = await supabase.from('accounts').select('*').eq('tenant_id', req.user.tenantId).order('code')
+      return res.json(seeded || [])
+    }
+
     res.json(data)
   } catch (err) {
     console.error('Get accounts error:', err)
@@ -126,7 +134,7 @@ router.delete('/:id', async (req, res) => {
 // Seed default chart of accounts
 router.post('/seed', async (req, res) => {
   try {
-    await seedChartOfAccounts()
+    await seedChartOfAccounts(req.user.tenantId)
     req.logActivity({ action: 'seeded', entity_type: 'account', entity_name: 'Chart of Accounts' })
     res.json({ message: 'Chart of accounts seeded successfully' })
   } catch (err) {
@@ -161,7 +169,7 @@ router.post('/initial-capital', async (req, res) => {
         { accountId: cashAccount.data.id, debit: parseFloat(amount), credit: 0, description: 'Cash received' },
         { accountId: equityAccount.data.id, debit: 0, credit: parseFloat(amount), description: 'Owner equity contribution' },
       ],
-    })
+    }, req.user.tenantId)
 
     res.json({ message: 'Initial capital recorded', entryId: entry.id })
     req.logActivity({ action: 'created', entity_type: 'initial_capital', entity_name: `Initial Capital - ${parseFloat(amount).toFixed(2)} EGP`, details: { amount: parseFloat(amount), entry_id: entry.id } })
