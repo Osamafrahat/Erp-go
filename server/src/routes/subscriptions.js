@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { body, param, validationResult } from 'express-validator'
 import supabase from '../db/supabase.js'
-import { authenticateToken, requirePermission } from '../middleware/auth.js'
+import { requirePermission } from '../middleware/auth.js'
 import { postSubscriptionPaymentJournal } from '../services/accountingEngine.js'
 
 const router = Router()
@@ -86,7 +86,7 @@ router.get('/:id', [
 })
 
 // Create subscription
-router.post('/', authenticateToken, requirePermission('services_edit'), [
+router.post('/', requirePermission('services_edit'), [
   body('customer_id').isNumeric().withMessage('Customer is required'),
   body('start_date').isISO8601().withMessage('Start date is required'),
   body('billing_amount').isFloat({ min: 0 }).withMessage('Billing amount must be positive'),
@@ -120,7 +120,7 @@ router.post('/', authenticateToken, requirePermission('services_edit'), [
 })
 
 // Update subscription
-router.put('/:id', authenticateToken, requirePermission('services_edit'), [
+router.put('/:id', requirePermission('services_edit'), [
   param('id').isNumeric().withMessage('Invalid subscription ID'),
 ], validate, async (req, res) => {
   try {
@@ -151,7 +151,7 @@ router.put('/:id', authenticateToken, requirePermission('services_edit'), [
 })
 
 // Cancel subscription
-router.patch('/:id/cancel', authenticateToken, requirePermission('services_edit'), [
+router.patch('/:id/cancel', requirePermission('services_edit'), [
   param('id').isNumeric().withMessage('Invalid subscription ID'),
 ], validate, async (req, res) => {
   try {
@@ -179,7 +179,7 @@ router.patch('/:id/cancel', authenticateToken, requirePermission('services_edit'
 })
 
 // Renew subscription
-router.patch('/:id/renew', authenticateToken, requirePermission('services_edit'), [
+router.patch('/:id/renew', requirePermission('services_edit'), [
   param('id').isNumeric().withMessage('Invalid subscription ID'),
 ], validate, async (req, res) => {
   try {
@@ -260,7 +260,7 @@ router.patch('/:id/renew', authenticateToken, requirePermission('services_edit')
 })
 
 // Record payment for subscription
-router.post('/:id/payments', authenticateToken, requirePermission('services_edit'), [
+router.post('/:id/payments', requirePermission('services_edit'), [
   param('id').isNumeric().withMessage('Invalid subscription ID'),
   body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be positive'),
 ], validate, async (req, res) => {
@@ -304,7 +304,7 @@ router.post('/:id/payments', authenticateToken, requirePermission('services_edit
 })
 
 // Delete subscription
-router.delete('/:id', authenticateToken, requirePermission('services_edit'), [
+router.delete('/:id', requirePermission('services_edit'), [
   param('id').isNumeric().withMessage('Invalid subscription ID'),
 ], validate, async (req, res) => {
   try {
@@ -321,10 +321,10 @@ router.delete('/:id', authenticateToken, requirePermission('services_edit'), [
 })
 
 // Quick subscription from POS (creates subscription + records payment)
-router.post('/quick', authenticateToken, requirePermission('services_edit'), [
+router.post('/quick', requirePermission('services_edit'), [
   body('customer_id').isNumeric().withMessage('Customer is required'),
   body('plan_id').isNumeric().withMessage('Plan is required'),
-  body('payment_method').optional().isIn(['cash', 'card', 'bank']),
+  body('payment_method').optional().isIn(['cash', 'card', 'mobile', 'credit']),
 ], validate, async (req, res) => {
   try {
     const { customer_id, plan_id, payment_method, notes } = req.body
