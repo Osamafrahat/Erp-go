@@ -220,12 +220,7 @@ async function processOrderBackground(order, items, payments, customer_id, userI
   console.log(`[ORDER BG] Processing order ${order_number}`)
   const tid = order.tenant_id
 
-  // Determine tenant tier for lite mode (skip accounting for free)
-  let isFreeTier = false
-  try {
-    const { data: tenant } = await supabase.from('tenants').select('subscription_tier').eq('id', tid).single()
-    isFreeTier = !tenant || (tenant.subscription_tier || 'free') === 'free'
-  } catch (e) {}
+  // Always run accounting for all tiers — revenue recognition is essential
 
   // 1. Promotion (1 query)
   if (promotion_id) {
@@ -318,8 +313,8 @@ async function processOrderBackground(order, items, payments, customer_id, userI
     } catch (e) { console.error('[ORDER BG] Payment splits failed:', e.message) }
   }
 
-  // 6. Accounting — SKIP for free tier (lite mode)
-  if (!isFreeTier && payments && payments.length > 0) {
+  // 6. Accounting
+  if (payments && payments.length > 0) {
     try {
       const { createJournalEntry } = await import('../services/accountingEngine.js')
 
@@ -338,6 +333,7 @@ async function processOrderBackground(order, items, payments, customer_id, userI
       }
 
       for (const p of payments) {
+        if (p.method === 'credit') continue // Skip credit/pay-later — no cash received yet
         try {
           const sourceAccount = p.method === 'cash' ? accountMap['1010'] : accountMap['1020']
           const date = new Date().toISOString().split('T')[0]
@@ -359,8 +355,8 @@ async function processOrderBackground(order, items, payments, customer_id, userI
     } catch (e) { console.error('[ORDER BG] Payment processing failed:', e.message) }
   }
 
-  // 7. Post order journal — SKIP for free tier
-  if (!isFreeTier) {
+  // 7. Post order journal
+  {
     try {
       const { postOrderJournal } = await import('../services/accountingEngine.js')
       // Batch fetch cost prices (1 query instead of N)
