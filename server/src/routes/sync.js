@@ -247,7 +247,7 @@ async function processSyncedOrder(order, items, payments, customer_id, userId, o
           if (arAccount) lines.push({ accountId: arAccount.id, debit: 0, credit: parseFloat(p.amount), description: `AR - ${paymentNumber}` })
 
           if (lines.length > 0) {
-            const entry = await createJournalEntry({ date, description: `Payment: ${paymentNumber}`, reference: paymentNumber, sourceType: 'payment', sourceId: null, lines, createdBy: userId })
+            const entry = await createJournalEntry({ date, description: `Payment: ${paymentNumber}`, reference: paymentNumber, sourceType: 'payment', sourceId: null, lines, createdBy: userId }, tenantId)
             await supabase.from('payments').insert({
               tenant_id: tenantId,
               payment_number: paymentNumber, payment_type: 'inbound', method: p.method,

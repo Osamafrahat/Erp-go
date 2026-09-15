@@ -142,7 +142,7 @@ router.post('/', async (req, res) => {
           sourceId: payment.id,
           lines,
           createdBy: req.user?.id,
-        })
+        }, req.user?.tenantId)
         await supabase.from('payments').update({ journal_entry_id: entry.id }).eq('tenant_id', req.user.tenantId).eq('id', payment.id)
         payment.journal_entry_id = entry.id
       } catch (accErr) {

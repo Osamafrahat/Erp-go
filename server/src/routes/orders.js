@@ -347,7 +347,7 @@ async function processOrderBackground(order, items, payments, customer_id, userI
           if (sourceAccount) lines.push({ accountId: sourceAccount.id, debit: parseFloat(p.amount), credit: 0, description: `Payment - ${paymentNumber}` })
           if (arAccount) lines.push({ accountId: arAccount.id, debit: 0, credit: parseFloat(p.amount), description: `AR - ${paymentNumber}` })
           if (lines.length > 0) {
-            const entry = await createJournalEntry({ date, description: `Payment: ${paymentNumber}`, reference: paymentNumber, sourceType: 'payment', sourceId: null, lines, createdBy: userId })
+            const entry = await createJournalEntry({ date, description: `Payment: ${paymentNumber}`, reference: paymentNumber, sourceType: 'payment', sourceId: null, lines, createdBy: userId }, tid)
             await supabase.from('payments').insert({
               tenant_id: tid, payment_number: paymentNumber, payment_type: 'inbound', method: p.method,
               amount: parseFloat(p.amount), reference: p.reference || null,

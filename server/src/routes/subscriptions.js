@@ -247,7 +247,7 @@ router.patch('/:id/renew', authenticateToken, requirePermission('services_edit')
     // Create journal entry for renewal payment
     if (renewalPayment) {
       try {
-        await postSubscriptionPaymentJournal(renewalPayment, data, sub.plan)
+        await postSubscriptionPaymentJournal(renewalPayment, data, sub.plan, req.user?.tenantId)
       } catch (journalErr) {
         console.error('Failed to create renewal journal entry:', journalErr.message)
       }
@@ -291,7 +291,7 @@ router.post('/:id/payments', authenticateToken, requirePermission('services_edit
     // Create journal entry
     if (data && sub) {
       try {
-        await postSubscriptionPaymentJournal(data, sub, sub.plan)
+        await postSubscriptionPaymentJournal(data, sub, sub.plan, req.user?.tenantId)
       } catch (journalErr) {
         console.error('Failed to create subscription journal entry:', journalErr.message)
       }
@@ -405,7 +405,7 @@ router.post('/quick', authenticateToken, requirePermission('services_edit'), [
     // Create journal entry for subscription payment
     if (paymentData) {
       try {
-        await postSubscriptionPaymentJournal(paymentData, sub, plan)
+        await postSubscriptionPaymentJournal(paymentData, sub, plan, req.user?.tenantId)
       } catch (journalErr) {
         console.error('Failed to create subscription journal entry:', journalErr.message)
       }

@@ -284,7 +284,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
     // Auto-post to accounting journal
     try {
       const { postRefundJournal } = await import('../services/accountingEngine.js')
-      await postRefundJournal(refund, items || null)
+      await postRefundJournal(refund, items || null, req.user?.tenantId)
     } catch (accErr) {
       console.error('Accounting auto-post failed:', accErr.message)
     }

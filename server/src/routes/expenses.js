@@ -111,7 +111,7 @@ router.post('/', authenticateToken, requirePermission('expenses_edit'), [
     // Auto-post to accounting journal
     try {
       const { postExpenseJournal } = await import('../services/accountingEngine.js')
-      await postExpenseJournal(data)
+      await postExpenseJournal(data, req.user?.tenantId)
     } catch (accErr) {
       console.error('Accounting auto-post failed:', accErr.message)
     }
@@ -151,7 +151,7 @@ router.put('/:id', authenticateToken, requirePermission('expenses_edit'), [
     // Auto-post accounting: reverse old entry, create new entry
     try {
       const { postExpenseUpdateJournal } = await import('../services/accountingEngine.js')
-      await postExpenseUpdateJournal({ id: req.params.id }, data)
+      await postExpenseUpdateJournal({ id: req.params.id }, data, req.user?.tenantId)
     } catch (accErr) {
       console.error('Accounting auto-post failed:', accErr.message)
     }

@@ -72,7 +72,7 @@ router.post('/', authenticateToken, requirePermission('accounting_edit', 'accoun
       sourceType: 'manual',
       lines,
       createdBy: req.user?.id,
-    })
+    }, req.user?.tenantId)
 
     res.status(201).json(entry)
     req.logActivity({ action: 'created', entity_type: 'journal_entry', entity_id: entry.id, entity_name: entry.entry_number, details: { description, source_type: 'manual' } })
@@ -111,7 +111,7 @@ router.post('/:id/reverse', authenticateToken, requirePermission('accounting_edi
       sourceId: original.id,
       lines: reverseLines,
       createdBy: req.user?.id,
-    })
+    }, req.user?.tenantId)
 
     // Mark original as reversed
     await supabase

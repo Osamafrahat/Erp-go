@@ -297,7 +297,7 @@ router.post('/fiscal-periods/:id/close', async (req, res) => {
           sourceType: 'closing',
           lines,
           createdBy: req.user?.id,
-        })
+        }, req.user?.tenantId)
       }
     }
 
