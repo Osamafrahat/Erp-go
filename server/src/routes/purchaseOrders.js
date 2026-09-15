@@ -314,6 +314,41 @@ router.patch('/:id/receive', async (req, res, next) => {
       .eq('purchase_order_id', data.id)
       .eq('tenant_id', req.user?.tenantId)
 
+    // Accounting: Debit Inventory (1050), Credit Accounts Payable (2010)
+    try {
+      const { createJournalEntry } = await import('../services/accountingEngine.js')
+      const tid = req.user?.tenantId
+
+      const inventoryAccount = await supabase.from('accounts').select('id').eq('code', '1050').eq('tenant_id', tid).single()
+      const apAccount = await supabase.from('accounts').select('id').eq('code', '2010').eq('tenant_id', tid).single()
+
+      // Calculate total cost from PO items
+      let totalCost = 0
+      for (const item of (updatedItems || [])) {
+        totalCost += (parseFloat(item.unit_cost) || 0) * (item.quantity || 0)
+      }
+
+      if (totalCost > 0 && inventoryAccount.data && apAccount.data) {
+        const date = new Date().toISOString().split('T')[0]
+        const ref = `PO-${po.order_number}`
+        const lines = [
+          { accountId: inventoryAccount.data.id, debit: totalCost, credit: 0, description: `Inventory received - ${ref}` },
+          { accountId: apAccount.data.id, debit: 0, credit: totalCost, description: `AP - ${ref}` },
+        ]
+        await createJournalEntry({
+          date,
+          description: `Purchase order received: ${po.order_number}`,
+          reference: ref,
+          sourceType: 'purchase_order',
+          sourceId: data.id,
+          lines,
+          createdBy: req.user?.id,
+        }, tid)
+      }
+    } catch (accErr) {
+      console.error('[PO RECEIVE] Accounting journal failed:', accErr.message)
+    }
+
     res.json({ ...data, items: updatedItems || [] })
   } catch (err) {
     next(err)

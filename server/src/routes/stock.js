@@ -161,7 +161,8 @@ router.post('/receive', [
         await postStockReceiveJournal(
           data,
           { name: product.name, cost_price: unitCost },
-          supplierInfo
+          supplierInfo,
+          tid
         )
       } catch (accErr) {
         console.error('Accounting auto-post failed:', accErr.message)
