@@ -162,22 +162,6 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
     if (error) throw error
     req.logActivity({ action: 'created', entity_type: 'product', entity_name: data.name })
 
-    // Auto-post journal if initial stock
-    if (data.stock_quantity > 0 && data.cost_price > 0) {
-      try {
-        const { postStockReceiveJournal } = await import('../services/accountingEngine.js')
-        const movement = { id: data.id, quantity: data.stock_quantity }
-        let supplierInfo = null
-        if (data.supplier_id) {
-          const { data: supp } = await supabase.from('suppliers').select('id, name, account_code').eq('id', data.supplier_id).single()
-          supplierInfo = supp
-        }
-        await postStockReceiveJournal(movement, { name: data.name, cost_price: data.cost_price }, supplierInfo)
-      } catch (accErr) {
-        console.error('Accounting auto-post (product create) failed:', accErr.message)
-      }
-    }
-
     res.status(201).json(data)
   } catch (err) {
     next(err)
@@ -283,9 +267,9 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
           supplierInfo = supp
         }
         if (stockDiff > 0) {
-          await postStockReceiveJournal(movement, { name: data.name, cost_price: data.cost_price }, supplierInfo)
+        await postStockReceiveJournal(movement, { name: data.name, cost_price: data.cost_price }, supplierInfo, req.user?.tenantId)
         } else {
-          await postStockAdjustJournal({ ...movement, quantity: -Math.abs(stockDiff) }, { name: data.name, cost_price: data.cost_price })
+          await postStockAdjustJournal({ ...movement, quantity: -Math.abs(stockDiff) }, { name: data.name, cost_price: data.cost_price }, req.user?.tenantId)
         }
       } catch (accErr) {
         console.error('Accounting auto-post (product update) failed:', accErr.message)
@@ -328,7 +312,7 @@ router.delete('/:id', authenticateToken, requirePermission('inventory_edit'), [
       try {
         const { postStockAdjustJournal } = await import('../services/accountingEngine.js')
         const movement = { id: existing.id, quantity: -existing.stock_quantity }
-        await postStockAdjustJournal(movement, { name: existing.name, cost_price: existing.cost_price })
+        await postStockAdjustJournal(movement, { name: existing.name, cost_price: existing.cost_price }, req.user?.tenantId)
       } catch (accErr) {
         console.error('Accounting auto-post (product delete) failed:', accErr.message)
       }

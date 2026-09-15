@@ -234,7 +234,7 @@ router.post('/adjust', [
     try {
       const { postStockAdjustJournal } = await import('../services/accountingEngine.js')
       const { data: productFull } = await supabase.from('products').select('name, cost_price').eq('id', product_id).eq('tenant_id', tid).single()
-      if (productFull) await postStockAdjustJournal(data, productFull)
+      if (productFull) await postStockAdjustJournal(data, productFull, tid)
     } catch (accErr) {
       console.error('Accounting auto-post failed:', accErr.message)
     }
