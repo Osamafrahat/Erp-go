@@ -154,10 +154,65 @@ router.post('/:id/pay', [
       })
       .eq('id', req.params.id)
       .eq('tenant_id', req.user?.tenantId)
-      .select('*, orders(id, order_number, total, created_at), customers(name)')
+      .select('*, orders(id, order_number, total, created_at), customers(name, account_code)')
       .single()
 
     if (error) throw error
+
+    // Accounting: Debit Cash/Bank, Credit Accounts Receivable
+    try {
+      const { createJournalEntry } = await import('../services/accountingEngine.js')
+      const tid = req.user?.tenantId
+
+      // Find source account (cash or card)
+      const sourceCode = payment_method === 'card' || payment_method === 'bank' ? '1020' : '1010'
+      const { data: sourceAccount } = await supabase.from('accounts').select('id').eq('code', sourceCode).eq('tenant_id', tid).single()
+
+      // Find AR account (customer-specific or default 1030)
+      let arAccount = null
+      if (data.customers?.account_code) {
+        const { data: custAcct } = await supabase.from('accounts').select('id').eq('code', data.customers.account_code).eq('tenant_id', tid).single()
+        arAccount = custAcct
+      }
+      if (!arAccount) {
+        const { data: defaultAR } = await supabase.from('accounts').select('id').eq('code', '1030').eq('tenant_id', tid).single()
+        arAccount = defaultAR
+      }
+
+      if (sourceAccount && arAccount) {
+        const date = new Date().toISOString().split('T')[0]
+        const paymentNumber = `CRPAY-${date.replace(/-/g, '')}-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`
+        const lines = [
+          { accountId: sourceAccount.id, debit: parseFloat(amount), credit: 0, description: `Credit payment received - ${paymentNumber}` },
+          { accountId: arAccount.id, debit: 0, credit: parseFloat(amount), description: `AR credit payment - ${paymentNumber}` },
+        ]
+        const entry = await createJournalEntry({
+          date,
+          description: `Credit sale payment: ${paymentNumber} for ${data.orders?.order_number || data.id}`,
+          reference: paymentNumber,
+          sourceType: 'credit_payment',
+          sourceId: creditSale.id,
+          lines,
+          createdBy: req.user?.id,
+        }, tid)
+
+        // Record in payments table
+        await supabase.from('payments').insert({
+          tenant_id: tid,
+          payment_number: paymentNumber,
+          payment_type: 'inbound',
+          method: payment_method || 'cash',
+          amount: parseFloat(amount),
+          reference: reference || null,
+          payment_date: date,
+          recorded_by: req.user?.id,
+          journal_entry_id: entry.id,
+        })
+      }
+    } catch (e) {
+      console.error('[CREDIT PAY] Accounting journal failed:', e.message)
+    }
+
     res.json(data)
   } catch (err) {
     next(err)
