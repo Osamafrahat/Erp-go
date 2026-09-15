@@ -4,7 +4,7 @@ import { useCartStore } from '../stores/cartStore'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { useOfflineStore } from '../stores/offlineStore'
-import { productsApi, categoriesApi, ordersApi, customersApi, servicesApi, servicePlansApi, subscriptionsApi, cashShiftsApi } from '../lib/api'
+import { productsApi, categoriesApi, ordersApi, customersApi, servicesApi, servicePlansApi, subscriptionsApi, cashShiftsApi, creditSalesApi } from '../lib/api'
 import { formatCurrency, generateOrderNumber } from '../lib/utils'
 import ProductGrid from '../components/pos/ProductGrid'
 import Cart from '../components/pos/Cart'
@@ -606,6 +606,7 @@ export default function POSPage() {
         <PaymentModal
           onClose={() => setShowPayment(false)}
           isSubmitting={isSubmitting}
+          selectedCustomer={selectedCustomer}
           onComplete={async (paymentData) => {
             if (isSubmitting) return
             setIsSubmitting(true)
@@ -699,7 +700,7 @@ export default function POSPage() {
                   tax_amount: productSubtotal * ((settings.taxRate || 14) / 100),
                   total: productSubtotal * (1 + (settings.taxRate || 14) / 100) + serviceSubtotal,
                   payment_method: paymentData.method,
-                  payment_status: 'paid',
+                  payment_status: paymentData.method === 'credit' ? 'pending' : 'paid',
                   payments: paymentData.payments,
                   user_id: currentUser?.id,
                   customer_id: selectedCustomer?.id || null,
@@ -713,6 +714,18 @@ export default function POSPage() {
                 if (navigator.onLine) {
                   const clientOrderId = `ONL-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
                   const response = await ordersApi.create({ ...orderData, client_order_id: clientOrderId })
+                  const orderId = response.data?.id
+
+                  // Create credit sale if pay later
+                  if (paymentData.method === 'credit' && orderId && selectedCustomer) {
+                    await creditSalesApi.create({
+                      order_id: orderId,
+                      customer_id: selectedCustomer.id,
+                      total_amount: orderData.total,
+                      due_date: paymentData.due_date,
+                      notes: 'Created from POS - Pay Later',
+                    })
+                  }
                   let completedOrder
                   if (response.data?.id) {
                     const fullOrderRes = await ordersApi.getById(response.data.id)

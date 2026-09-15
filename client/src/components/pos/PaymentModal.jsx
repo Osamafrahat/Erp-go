@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useCartStore } from '../../stores/cartStore'
 import { useAppStore } from '../../stores/appStore'
 import { formatCurrency, calculateChange } from '../../lib/utils'
-import { X, CreditCard, Banknote, Smartphone, Check } from 'lucide-react'
+import { X, CreditCard, Banknote, Smartphone, Clock, Check } from 'lucide-react'
 
-export default function PaymentModal({ onClose, onComplete, isSubmitting }) {
+export default function PaymentModal({ onClose, onComplete, isSubmitting, selectedCustomer }) {
   const { items, getSubtotal, getDiscount, getTax, getTotal, promoCode, promoDiscount } = useCartStore()
   const { settings, t, toastError } = useAppStore()
 
@@ -12,6 +12,7 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting }) {
     { id: 'cash', name: t('payment.cash'), icon: Banknote, color: 'text-green-600' },
     { id: 'card', name: t('payment.card'), icon: CreditCard, color: 'text-blue-600' },
     { id: 'mobile', name: t('payment.mobile'), icon: Smartphone, color: 'text-purple-600' },
+    { id: 'credit', name: t('pos.payLater') || 'Pay Later', icon: Clock, color: 'text-amber-600' },
   ]
 
   const [selectedMethod, setSelectedMethod] = useState('cash')
@@ -19,6 +20,7 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting }) {
   const [cashTendered, setCashTendered] = useState('')
   const [mobileRef, setMobileRef] = useState('')
   const [cardRef, setCardRef] = useState('')
+  const [dueDate, setDueDate] = useState('')
 
   const total = getTotal(settings.taxRate)
   const remaining = Math.round((total - payments.reduce((sum, p) => sum + p.amount, 0)) * 100) / 100
@@ -27,7 +29,9 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting }) {
     const handleKeyDown = (e) => {
       if (e.key === 'Enter' && !e.target.closest('.no-enter-shortcut')) {
         e.preventDefault()
-        if (remaining <= 0.01 && payments.length > 0) {
+        if (selectedMethod === 'credit') {
+          handleComplete()
+        } else if (remaining <= 0.01 && payments.length > 0) {
           handleComplete()
         } else {
           handleAddPayment()
@@ -36,7 +40,7 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting }) {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [remaining, payments.length])
+  }, [remaining, payments.length, selectedMethod, dueDate, selectedCustomer])
 
   const handleAddPayment = () => {
     let amount = 0
@@ -74,6 +78,18 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting }) {
   }
 
   const handleComplete = () => {
+    if (selectedMethod === 'credit') {
+      if (!selectedCustomer) {
+        toastError(t('pos.customerRequiredForCredit') || 'Customer is required for pay later')
+        return
+      }
+      if (!dueDate) {
+        toastError(t('pos.dueDateRequired') || 'Due date is required for pay later')
+        return
+      }
+      onComplete({ method: 'credit', payments: [{ method: 'credit', amount: total }], due_date: dueDate })
+      return
+    }
     if (remaining > 0.01) {
       toastError(t('payment.notComplete'))
       return
@@ -123,7 +139,7 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting }) {
 
         {/* Payment Methods */}
         <div className="p-4 space-y-4">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {paymentMethods.map((method) => {
               const Icon = method.icon
               return (
@@ -207,13 +223,40 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting }) {
             </div>
           )}
 
+          {selectedMethod === 'credit' && (
+            <div className="space-y-2">
+              {!selectedCustomer && (
+                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                  <p className="text-sm text-amber-700 dark:text-amber-400">
+                    {t('pos.customerRequiredForCredit') || 'Please select a customer before using Pay Later'}
+                  </p>
+                </div>
+              )}
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t('pos.selectDueDate') || 'Due Date'}
+              </label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+              />
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t('payment.fullAmount')}: {formatCurrency(total)}
+              </p>
+            </div>
+          )}
+
           {/* Add Payment Button */}
-          <button
-            onClick={handleAddPayment}
-            className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600"
-          >
-            {selectedMethod === 'cash' ? t('payment.addPayment') : `Pay ${formatCurrency(remaining)} with ${paymentMethods.find(m => m.id === selectedMethod)?.name}`}
-          </button>
+          {selectedMethod !== 'credit' && (
+            <button
+              onClick={handleAddPayment}
+              className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600"
+            >
+              {selectedMethod === 'cash' ? t('payment.addPayment') : `Pay ${formatCurrency(remaining)} with ${paymentMethods.find(m => m.id === selectedMethod)?.name}`}
+            </button>
+          )}
         </div>
 
         {/* Payment Summary */}
@@ -252,25 +295,33 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting }) {
 
         {/* Remaining & Complete */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex justify-between text-lg mb-4">
-            <span className="text-gray-500 dark:text-gray-400">{t('payment.remaining')}</span>
-            <span className={`font-bold ${remaining > 0 ? 'text-red-500' : 'text-green-500'}`}>
-              {formatCurrency(remaining)}
-            </span>
-          </div>
+          {selectedMethod !== 'credit' && (
+            <div className="flex justify-between text-lg mb-4">
+              <span className="text-gray-500 dark:text-gray-400">{t('payment.remaining')}</span>
+              <span className={`font-bold ${remaining > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                {formatCurrency(remaining)}
+              </span>
+            </div>
+          )}
+          {selectedMethod === 'credit' && (
+            <div className="flex justify-between text-lg mb-4">
+              <span className="text-gray-500 dark:text-gray-400">{t('payment.total')}</span>
+              <span className="font-bold text-amber-600">{formatCurrency(total)}</span>
+            </div>
+          )}
           <button
             onClick={handleComplete}
-            disabled={remaining > 0.01 || isSubmitting}
+            disabled={(selectedMethod !== 'credit' && remaining > 0.01) || isSubmitting || (selectedMethod === 'credit' && (!selectedCustomer || !dueDate))}
             className={`
               w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2
-              ${remaining <= 0.01 && !isSubmitting
+              ${((selectedMethod === 'credit' && selectedCustomer && dueDate) || (selectedMethod !== 'credit' && remaining <= 0.01)) && !isSubmitting
                 ? 'bg-green-600 text-white hover:bg-green-700'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
               }
             `}
           >
             <Check className="w-5 h-5" />
-            {t('payment.completeSale')}
+            {selectedMethod === 'credit' ? (t('pos.confirmPayLater') || 'Confirm Pay Later') : t('payment.completeSale')}
           </button>
         </div>
       </div>

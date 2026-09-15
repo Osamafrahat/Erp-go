@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
-import { ordersApi, etaApi, subscriptionsApi } from '../lib/api'
+import { ordersApi, etaApi, subscriptionsApi, creditSalesApi } from '../lib/api'
 import { formatCurrency } from '../lib/utils'
-import { FileText, Search, Eye, RefreshCcw, CheckCircle, XCircle, Clock, Send, Wrench, DollarSign, Repeat } from 'lucide-react'
+import { FileText, Search, Eye, RefreshCcw, CheckCircle, XCircle, Clock, Send, Wrench, DollarSign, Repeat, Banknote } from 'lucide-react'
 import ReceiptModal from '../components/pos/ReceiptModal'
 
 const STATUS_COLORS = {
@@ -30,6 +30,10 @@ export default function InvoicesPage() {
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [showReceipt, setShowReceipt] = useState(false)
   const [etaSubmitting, setEtaSubmitting] = useState(null)
+  const [showCreditModal, setShowCreditModal] = useState(false)
+  const [creditOrder, setCreditOrder] = useState(null)
+  const [creditDueDate, setCreditDueDate] = useState('')
+  const [creditSubmitting, setCreditSubmitting] = useState(false)
 
   useEffect(() => { loadData() }, [])
 
@@ -299,6 +303,7 @@ export default function InvoicesPage() {
           {[
             { key: 'all', label: t('reports.all') || 'All' },
             { key: 'paid', label: t('invoices.paid') || 'Paid' },
+            { key: 'pending', label: t('invoices.pending') || 'Pending' },
             { key: 'partial', label: t('invoices.partialRefund') || 'Partial Refund' },
             { key: 'refunded', label: t('invoices.refunded') || 'Refunded' },
           ].map(({ key, label }) => (
@@ -387,6 +392,15 @@ export default function InvoicesPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-1">
+                          {!isSub && orderStatus === 'pending' && (
+                            <button
+                              onClick={() => { setCreditOrder(invoice); setShowCreditModal(true) }}
+                              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 text-gray-500 hover:text-amber-600 transition-colors"
+                              title={t('creditSales.markAsCredit') || 'Mark as Credit'}
+                            >
+                              <Banknote className="w-4 h-4" />
+                            </button>
+                          )}
                           {!isSub && !invoice.eta_uuid && (
                             <button
                               onClick={() => handleEtaSubmit(invoice)}
@@ -427,6 +441,97 @@ export default function InvoicesPage() {
       {/* Receipt Modal */}
       {showReceipt && selectedOrder && (
         <ReceiptModal order={selectedOrder} onClose={() => { setShowReceipt(false); setSelectedOrder(null) }} />
+      )}
+
+      {/* Mark as Credit Modal */}
+      {showCreditModal && creditOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-md shadow-2xl">
+            <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
+              {t('creditSales.markAsCredit') || 'Mark as Credit Sale'}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {t('creditSales.markAsCreditDesc') || 'Convert this order to a credit sale (pay later)'}
+            </p>
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">{t('invoices.orderNumber') || 'Order'}</span>
+                <span className="font-medium">{creditOrder.order_number}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">{t('customer') || 'Customer'}</span>
+                <span className="font-medium">{creditOrder.customers?.name || '-'}</span>
+              </div>
+              <div className="flex justify-between text-sm border-t border-gray-200 dark:border-gray-600 pt-2">
+                <span className="text-gray-500 font-medium">{t('total') || 'Total'}</span>
+                <span className="font-bold text-primary-600">{formatCurrency(creditOrder.total)}</span>
+              </div>
+            </div>
+            {!creditOrder.customers?.name && (
+              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg mb-4">
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  {t('creditSales.customerRequired') || 'This order has no customer. A customer is required for credit sales.'}
+                </p>
+              </div>
+            )}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('creditSales.dueDate') || 'Due Date'}
+              </label>
+              <input
+                type="date"
+                value={creditDueDate}
+                onChange={(e) => setCreditDueDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowCreditModal(false); setCreditOrder(null); setCreditDueDate('') }}
+                className="flex-1 py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                {t('cancel') || 'Cancel'}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!creditDueDate) {
+                    toastError(t('pos.dueDateRequired') || 'Due date is required')
+                    return
+                  }
+                  if (!creditOrder.customers?.id) {
+                    toastError(t('creditSales.customerRequired') || 'Customer is required for credit sales')
+                    return
+                  }
+                  try {
+                    setCreditSubmitting(true)
+                    await creditSalesApi.create({
+                      order_id: creditOrder.id,
+                      customer_id: creditOrder.customers.id,
+                      total_amount: creditOrder.total,
+                      due_date: creditDueDate,
+                      notes: 'Marked as credit from Invoices page',
+                    })
+                    await ordersApi.updateStatus(creditOrder.id, 'pending')
+                    toastSuccess(t('creditSales.created') || 'Credit sale created')
+                    setShowCreditModal(false)
+                    setCreditOrder(null)
+                    setCreditDueDate('')
+                    loadData()
+                  } catch (err) {
+                    toastError(err.message || 'Failed to create credit sale')
+                  } finally {
+                    setCreditSubmitting(false)
+                  }
+                }}
+                disabled={!creditDueDate || !creditOrder.customers?.id || creditSubmitting}
+                className="flex-1 py-3 rounded-lg bg-amber-600 text-white font-bold hover:bg-amber-700 disabled:opacity-50 transition-colors"
+              >
+                {creditSubmitting ? '...' : (t('creditSales.confirm') || 'Confirm Credit Sale')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
