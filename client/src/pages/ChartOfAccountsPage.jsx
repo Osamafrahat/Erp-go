@@ -60,13 +60,12 @@ export default function ChartOfAccountsPage() {
     if (isSubmitting) return
     setIsSubmitting(true)
     try {
-      setLoading(true)
       await api.post('/accounting/accounts/recalculate-balances')
       toastSuccess(t('accounting.balancesRecalculated') || 'Balances recalculated')
-      fetchAccounts()
+      await fetchAccounts()
     } catch (err) {
       console.error(err)
-      toastError(t('common.error'))
+      toastError(err.response?.data?.error || t('common.error'))
     } finally {
       setIsSubmitting(false)
     }
