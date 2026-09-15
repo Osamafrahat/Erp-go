@@ -267,7 +267,7 @@ async function processSyncedOrder(order, items, payments, customer_id, userId, o
       const { data: product } = await supabase.from('products').select('cost_price').eq('id', item.product_id).eq('tenant_id', tenantId).single()
       return { ...item, cost_price: product?.cost_price || 0 }
     }))
-    const journalEntry = await postOrderJournal(order, itemsWithCost)
+    const journalEntry = await postOrderJournal(order, itemsWithCost, null, tenantId)
     if (journalEntry) {
       await supabase.from('orders').update({ journal_entry_id: journalEntry.id }).eq('id', order.id).eq('tenant_id', tenantId)
     }

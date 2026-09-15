@@ -377,7 +377,7 @@ async function processOrderBackground(order, items, payments, customer_id, userI
         const { data: cust } = await supabase.from('customers').select('id, name, account_code').eq('id', customer_id).eq('tenant_id', tid).single()
         customerInfo = cust
       }
-      const journalEntry = await postOrderJournal(order, itemsWithCost, customerInfo)
+      const journalEntry = await postOrderJournal(order, itemsWithCost, customerInfo, tid)
       if (journalEntry) {
         await supabase.from('orders').update({ journal_entry_id: journalEntry.id }).eq('id', order.id).eq('tenant_id', tid)
       }
