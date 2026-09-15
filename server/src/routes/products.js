@@ -162,6 +162,18 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
     if (error) throw error
     req.logActivity({ action: 'created', entity_type: 'product', entity_name: data.name })
 
+    // Auto-post journal if initial stock with supplier (AP liability)
+    if (data.stock_quantity > 0 && data.cost_price > 0 && data.supplier_id) {
+      try {
+        const { postStockReceiveJournal } = await import('../services/accountingEngine.js')
+        const movement = { id: data.id, quantity: data.stock_quantity }
+        const { data: supp } = await supabase.from('suppliers').select('id, name, account_code').eq('id', data.supplier_id).eq('tenant_id', req.user?.tenantId).single()
+        await postStockReceiveJournal(movement, { name: data.name, cost_price: data.cost_price }, supp, req.user?.tenantId)
+      } catch (accErr) {
+        console.error('Accounting auto-post (product create) failed:', accErr.message)
+      }
+    }
+
     res.status(201).json(data)
   } catch (err) {
     next(err)
