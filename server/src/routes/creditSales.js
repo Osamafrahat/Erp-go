@@ -160,6 +160,15 @@ router.post('/:id/pay', [
 
     if (error) throw error
 
+    // Update related order payment_status when fully paid
+    if (newStatus === 'paid' && creditSale.order_id) {
+      await supabase
+        .from('orders')
+        .update({ payment_status: 'paid' })
+        .eq('id', creditSale.order_id)
+        .eq('tenant_id', req.user?.tenantId)
+    }
+
     // Accounting: Debit Cash/Bank, Credit Accounts Receivable
     try {
       const { createJournalEntry } = await import('../services/accountingEngine.js')
