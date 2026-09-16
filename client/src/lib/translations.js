@@ -585,6 +585,7 @@ export const translations = {
     'receipt.storeAddress': 'Address',
     'receipt.storePhone': 'Phone',
     'receipt.bank': 'Bank Transfer',
+    'receipt.credit': 'Pay Later',
     'receipt.unknownItem': 'Item',
 
     // Customers
@@ -2967,6 +2968,7 @@ export const translations = {
     'receipt.storeAddress': 'العنوان',
     'receipt.storePhone': 'الهاتف',
     'receipt.bank': 'تحويل بنكي',
+    'receipt.credit': 'دفع آجل',
     'receipt.unknownItem': 'منتج',
 
     // Customers
