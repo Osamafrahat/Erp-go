@@ -48,7 +48,13 @@ export default function CommissionsPage() {
       setCommissions(Array.isArray(commissionsRes.data) ? commissionsRes.data : [])
       setStats(statsRes.data)
       setEmployees(employeesRes.data || [])
-      setSetupCheck(setupRes.data || (commissionsRes.data?.setup_required ? { tableExists: false } : null))
+      const setup = setupRes.data || (commissionsRes.data?.setup_required ? { tableExists: false } : null)
+      setSetupCheck(setup)
+
+      // Auto-backfill salesperson on existing orders if setup is good
+      if (setup?.tableExists && setup.hasProducts && setup.hasLinkedUsers && !setup.hasSalesOrders) {
+        commissionsApi.backfillSalesperson().catch(() => {})
+      }
     } catch (err) {
       toastError(err.message || t('commissions.failedToLoad'))
     } finally {

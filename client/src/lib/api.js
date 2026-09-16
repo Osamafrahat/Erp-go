@@ -440,6 +440,7 @@ export const commissionsApi = {
   approve: (id) => api.patch(`/commissions/${id}/approve`),
   pay: (id) => api.patch(`/commissions/${id}/pay`),
   bulkCalculate: (data) => api.post('/commissions/bulk-calculate', data),
+  backfillSalesperson: () => api.post('/commissions/backfill-salesperson'),
 }
 
 // Customer Statements API

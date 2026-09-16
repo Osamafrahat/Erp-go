@@ -376,6 +376,10 @@ router.post('/bulk-calculate', async (req, res, next) => {
       return res.status(400).json({ error: 'Commissions table does not exist. Run fix-commissions.sql in Supabase SQL Editor.' })
     }
 
+    if (!req.user?.tenantId) {
+      return res.json({ commissions: [], total_commission: 0, count: 0, orders_processed: 0 })
+    }
+
     const { period_start, period_end } = req.body
     if (!period_start || !period_end) {
       return res.status(400).json({ error: 'period_start and period_end are required' })
@@ -468,6 +472,56 @@ router.post('/bulk-calculate', async (req, res, next) => {
     if (error) throw error
 
     res.status(201).json({ commissions: data, total_commission: totalCommission, count: data.length, orders_processed: ordersProcessed })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// Backfill: set salesperson_id on orders based on user→employee link
+router.post('/backfill-salesperson', async (req, res, next) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.json({ updated: 0 })
+    }
+
+    // Get all orders without salesperson_id but with user_id
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('id, user_id')
+      .eq('tenant_id', req.user?.tenantId)
+      .is('salesperson_id', null)
+      .not('user_id', 'is', null)
+
+    if (!orders || orders.length === 0) {
+      return res.json({ updated: 0, message: 'No orders need backfill' })
+    }
+
+    // Get all users with employee_id linked
+    const userIds = [...new Set(orders.map(o => o.user_id))]
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, employee_id')
+      .eq('tenant_id', req.user?.tenantId)
+      .in('id', userIds)
+      .not('employee_id', 'is', null)
+
+    const userEmpMap = {}
+    if (users) users.forEach(u => { userEmpMap[u.id] = u.employee_id })
+
+    let updated = 0
+    for (const order of orders) {
+      const empId = userEmpMap[order.user_id]
+      if (empId) {
+        await supabase
+          .from('orders')
+          .update({ salesperson_id: empId })
+          .eq('id', order.id)
+          .eq('tenant_id', req.user?.tenantId)
+        updated++
+      }
+    }
+
+    res.json({ updated, total: orders.length })
   } catch (err) {
     next(err)
   }
