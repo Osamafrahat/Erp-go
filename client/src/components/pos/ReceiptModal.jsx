@@ -32,6 +32,7 @@ export default function ReceiptModal({ order, onClose }) {
             padding: 5mm;
             font-size: 12px;
             line-height: 1.4;
+            color: #000;
           }
           .header { text-align: center; margin-bottom: 10px; }
           .store-name { font-size: 16px; font-weight: bold; }
@@ -50,6 +51,7 @@ export default function ReceiptModal({ order, onClose }) {
       </head>
       <body>
         <div class="header">
+          ${settings.storeLogo ? `<img src="${settings.storeLogo}" alt="Logo" style="max-height: 60px; max-width: 60px; margin: 0 auto 5px;" />` : ''}
           <div class="store-name">${settings.storeName}</div>
           ${settings.storeAddress ? `<div class="store-info">${settings.storeAddress}</div>` : ''}
           ${settings.storePhone ? `<div class="store-info">${settings.storePhone}</div>` : ''}
@@ -146,9 +148,12 @@ export default function ReceiptModal({ order, onClose }) {
 
         {/* Receipt Preview */}
         <div ref={receiptRef} className="p-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-6 font-mono text-sm">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 font-mono text-sm text-gray-900">
             {/* Store Header */}
             <div className="text-center mb-4">
+              {settings.storeLogo && (
+                <img src={settings.storeLogo} alt={settings.storeName} className="mx-auto h-16 w-16 object-contain mb-2" />
+              )}
               <h3 className="text-lg font-bold">{settings.storeName}</h3>
               {settings.storeAddress && (
                 <p className="text-gray-500 text-xs">{settings.storeAddress}</p>
