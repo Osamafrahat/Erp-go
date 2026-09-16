@@ -79,6 +79,16 @@ export default function POSPage() {
 
   const handleOpenCashBox = async (e) => {
     e.preventDefault()
+    // Re-check for active shift before opening
+    try {
+      const { data: existing } = await cashShiftsApi.getActive()
+      if (existing) {
+        toastError(t('pos.shiftAlreadyOpen') || 'A cash box is already open. Close it first.')
+        setShowCashBoxModal(false)
+        await fetchActiveShift()
+        return
+      }
+    } catch {}
     if (!cashBoxBalance || parseFloat(cashBoxBalance) < 0) {
       toastError(t('pos.invalidOpeningBalance'))
       return
