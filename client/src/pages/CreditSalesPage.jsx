@@ -38,7 +38,13 @@ export default function CreditSalesPage() {
         creditSalesApi.getAll({ status: filter === 'all' ? undefined : filter }),
         creditSalesApi.getStats()
       ])
-      setSales(salesRes.data || [])
+      const roundedSales = (salesRes.data || []).map(s => ({
+        ...s,
+        total_amount: Math.round(parseFloat(s.total_amount || 0) * 100) / 100,
+        paid_amount: Math.round(parseFloat(s.paid_amount || 0) * 100) / 100,
+        remaining_amount: Math.round(parseFloat(s.remaining_amount || 0) * 100) / 100,
+      }))
+      setSales(roundedSales)
       setStats(statsRes.data)
     } catch (err) {
       toastError(err.message || 'Failed to load data')
@@ -55,9 +61,10 @@ export default function CreditSalesPage() {
   const getOrderRef = (sale) => sale.orders?.order_number || sale.orders?.id || '—'
 
   const openPaymentModal = (sale) => {
-    setSelectedSale(sale)
+    const rounded = Math.round(parseFloat(sale.remaining_amount || 0) * 100) / 100
+    setSelectedSale({ ...sale, remaining_amount: rounded })
     setPaymentForm({
-      amount: sale.remaining_amount?.toString() || '',
+      amount: rounded.toString() || '',
       method: 'cash',
       reference: ''
     })
