@@ -716,12 +716,23 @@ export default function POSPage() {
                   const response = await ordersApi.create({ ...orderData, client_order_id: clientOrderId })
                   const orderId = response.data?.id
 
-                  // Create credit sale if pay later
+                  // Fetch the actual order to get server-calculated total
+                  let serverTotal = orderData.total
+                  if (orderId) {
+                    try {
+                      const fullOrderRes = await ordersApi.getById(orderId)
+                      if (fullOrderRes.data?.total != null) {
+                        serverTotal = parseFloat(fullOrderRes.data.total)
+                      }
+                    } catch (e) {}
+                  }
+
+                  // Create credit sale if pay later — use server total, not client-calculated
                   if (paymentData.method === 'credit' && orderId && selectedCustomer) {
                     await creditSalesApi.create({
                       order_id: orderId,
                       customer_id: selectedCustomer.id,
-                      total_amount: orderData.total,
+                      total_amount: serverTotal,
                       due_date: paymentData.due_date,
                       notes: 'Created from POS - Pay Later',
                     })
