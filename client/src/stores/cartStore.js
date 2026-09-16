@@ -92,40 +92,40 @@ export const useCartStore = create(
 
       getSubtotal: () => {
         const { items } = get()
-        return items.reduce((sum, item) => sum + getItemPrice(item), 0)
+        return Math.round(items.reduce((sum, item) => sum + getItemPrice(item), 0) * 100) / 100
       },
 
       getProductSubtotal: () => {
         const { items } = get()
-        return items
+        return Math.round(items
           .filter(item => item.product._type !== 'service' && item.product._type !== 'subscription')
-          .reduce((sum, item) => sum + getItemPrice(item), 0)
+          .reduce((sum, item) => sum + getItemPrice(item), 0) * 100) / 100
       },
 
       getNonProductSubtotal: () => {
         const { items } = get()
-        return items
+        return Math.round(items
           .filter(item => item.product._type === 'service' || item.product._type === 'subscription')
-          .reduce((sum, item) => sum + getItemPrice(item), 0)
+          .reduce((sum, item) => sum + getItemPrice(item), 0) * 100) / 100
       },
 
       getServiceSubtotal: () => {
         const { items } = get()
-        return items
+        return Math.round(items
           .filter(item => item.product._type === 'service')
-          .reduce((sum, item) => sum + getItemPrice(item), 0)
+          .reduce((sum, item) => sum + getItemPrice(item), 0) * 100) / 100
       },
 
       getDiscount: () => {
         const { promoDiscount } = get()
         const subtotal = get().getProductSubtotal()
-        return subtotal * (promoDiscount / 100)
+        return Math.round(subtotal * (promoDiscount / 100) * 100) / 100
       },
 
       getTax: (taxRate = 14) => {
         const productSubtotal = get().getProductSubtotal()
         const discount = get().getDiscount()
-        return (productSubtotal - discount) * (taxRate / 100)
+        return Math.round((productSubtotal - discount) * (taxRate / 100) * 100) / 100
       },
 
       getTotal: (taxRate = 14) => {
@@ -133,7 +133,7 @@ export const useCartStore = create(
         const nonProductSubtotal = get().getNonProductSubtotal()
         const discount = get().getDiscount()
         const tax = get().getTax(taxRate)
-        return productSubtotal - discount + tax + nonProductSubtotal
+        return Math.round((productSubtotal - discount + tax + nonProductSubtotal) * 100) / 100
       },
 
       getItemCount: () => {

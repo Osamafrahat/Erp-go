@@ -85,6 +85,7 @@ router.post('/', [
 ], validate, async (req, res, next) => {
   try {
     const { order_id, customer_id, total_amount, due_date, notes } = req.body
+    const roundedTotal = Math.round(parseFloat(total_amount) * 100) / 100
 
     const { data, error } = await supabase
       .from('credit_sales')
@@ -92,8 +93,8 @@ router.post('/', [
         tenant_id: req.user?.tenantId,
         order_id,
         customer_id,
-        total_amount,
-        remaining_amount: total_amount,
+        total_amount: roundedTotal,
+        remaining_amount: roundedTotal,
         due_date,
         notes,
         status: 'pending',
@@ -128,8 +129,8 @@ router.post('/:id/pay', [
       return res.status(404).json({ error: 'Credit sale not found' })
     }
 
-    const newPaidAmount = parseFloat(creditSale.paid_amount || 0) + parseFloat(amount)
-    const newRemainingAmount = parseFloat(creditSale.total_amount) - newPaidAmount
+    const newPaidAmount = Math.round((parseFloat(creditSale.paid_amount || 0) + parseFloat(amount)) * 100) / 100
+    const newRemainingAmount = Math.round((parseFloat(creditSale.total_amount) - newPaidAmount) * 100) / 100
     const newStatus = newRemainingAmount <= 0 ? 'paid' : 'partial'
 
     // Log payment to credit_payments table
@@ -149,7 +150,7 @@ router.post('/:id/pay', [
       .from('credit_sales')
       .update({
         paid_amount: newPaidAmount,
-        remaining_amount: Math.max(0, newRemainingAmount),
+        remaining_amount: Math.max(0, Math.round(newRemainingAmount * 100) / 100),
         status: newStatus,
       })
       .eq('id', req.params.id)

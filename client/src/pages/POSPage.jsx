@@ -682,23 +682,25 @@ export default function POSPage() {
                 })),
               ]
 
-              const productSubtotal = productItems.reduce((sum, item) => {
+              const productSubtotal = Math.round(productItems.reduce((sum, item) => {
                 const isPieceSale = item.sellMode === 'pieces' && item.product.pieces_per_box
                 const unitPrice = isPieceSale ? item.product.price / item.product.pieces_per_box : item.product.price
                 return sum + (unitPrice * item.quantity)
-              }, 0)
-              const serviceSubtotal = serviceItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
-              const orderSubtotal = productSubtotal + serviceSubtotal
+              }, 0) * 100) / 100
+              const serviceSubtotal = Math.round(serviceItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) * 100) / 100
+              const orderSubtotal = Math.round((productSubtotal + serviceSubtotal) * 100) / 100
 
               // Create order if there are products or services (subscriptions are separate)
               if (allOrderItems.length > 0) {
+                const taxRate = settings.taxRate || 14
+                const taxAmount = Math.round(productSubtotal * (taxRate / 100) * 100) / 100
                 const orderData = {
                   order_number: generateOrderNumber(),
                   items: allOrderItems,
                   subtotal: orderSubtotal,
                   discount_amount: 0,
-                  tax_amount: productSubtotal * ((settings.taxRate || 14) / 100),
-                  total: productSubtotal * (1 + (settings.taxRate || 14) / 100) + serviceSubtotal,
+                  tax_amount: taxAmount,
+                  total: Math.round((productSubtotal * (1 + taxRate / 100) + serviceSubtotal) * 100) / 100,
                   payment_method: paymentData.method,
                   payment_status: paymentData.method === 'credit' ? 'pending' : 'paid',
                   payments: paymentData.payments,

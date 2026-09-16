@@ -54,7 +54,7 @@ export function generateSKU() {
 }
 
 export function calculateChange(tendered, total) {
-  return Math.max(0, tendered - total)
+  return Math.max(0, Math.round((tendered - total) * 100) / 100)
 }
 
 export function getLocale(language) {
