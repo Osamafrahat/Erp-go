@@ -336,10 +336,10 @@ router.get('/dead-stock', async (req, res, next) => {
     // Get last sale date for each product via order_items + orders
     const { data: lastSales, error: salesErr } = await supabase
       .from('order_items')
-      .select('product_id, orders!inner(created_at, tenant_id)')
-      .eq('tenant_id', req.user.tenantId)
+      .select('product_id, orders!inner(id, created_at, tenant_id)')
+      .eq('orders.tenant_id', req.user.tenantId)
       .lte('orders.created_at', cutoffStr)
-      .order('created_at', { ascending: false })
+      .order('orders.created_at', { ascending: false })
 
     if (salesErr) throw salesErr
 
@@ -354,8 +354,8 @@ router.get('/dead-stock', async (req, res, next) => {
     // Also check recent sales (after cutoff) to exclude recently sold
     const { data: recentSales } = await supabase
       .from('order_items')
-      .select('product_id')
-      .eq('tenant_id', req.user.tenantId)
+      .select('product_id, orders!inner(tenant_id)')
+      .eq('orders.tenant_id', req.user.tenantId)
       .gt('orders.created_at', cutoffStr)
 
     const recentlySoldIds = new Set((recentSales || []).map(s => s.product_id))
