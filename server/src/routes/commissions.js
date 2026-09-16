@@ -17,7 +17,7 @@ router.get('/', async (req, res, next) => {
     if (employee_id) query = query.eq('employee_id', employee_id)
     if (status) query = query.eq('status', status)
     if (period_start) query = query.gte('created_at', period_start)
-    if (period_end) query = query.lte('created_at', period_end)
+    if (period_end) query = query.lte('created_at', period_end + 'T23:59:59.999Z')
 
     const { data, error } = await query
     if (error) throw error
@@ -265,7 +265,7 @@ router.post('/bulk-calculate', async (req, res, next) => {
       .eq('tenant_id', req.user?.tenantId)
       .not('salesperson_id', 'is', null)
       .gte('created_at', period_start)
-      .lte('created_at', period_end)
+      .lte('created_at', period_end + 'T23:59:59.999Z')
 
     if (ordersError) throw ordersError
 
