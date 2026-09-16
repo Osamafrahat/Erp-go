@@ -32,6 +32,7 @@ export default function POSPage() {
   const [showHeld, setShowHeld] = useState(false)
   const [activeShift, setActiveShift] = useState(null)
   const [shiftStats, setShiftStats] = useState(null)
+  const [tenantHasOpenShift, setTenantHasOpenShift] = useState(false)
   const [showCashBoxPanel, setShowCashBoxPanel] = useState(false)
   const [showCashBoxModal, setShowCashBoxModal] = useState(false)
   const [showCloseShiftModal, setShowCloseShiftModal] = useState(false)
@@ -60,11 +61,21 @@ export default function POSPage() {
       const res = await cashShiftsApi.getActive()
       setActiveShift(res.data || null)
       if (res.data) {
+        setTenantHasOpenShift(true)
         fetchShiftStats()
+      } else {
+        // Check if any shift is open in the tenant (by another user)
+        try {
+          const allRes = await cashShiftsApi.getAll({ status: 'open' })
+          setTenantHasOpenShift((allRes.data || []).length > 0)
+        } catch {
+          setTenantHasOpenShift(false)
+        }
       }
     } catch (err) {
       setActiveShift(null)
       setShiftStats(null)
+      setTenantHasOpenShift(false)
     }
   }
 
@@ -79,10 +90,10 @@ export default function POSPage() {
 
   const handleOpenCashBox = async (e) => {
     e.preventDefault()
-    // Re-check for active shift before opening
+    // Re-check for any active shift in tenant before opening
     try {
-      const { data: existing } = await cashShiftsApi.getActive()
-      if (existing) {
+      const allRes = await cashShiftsApi.getAll({ status: 'open' })
+      if ((allRes.data || []).length > 0) {
         toastError(t('pos.shiftAlreadyOpen') || 'A cash box is already open. Close it first.')
         setShowCashBoxModal(false)
         await fetchActiveShift()
@@ -603,6 +614,10 @@ export default function POSPage() {
         <div className="flex-1">
           <Cart onCheckout={() => {
             if (!activeShift) {
+              if (tenantHasOpenShift) {
+                toastError(t('pos.shiftAlreadyOpen') || 'A cash box is already open. Close it first.')
+                return
+              }
               setShowCashBoxModal(true)
               return
             }

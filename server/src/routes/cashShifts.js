@@ -143,17 +143,18 @@ router.post('/', [
   try {
     const { opening_balance, notes } = req.body
 
+    // Only one open shift allowed per tenant
     const { data: active } = await supabase
       .from('cash_shifts')
-      .select('id')
+      .select('id, user_id, users(full_name)')
       .eq('tenant_id', req.user?.tenantId)
-      .eq('user_id', req.user.id)
       .eq('status', 'open')
       .limit(1)
       .maybeSingle()
 
     if (active) {
-      return res.status(400).json({ error: 'You already have an open shift' })
+      const openerName = active.users?.full_name || 'another user'
+      return res.status(400).json({ error: `A cash box is already open by ${openerName}. Close it first.` })
     }
 
     const { data, error } = await supabase
