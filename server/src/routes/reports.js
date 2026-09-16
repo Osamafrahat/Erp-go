@@ -319,7 +319,7 @@ router.get('/dead-stock', async (req, res, next) => {
     }
     const cutoffStr = cutoffDate.toISOString()
 
-    // Get all products
+    // Get all products with stock > 0
     let productQuery = supabase
       .from('products')
       .select('id, name, sku, stock_quantity, cost_price, price, category_id, categories(name)')
@@ -333,32 +333,63 @@ router.get('/dead-stock', async (req, res, next) => {
     const { data: products, error: prodErr } = await productQuery
     if (prodErr) throw prodErr
 
-    // Get last sale date for each product via order_items + orders
-    const { data: lastSales, error: salesErr } = await supabase
-      .from('order_items')
-      .select('product_id, orders!inner(id, created_at, tenant_id)')
-      .eq('orders.tenant_id', req.user.tenantId)
-      .lte('orders.created_at', cutoffStr)
-      .order('orders.created_at', { ascending: false })
+    if (!products || products.length === 0) {
+      return res.json({ items: [], total_items: 0, total_value: 0 })
+    }
 
-    if (salesErr) throw salesErr
+    // Get order IDs created after cutoff (recent orders)
+    const { data: recentOrders } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('tenant_id', req.user.tenantId)
+      .gt('created_at', cutoffStr)
 
-    // Build map of last sale per product
-    const lastSaleMap = {}
-    ;(lastSales || []).forEach(item => {
-      if (!lastSaleMap[item.product_id]) {
-        lastSaleMap[item.product_id] = item.orders.created_at
+    const recentOrderIds = (recentOrders || []).map(o => o.id)
+
+    // Get product IDs that were sold in recent orders
+    let recentlySoldIds = new Set()
+    if (recentOrderIds.length > 0) {
+      // Query in batches of 100 to avoid URL length issues
+      for (let i = 0; i < recentOrderIds.length; i += 100) {
+        const batch = recentOrderIds.slice(i, i + 100)
+        const { data: recentItems } = await supabase
+          .from('order_items')
+          .select('product_id')
+          .in('order_id', batch)
+        ;(recentItems || []).forEach(item => recentlySoldIds.add(item.product_id))
       }
-    })
+    }
 
-    // Also check recent sales (after cutoff) to exclude recently sold
-    const { data: recentSales } = await supabase
-      .from('order_items')
-      .select('product_id, orders!inner(tenant_id)')
-      .eq('orders.tenant_id', req.user.tenantId)
-      .gt('orders.created_at', cutoffStr)
+    // Get last sale date for each product
+    // First get all orders before cutoff
+    const { data: oldOrders } = await supabase
+      .from('orders')
+      .select('id, created_at')
+      .eq('tenant_id', req.user.tenantId)
+      .lte('created_at', cutoffStr)
+      .order('created_at', { ascending: false })
 
-    const recentlySoldIds = new Set((recentSales || []).map(s => s.product_id))
+    const oldOrderIds = (oldOrders || []).map(o => o.id)
+    const orderDateMap = {}
+    ;(oldOrders || []).forEach(o => { orderDateMap[o.id] = o.created_at })
+
+    // Build map of last sale per product from old orders
+    const lastSaleMap = {}
+    if (oldOrderIds.length > 0) {
+      for (let i = 0; i < oldOrderIds.length; i += 100) {
+        const batch = oldOrderIds.slice(i, i + 100)
+        const { data: oldItems } = await supabase
+          .from('order_items')
+          .select('product_id, order_id')
+          .in('order_id', batch)
+
+        ;(oldItems || []).forEach(item => {
+          if (!lastSaleMap[item.product_id]) {
+            lastSaleMap[item.product_id] = orderDateMap[item.order_id]
+          }
+        })
+      }
+    }
 
     // Dead stock = products with stock > 0 but NOT sold recently
     const deadStock = (products || [])
@@ -378,13 +409,13 @@ router.get('/dead-stock', async (req, res, next) => {
         days_since_sale: lastSaleMap[p.id]
           ? Math.floor((Date.now() - new Date(lastSaleMap[p.id]).getTime()) / (1000 * 60 * 60 * 24))
           : null,
-        stock_value: (p.stock_quantity || 0) * (p.cost_price || 0),
+        stock_value: Math.round((p.stock_quantity || 0) * (p.cost_price || 0) * 100) / 100,
       }))
       .sort((a, b) => (b.days_since_sale || 999) - (a.days_since_sale || 999))
 
     const totalValue = deadStock.reduce((sum, p) => sum + p.stock_value, 0)
 
-    res.json({ items: deadStock, total_items: deadStock.length, total_value: totalValue })
+    res.json({ items: deadStock, total_items: deadStock.length, total_value: Math.round(totalValue * 100) / 100 })
   } catch (err) {
     next(err)
   }
