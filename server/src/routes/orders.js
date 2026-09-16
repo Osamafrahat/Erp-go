@@ -4,6 +4,31 @@ import { checkTenantLimits } from '../middleware/limits.js'
 
 const router = Router()
 
+// Auto-resolve employee_id from user, with name-based auto-link
+async function resolveSalesperson(userId, tenantId) {
+  if (!userId || !tenantId) return null
+  const { data: user } = await supabase
+    .from('users')
+    .select('employee_id, full_name')
+    .eq('id', userId)
+    .eq('tenant_id', tenantId)
+    .maybeSingle()
+  if (user?.employee_id) return user.employee_id
+  if (!user?.full_name) return null
+  const { data: emp } = await supabase
+    .from('employees')
+    .select('id')
+    .eq('tenant_id', tenantId)
+    .eq('name', user.full_name)
+    .eq('is_active', true)
+    .maybeSingle()
+  if (emp) {
+    await supabase.from('users').update({ employee_id: emp.id }).eq('id', userId).eq('tenant_id', tenantId)
+    return emp.id
+  }
+  return null
+}
+
 // Get all orders
 router.get('/', async (req, res, next) => {
   try {
@@ -176,6 +201,12 @@ router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
 
     const userId = req.user.id
 
+    // Auto-resolve salesperson from user if not provided
+    let resolvedSalespersonId = salesperson_id || null
+    if (!resolvedSalespersonId && userId) {
+      resolvedSalespersonId = await resolveSalesperson(userId, req.user?.tenantId)
+    }
+
     // Create order
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -194,7 +225,7 @@ router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
         client_order_id: client_order_id || null,
         notes: notes || null,
         shift_id: shift_id || null,
-        salesperson_id: salesperson_id || null,
+        salesperson_id: resolvedSalespersonId || null,
         completed_at: new Date().toISOString()
       })
       .select()
@@ -206,7 +237,7 @@ router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
     res.status(201).json(order)
 
     // Everything below runs in background (fire and forget)
-    processOrderBackground(order, items, payments, customer_id, userId, order_number, total, promotion_id, salesperson_id).catch(err => {
+    processOrderBackground(order, items, payments, customer_id, userId, order_number, total, promotion_id, resolvedSalespersonId).catch(err => {
       console.error('[ORDER BG] Error:', err.message)
     })
   } catch (err) {
