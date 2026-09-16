@@ -35,7 +35,7 @@ export default function ReceiptModal({ order, onClose }) {
             color: #000;
           }
           .header { text-align: center; margin-bottom: 10px; }
-          .store-name { font-size: 16px; font-weight: bold; }
+          .store-name { font-size: 18px; font-weight: bold; font-family: 'Georgia', 'Times New Roman', serif; letter-spacing: 1px; }
           .store-info { font-size: 10px; color: #666; }
           .divider { border-top: 1px dashed #000; margin: 10px 0; }
           .row { display: flex; justify-content: space-between; margin: 3px 0; }
@@ -154,7 +154,7 @@ export default function ReceiptModal({ order, onClose }) {
               {settings.storeLogo && (
                 <img src={settings.storeLogo} alt={settings.storeName} className="mx-auto h-16 w-16 object-contain mb-2" />
               )}
-              <h3 className="text-lg font-bold">{settings.storeName}</h3>
+              <h3 className="text-lg font-bold" style={{ fontFamily: "'Georgia', 'Times New Roman', serif", letterSpacing: '1px' }}>{settings.storeName}</h3>
               {settings.storeAddress && (
                 <p className="text-gray-500 text-xs">{settings.storeAddress}</p>
               )}
