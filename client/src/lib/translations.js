@@ -2257,6 +2257,8 @@ export const translations = {
     'common.removeFailed': 'Failed to remove',
     'common.deleteFailed': 'Failed to delete',
     'common.reverse': 'Reverse',
+    'common.currency': 'EGP',
+    'common.currencyEGP': 'EGP (ج.م)',
 
     // Super Admin
     'admin.impersonateConfirm': 'Login as this tenant admin?',
@@ -4632,6 +4634,8 @@ export const translations = {
     // Common extras
     'common.updated': 'تم التحديث',
     'common.failed': 'فشل',
+    'common.currency': 'ج.م',
+    'common.currencyEGP': 'ج.م (EGP)',
     'common.deleted': 'تم الحذف',
     'common.removeFailed': 'فشل الإزالة',
     'common.deleteFailed': 'فشل الحذف',
