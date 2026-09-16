@@ -22,29 +22,62 @@ export const useAppStore = create((set, get) => ({
     return translations[lang]?.[key] || translations.en[key] || key
   },
 
-  // Store settings (loaded from database)
-  settings: {
-    storeName: 'ERP-GO',
-    storeAddress: '',
-    storePhone: '',
-    storeLogo: '',
-    taxRate: 14,
-    currency: 'EGP',
-    currencySymbol: 'ج.م',
-    receiptFooter: 'Thank you for your purchase!',
-    lowStockThreshold: 10,
-    'attendance.lateGraceMinutes': 5,
-    'attendance.enableGeolocation': 'false',
-    'attendance.requiredRadiusMeters': 100,
-    'attendance.storeLatitude': '30.0444',
-    'attendance.storeLongitude': '31.2357',
-  },
+  // Store settings (loaded from localStorage first, then API)
+  settings: (() => {
+    try {
+      const cached = localStorage.getItem('app_settings')
+      return cached ? { ...{
+        storeName: 'ERP-GO',
+        storeAddress: '',
+        storePhone: '',
+        storeLogo: '',
+        taxRate: 14,
+        currency: 'EGP',
+        currencySymbol: 'ج.م',
+        receiptFooter: 'Thank you for your purchase!',
+        lowStockThreshold: 10,
+      }, ...JSON.parse(cached) } : {
+        storeName: 'ERP-GO',
+        storeAddress: '',
+        storePhone: '',
+        storeLogo: '',
+        taxRate: 14,
+        currency: 'EGP',
+        currencySymbol: 'ج.م',
+        receiptFooter: 'Thank you for your purchase!',
+        lowStockThreshold: 10,
+        'attendance.lateGraceMinutes': 5,
+        'attendance.enableGeolocation': 'false',
+        'attendance.requiredRadiusMeters': 100,
+        'attendance.storeLatitude': '30.0444',
+        'attendance.storeLongitude': '31.2357',
+      }
+    } catch {
+      return {
+        storeName: 'ERP-GO',
+        storeAddress: '',
+        storePhone: '',
+        storeLogo: '',
+        taxRate: 14,
+        currency: 'EGP',
+        currencySymbol: 'ج.م',
+        receiptFooter: 'Thank you for your purchase!',
+        lowStockThreshold: 10,
+        'attendance.lateGraceMinutes': 5,
+        'attendance.enableGeolocation': 'false',
+        'attendance.requiredRadiusMeters': 100,
+        'attendance.storeLatitude': '30.0444',
+        'attendance.storeLongitude': '31.2357',
+      }
+    }
+  })(),
   settingsLoaded: false,
 
   loadSettings: async () => {
     try {
       const { data } = await settingsApi.get()
       if (data) {
+        localStorage.setItem('app_settings', JSON.stringify(data))
         set({
           settings: { ...get().settings, ...data },
           settingsLoaded: true,
@@ -56,9 +89,11 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
-  updateSettings: (newSettings) => set((state) => ({
-    settings: { ...state.settings, ...newSettings }
-  })),
+  updateSettings: (newSettings) => {
+    const merged = { ...get().settings, ...newSettings }
+    localStorage.setItem('app_settings', JSON.stringify(merged))
+    set({ settings: merged })
+  },
 
   // Sidebar state
   sidebarOpen: true,
