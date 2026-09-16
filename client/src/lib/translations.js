@@ -1194,6 +1194,9 @@ export const translations = {
     'accounting.sourcePeriodClose': 'Period Close',
     'accounting.sourceReversal': 'Reversal',
     'accounting.sourceInitialCapital': 'Initial Capital',
+    'accounting.sourceCreditPayment': 'Credit Payment',
+    'accounting.sourcePurchaseOrder': 'Purchase Order',
+    'accounting.sourceClosing': 'Period Close',
 
     // Journal entry description keys
     'accounting.desc.paymentFor': 'Payment for',
@@ -3579,6 +3582,9 @@ export const translations = {
     'accounting.sourcePeriodClose': 'إغلاق دورة',
     'accounting.sourceReversal': 'عكس قيد',
     'accounting.sourceInitialCapital': 'رأس المال الأولي',
+    'accounting.sourceCreditPayment': 'دفعة آجلة',
+    'accounting.sourcePurchaseOrder': 'طلب شراء',
+    'accounting.sourceClosing': 'إغلاق دورة',
 
     // Journal entry description keys (Arabic)
     'accounting.desc.paymentFor': 'دفعة للطلب',
