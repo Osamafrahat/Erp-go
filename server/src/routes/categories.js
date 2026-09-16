@@ -36,6 +36,17 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), [
   try {
     const { name, description } = req.body
 
+    // Check for duplicate name within tenant
+    const { data: existing } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('tenant_id', req.user?.tenantId)
+      .eq('name', name)
+      .single()
+    if (existing) {
+      return res.status(409).json({ error: 'A category with this name already exists' })
+    }
+
     const { data, error } = await supabase
       .from('categories')
       .insert({ tenant_id: req.user?.tenantId, name, description: description || null })
@@ -57,6 +68,18 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
 ], validate, async (req, res, next) => {
   try {
     const { name, description } = req.body
+
+    // Check for duplicate name within tenant (excluding current)
+    const { data: existing } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('tenant_id', req.user?.tenantId)
+      .eq('name', name)
+      .neq('id', req.params.id)
+      .single()
+    if (existing) {
+      return res.status(409).json({ error: 'A category with this name already exists' })
+    }
 
     const { data, error } = await supabase
       .from('categories')
