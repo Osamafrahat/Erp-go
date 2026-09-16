@@ -1321,6 +1321,7 @@ export const translations = {
     'payment.exceedsBalance': 'Payment amount exceeds remaining balance',
     'payment.notComplete': 'Payment is not complete',
     'payment.fullAmount': 'Full amount:',
+    'payment.total': 'Total',
 
     // Cart
     'cart.invalidPromo': 'Invalid promo code',
@@ -3699,6 +3700,7 @@ export const translations = {
     'payment.exceedsBalance': 'المبلغ المدخل يتجاوز المتبقي من الفاتورة',
     'payment.notComplete': 'الدفع غير مكتمل',
     'payment.fullAmount': 'المبلغ الكامل:',
+    'payment.total': 'الإجمالي',
 
     // Cart
     'cart.invalidPromo': 'كود الخصم غير صالح',
