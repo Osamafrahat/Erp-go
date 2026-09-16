@@ -29,11 +29,16 @@ router.get('/', async (req, res, next) => {
     if (!tableExists) {
       return res.status(200).json({ error: 'Commissions table does not exist. Run fix-commissions.sql in Supabase SQL Editor.', setup_required: true })
     }
+
+    if (!req.user?.tenantId) {
+      return res.json([])
+    }
+
     const { employee_id, status, period_start, period_end } = req.query
 
     let query = supabase
       .from('commissions')
-      .select('*, employees(name, id)')
+      .select('*')
       .eq('tenant_id', req.user?.tenantId)
       .order('created_at', { ascending: false })
 
@@ -45,9 +50,20 @@ router.get('/', async (req, res, next) => {
     const { data, error } = await query
     if (error) throw error
 
+    const employeeIds = [...new Set((data || []).map(c => c.employee_id).filter(Boolean))]
+    let employeeMap = {}
+    if (employeeIds.length > 0) {
+      const { data: employees } = await supabase
+        .from('employees')
+        .select('id, name')
+        .eq('tenant_id', req.user?.tenantId)
+        .in('id', employeeIds)
+      if (employees) employees.forEach(e => { employeeMap[e.id] = e.name })
+    }
+
     const enriched = (data || []).map(c => ({
       ...c,
-      employee_name: c.employees?.name || 'Unknown',
+      employee_name: employeeMap[c.employee_id] || 'Unknown',
     }))
 
     res.json(enriched)
@@ -111,13 +127,13 @@ router.get('/setup-check', async (req, res, next) => {
 router.get('/stats', async (req, res, next) => {
   try {
     const tableExists = await ensureCommissionsTable(req.user?.tenantId)
-    if (!tableExists) {
-      return res.json({ total_pending: 0, total_approved: 0, total_paid: 0, byEmployee: [], setup_required: true })
+    if (!tableExists || !req.user?.tenantId) {
+      return res.json({ total_pending: 0, total_approved: 0, total_paid: 0, byEmployee: [], setup_required: !tableExists })
     }
 
     const { data, error } = await supabase
       .from('commissions')
-      .select('commission_amount, status, employee_id, employees(name)')
+      .select('commission_amount, status, employee_id')
       .eq('tenant_id', req.user?.tenantId)
 
     if (error) throw error
@@ -134,11 +150,21 @@ router.get('/stats', async (req, res, next) => {
       .reduce((sum, r) => sum + parseFloat(r.commission_amount || 0), 0)
 
     const byEmployee = {}
+    const empIds = [...new Set(records.map(r => r.employee_id).filter(Boolean))]
+    let empNameMap = {}
+    if (empIds.length > 0) {
+      const { data: emps } = await supabase
+        .from('employees')
+        .select('id, name')
+        .eq('tenant_id', req.user?.tenantId)
+        .in('id', empIds)
+      if (emps) emps.forEach(e => { empNameMap[e.id] = e.name })
+    }
     records.forEach(r => {
       const empId = r.employee_id
       if (!empId) return
       if (!byEmployee[empId]) {
-        byEmployee[empId] = { employee_id: empId, employee_name: r.employees?.name || 'Unknown', pending: 0, approved: 0, paid: 0, total: 0 }
+        byEmployee[empId] = { employee_id: empId, employee_name: empNameMap[empId] || 'Unknown', pending: 0, approved: 0, paid: 0, total: 0 }
       }
       const amt = parseFloat(r.commission_amount || 0)
       byEmployee[empId][r.status] = (byEmployee[empId][r.status] || 0) + amt
@@ -156,16 +182,28 @@ router.get('/employee/:employeeId', async (req, res, next) => {
   try {
     const { data, error } = await supabase
       .from('commissions')
-      .select('*, employees(name)')
+      .select('*')
       .eq('tenant_id', req.user?.tenantId)
       .eq('employee_id', req.params.employeeId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
+    let empName = 'Unknown'
+    const empId = (data && data.length > 0) ? data[0].employee_id : null
+    if (empId) {
+      const { data: emp } = await supabase
+        .from('employees')
+        .select('name')
+        .eq('id', empId)
+        .eq('tenant_id', req.user?.tenantId)
+        .single()
+      if (emp) empName = emp.name
+    }
+
     const enriched = (data || []).map(c => ({
       ...c,
-      employee_name: c.employees?.name || 'Unknown',
+      employee_name: empName,
     }))
 
     res.json(enriched)
