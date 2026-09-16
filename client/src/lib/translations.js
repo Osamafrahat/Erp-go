@@ -2212,6 +2212,11 @@ export const translations = {
     'commissions.datesRequired': 'Please select both start and end dates',
     'commissions.calculated': 'Calculated {count} commissions for {orders} orders',
     'commissions.calculateFailed': 'Failed to calculate commissions',
+    'commissions.setupRequired': 'Commission Setup Required',
+    'commissions.setupProducts': 'Set commission rate on products (Inventory → Edit Product → Commission Rate)',
+    'commissions.setupEmployees': 'Link users to employees (Employees → Create Employee → assign to user)',
+    'commissions.setupOrders': 'Create orders from POS with a salesperson assigned',
+    'commissions.setupHint': 'Products with rate / Total | Users linked / Total',
 
     // Cash Shift
     'cashShift.failedToLoad': 'Failed to load data',
@@ -4597,6 +4602,11 @@ export const translations = {
     'commissions.datesRequired': 'يرجى تحديد تاريخ البداية والنهاية',
     'commissions.calculated': 'تم حساب {count} عمولة لـ {orders} طلب',
     'commissions.calculateFailed': 'فشل حساب العمولات',
+    'commissions.setupRequired': 'إعداد العمولات مطلوب',
+    'commissions.setupProducts': 'حدد نسبة العمولة على المنتجات (المخزون → تعديل المنتج → نسبة العمولة)',
+    'commissions.setupEmployees': 'ربط المستخدمين بالموظفين (الموظفين → إنشاء موظف → تعيين لمستخدم)',
+    'commissions.setupOrders': 'إنشاء طلبات من نقطة البيع مع تعيين بائع',
+    'commissions.setupHint': 'المنتجات بنسبة / الإجمالي | المستخدمين مربوطين / الإجمالي',
 
     // Cash Shift
     'cashShift.failedToLoad': 'فشل تحميل البيانات',

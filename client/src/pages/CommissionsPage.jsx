@@ -12,7 +12,11 @@ import {
   Search,
   TrendingUp,
   Users,
-  Calculator
+  Calculator,
+  AlertTriangle,
+  Package,
+  UserCheck,
+  ShoppingCart
 } from 'lucide-react'
 
 export default function CommissionsPage() {
@@ -27,21 +31,24 @@ export default function CommissionsPage() {
   const [showBulkModal, setShowBulkModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [bulkForm, setBulkForm] = useState({ period_start: '', period_end: '' })
+  const [setupCheck, setSetupCheck] = useState(null)
 
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [commissionsRes, statsRes, employeesRes] = await Promise.all([
+      const [commissionsRes, statsRes, employeesRes, setupRes] = await Promise.all([
         commissionsApi.getAll({
           status: filter === 'all' ? undefined : filter,
           employee_id: employeeFilter || undefined,
         }),
         commissionsApi.getStats(),
         employeesApi.getAll(),
+        commissionsApi.getSetupCheck().catch(() => ({ data: null })),
       ])
       setCommissions(commissionsRes.data || [])
       setStats(statsRes.data)
       setEmployees(employeesRes.data || [])
+      setSetupCheck(setupRes.data)
     } catch (err) {
       toastError(err.message || t('commissions.failedToLoad'))
     } finally {
@@ -153,6 +160,41 @@ export default function CommissionsPage() {
           {t('calculateCommissions') || 'Calculate Commissions'}
         </button>
       </div>
+
+      {/* Setup Guidance Banner */}
+      {commissions.length === 0 && setupCheck && !setupCheck.hasProducts && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-5">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-2">{t('commissions.setupRequired') || 'Commission Setup Required'}</h3>
+              <ul className="text-sm text-amber-700 dark:text-amber-400 space-y-1.5">
+                {!setupCheck.hasProducts && (
+                  <li className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    {t('commissions.setupProducts') || 'Set commission rate on products (Inventory → Edit Product → Commission Rate)'}
+                  </li>
+                )}
+                {!setupCheck.hasLinkedUsers && (
+                  <li className="flex items-center gap-2">
+                    <UserCheck className="h-4 w-4" />
+                    {t('commissions.setupEmployees') || 'Link users to employees (Employees → Create Employee → assign to user)'}
+                  </li>
+                )}
+                {!setupCheck.hasSalesOrders && (
+                  <li className="flex items-center gap-2">
+                    <ShoppingCart className="h-4 w-4" />
+                    {t('commissions.setupOrders') || 'Create orders from POS with a salesperson assigned'}
+                  </li>
+                )}
+              </ul>
+              <p className="text-xs text-amber-600 dark:text-amber-500 mt-2">
+                {t('commissions.setupHint') || 'Products: ' + setupCheck.productsWithRate + '/' + setupCheck.totalProducts + ' with rate | Users linked: ' + setupCheck.usersWithEmployee + '/' + setupCheck.totalUsers}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

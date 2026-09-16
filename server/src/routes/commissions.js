@@ -3,9 +3,48 @@ import supabase from '../db/supabase.js'
 
 const router = Router()
 
+// Ensure commissions table exists
+async function ensureCommissionsTable(tenantId) {
+  try {
+    const { error } = await supabase.rpc('exec_sql', {
+      sql: `
+        CREATE TABLE IF NOT EXISTS commissions (
+          id BIGSERIAL PRIMARY KEY,
+          tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+          order_id BIGINT REFERENCES orders(id) ON DELETE SET NULL,
+          employee_id BIGINT NOT NULL REFERENCES employees(id),
+          product_id BIGINT REFERENCES products(id),
+          sale_amount NUMERIC NOT NULL,
+          commission_rate NUMERIC NOT NULL,
+          commission_amount NUMERIC NOT NULL,
+          status TEXT DEFAULT 'pending' CHECK (status IN ('pending','approved','paid')),
+          period_start DATE,
+          period_end DATE,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS idx_commissions_tenant ON commissions(tenant_id);
+        CREATE INDEX IF NOT EXISTS idx_commissions_employee ON commissions(employee_id);
+        ALTER TABLE products ADD COLUMN IF NOT EXISTS commission_rate NUMERIC DEFAULT 0;
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS salesperson_id BIGINT REFERENCES employees(id) ON DELETE SET NULL;
+        ALTER TABLE commissions DISABLE ROW LEVEL SECURITY;
+      `
+    })
+    // If rpc fails, try direct query to check if table exists
+    if (error) {
+      const { error: checkErr } = await supabase.from('commissions').select('id').limit(1)
+      if (checkErr && checkErr.message?.includes('does not exist')) {
+        console.error('[COMMISSIONS] Table does not exist. Run fix-commissions.sql migration.')
+      }
+    }
+  } catch (e) {
+    console.error('[COMMISSIONS] ensureCommissionsTable error:', e.message)
+  }
+}
+
 // Get all commissions with filters
 router.get('/', async (req, res, next) => {
   try {
+    await ensureCommissionsTable(req.user?.tenantId)
     const { employee_id, status, period_start, period_end } = req.query
 
     let query = supabase
@@ -28,6 +67,55 @@ router.get('/', async (req, res, next) => {
     }))
 
     res.json(enriched)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// Check setup status - are products configured with commission rates? Are employees linked?
+router.get('/setup-check', async (req, res, next) => {
+  try {
+    const tid = req.user?.tenantId
+
+    // Check if products have commission_rate > 0
+    const { data: products } = await supabase
+      .from('products')
+      .select('id, name, commission_rate')
+      .eq('tenant_id', tid)
+
+    const productsWithRate = (products || []).filter(p => parseFloat(p.commission_rate || 0) > 0)
+
+    // Check if users have employee_id linked
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, full_name, employee_id')
+      .eq('tenant_id', tid)
+
+    const usersWithEmployee = (users || []).filter(u => u.employee_id)
+
+    // Check if orders have salesperson_id
+    const { count: totalOrders } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tid)
+
+    const { count: ordersWithSalesperson } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tid)
+      .not('salesperson_id', 'is', null)
+
+    res.json({
+      totalProducts: (products || []).length,
+      productsWithRate: productsWithRate.length,
+      totalUsers: (users || []).length,
+      usersWithEmployee: usersWithEmployee.length,
+      totalOrders: totalOrders || 0,
+      ordersWithSalesperson: ordersWithSalesperson || 0,
+      hasProducts: productsWithRate.length > 0,
+      hasLinkedUsers: usersWithEmployee.length > 0,
+      hasSalesOrders: (ordersWithSalesperson || 0) > 0,
+    })
   } catch (err) {
     next(err)
   }
