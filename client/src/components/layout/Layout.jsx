@@ -118,6 +118,9 @@ export default function Layout({ children }) {
   if (canAccess('/credit-sales') && currentUser?.role !== 'SUPER_ADMIN') {
     salesItems.push({ name: t('nav.creditSales') || 'Credit Sales', href: '/credit-sales', icon: Banknote })
   }
+  if (canAccess('/cash-shifts')) {
+    salesItems.push({ name: t('nav.cashShifts') || 'Cash Box', href: '/cash-shifts', icon: Banknote })
+  }
   if (currentUser?.role !== 'SUPER_ADMIN') {
     salesItems.push({ name: t('nav.invoices') || 'Invoices', href: '/invoices', icon: FileText })
   }
@@ -199,9 +202,6 @@ export default function Layout({ children }) {
     const reportingItems = [
       { name: t('nav.reports'), href: '/reports', icon: BarChart3 },
     ]
-    if (canAccess('/cash-shifts')) {
-      reportingItems.push({ name: t('nav.cashShifts') || 'Cash Shifts', href: '/cash-shifts', icon: Banknote })
-    }
     if (canAccess('/dead-stock')) {
       reportingItems.push({ name: t('nav.deadStock') || 'Dead Stock', href: '/dead-stock', icon: AlertTriangle })
     }
