@@ -2217,6 +2217,9 @@ export const translations = {
     'commissions.setupEmployees': 'Link users to employees (Employees → Create Employee → assign to user)',
     'commissions.setupOrders': 'Create orders from POS with a salesperson assigned',
     'commissions.setupHint': 'Products with rate / Total | Users linked / Total',
+    'commissions.tableMissing': 'Database Table Missing',
+    'commissions.tableMissingDesc': 'The commissions table does not exist in the database. You must run the migration SQL.',
+    'commissions.tableMissingSQL': 'Go to Supabase Dashboard → SQL Editor → paste and run the contents of server/migrations/fix-commissions.sql',
 
     // Cash Shift
     'cashShift.failedToLoad': 'Failed to load data',
@@ -4607,6 +4610,9 @@ export const translations = {
     'commissions.setupEmployees': 'ربط المستخدمين بالموظفين (الموظفين → إنشاء موظف → تعيين لمستخدم)',
     'commissions.setupOrders': 'إنشاء طلبات من نقطة البيع مع تعيين بائع',
     'commissions.setupHint': 'المنتجات بنسبة / الإجمالي | المستخدمين مربوطين / الإجمالي',
+    'commissions.tableMissing': 'جدول قاعدة البيانات مفقود',
+    'commissions.tableMissingDesc': 'جدول العمولات غير موجود في قاعدة البيانات. يجب تشغيل ملف الهجرة.',
+    'commissions.tableMissingSQL': 'اذهب إلى Supabase Dashboard → SQL Editor → الصق وشغّل محتوى server/migrations/fix-commissions.sql',
 
     // Cash Shift
     'cashShift.failedToLoad': 'فشل تحميل البيانات',

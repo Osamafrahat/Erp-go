@@ -45,10 +45,10 @@ export default function CommissionsPage() {
         employeesApi.getAll(),
         commissionsApi.getSetupCheck().catch(() => ({ data: null })),
       ])
-      setCommissions(commissionsRes.data || [])
+      setCommissions(Array.isArray(commissionsRes.data) ? commissionsRes.data : [])
       setStats(statsRes.data)
       setEmployees(employeesRes.data || [])
-      setSetupCheck(setupRes.data)
+      setSetupCheck(setupRes.data || (commissionsRes.data?.setup_required ? { tableExists: false } : null))
     } catch (err) {
       toastError(err.message || t('commissions.failedToLoad'))
     } finally {
@@ -162,7 +162,23 @@ export default function CommissionsPage() {
       </div>
 
       {/* Setup Guidance Banner */}
-      {commissions.length === 0 && setupCheck && !setupCheck.hasProducts && (
+      {commissions.length === 0 && setupCheck && !setupCheck.tableExists && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl p-5">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-red-800 dark:text-red-300 mb-2">{t('commissions.tableMissing') || 'Database Table Missing'}</h3>
+              <p className="text-sm text-red-700 dark:text-red-400 mb-2">
+                {t('commissions.tableMissingDesc') || 'The commissions table does not exist in the database. You must run the migration SQL.'}
+              </p>
+              <p className="text-xs text-red-600 dark:text-red-500 font-mono bg-red-100 dark:bg-red-900/40 p-2 rounded">
+                {t('commissions.tableMissingSQL') || 'Go to Supabase Dashboard → SQL Editor → paste and run the contents of server/migrations/fix-commissions.sql'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {commissions.length === 0 && setupCheck && setupCheck.tableExists && !setupCheck.hasProducts && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-5">
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />

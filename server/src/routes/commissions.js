@@ -3,48 +3,32 @@ import supabase from '../db/supabase.js'
 
 const router = Router()
 
-// Ensure commissions table exists
+// Check if commissions table exists
+let commissionsTableExists = null
 async function ensureCommissionsTable(tenantId) {
+  if (commissionsTableExists === true) return true
   try {
-    const { error } = await supabase.rpc('exec_sql', {
-      sql: `
-        CREATE TABLE IF NOT EXISTS commissions (
-          id BIGSERIAL PRIMARY KEY,
-          tenant_id BIGINT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-          order_id BIGINT REFERENCES orders(id) ON DELETE SET NULL,
-          employee_id BIGINT NOT NULL REFERENCES employees(id),
-          product_id BIGINT REFERENCES products(id),
-          sale_amount NUMERIC NOT NULL,
-          commission_rate NUMERIC NOT NULL,
-          commission_amount NUMERIC NOT NULL,
-          status TEXT DEFAULT 'pending' CHECK (status IN ('pending','approved','paid')),
-          period_start DATE,
-          period_end DATE,
-          created_at TIMESTAMPTZ DEFAULT NOW()
-        );
-        CREATE INDEX IF NOT EXISTS idx_commissions_tenant ON commissions(tenant_id);
-        CREATE INDEX IF NOT EXISTS idx_commissions_employee ON commissions(employee_id);
-        ALTER TABLE products ADD COLUMN IF NOT EXISTS commission_rate NUMERIC DEFAULT 0;
-        ALTER TABLE orders ADD COLUMN IF NOT EXISTS salesperson_id BIGINT REFERENCES employees(id) ON DELETE SET NULL;
-        ALTER TABLE commissions DISABLE ROW LEVEL SECURITY;
-      `
-    })
-    // If rpc fails, try direct query to check if table exists
-    if (error) {
-      const { error: checkErr } = await supabase.from('commissions').select('id').limit(1)
-      if (checkErr && checkErr.message?.includes('does not exist')) {
-        console.error('[COMMISSIONS] Table does not exist. Run fix-commissions.sql migration.')
-      }
+    const { error } = await supabase.from('commissions').select('id').limit(1)
+    if (error && error.message?.includes('does not exist')) {
+      console.warn('[COMMISSIONS] Table does not exist. User must run fix-commissions.sql in Supabase SQL Editor.')
+      commissionsTableExists = false
+      return false
     }
+    commissionsTableExists = true
+    return true
   } catch (e) {
-    console.error('[COMMISSIONS] ensureCommissionsTable error:', e.message)
+    console.error('[COMMISSIONS] ensureCommissionsTable check failed:', e.message)
+    return false
   }
 }
 
 // Get all commissions with filters
 router.get('/', async (req, res, next) => {
   try {
-    await ensureCommissionsTable(req.user?.tenantId)
+    const tableExists = await ensureCommissionsTable(req.user?.tenantId)
+    if (!tableExists) {
+      return res.status(200).json({ error: 'Commissions table does not exist. Run fix-commissions.sql in Supabase SQL Editor.', setup_required: true })
+    }
     const { employee_id, status, period_start, period_end } = req.query
 
     let query = supabase
@@ -75,6 +59,7 @@ router.get('/', async (req, res, next) => {
 // Check setup status - are products configured with commission rates? Are employees linked?
 router.get('/setup-check', async (req, res, next) => {
   try {
+    const tableExists = await ensureCommissionsTable(req.user?.tenantId)
     const tid = req.user?.tenantId
 
     // Check if products have commission_rate > 0
@@ -106,6 +91,7 @@ router.get('/setup-check', async (req, res, next) => {
       .not('salesperson_id', 'is', null)
 
     res.json({
+      tableExists,
       totalProducts: (products || []).length,
       productsWithRate: productsWithRate.length,
       totalUsers: (users || []).length,
@@ -124,6 +110,11 @@ router.get('/setup-check', async (req, res, next) => {
 // Get commission stats
 router.get('/stats', async (req, res, next) => {
   try {
+    const tableExists = await ensureCommissionsTable(req.user?.tenantId)
+    if (!tableExists) {
+      return res.json({ total_pending: 0, total_approved: 0, total_paid: 0, byEmployee: [], setup_required: true })
+    }
+
     const { data, error } = await supabase
       .from('commissions')
       .select('commission_amount, status, employee_id, employees(name)')
@@ -342,6 +333,11 @@ router.patch('/:id/pay', async (req, res, next) => {
 // Bulk calculate commissions for a date range
 router.post('/bulk-calculate', async (req, res, next) => {
   try {
+    const tableExists = await ensureCommissionsTable(req.user?.tenantId)
+    if (!tableExists) {
+      return res.status(400).json({ error: 'Commissions table does not exist. Run fix-commissions.sql in Supabase SQL Editor.' })
+    }
+
     const { period_start, period_end } = req.body
     if (!period_start || !period_end) {
       return res.status(400).json({ error: 'period_start and period_end are required' })
