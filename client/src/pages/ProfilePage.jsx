@@ -88,7 +88,7 @@ export default function ProfilePage() {
       return
     }
     if (newPassword.length < 6) {
-      toastError(t('profile.newPassword') + ' (min 6 characters)')
+      toastError(t('profile.passwordMinLength'))
       return
     }
     setSavingPassword(true)

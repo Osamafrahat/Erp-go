@@ -285,7 +285,7 @@ export default function Layout({ children }) {
             <button
               onClick={toggleSidebar}
               className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all duration-200 hover:scale-105 overflow-hidden"
-              title="Expand sidebar"
+              title={t('layout.expandSidebar') || 'Expand sidebar'}
             >
               {settings.storeLogo ? (
                 <img src={settings.storeLogo} alt={settings.storeName} className="w-full h-full object-cover" />

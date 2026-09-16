@@ -72,7 +72,7 @@ export default function PaymentsPage() {
       setFormData({ payment_type: 'inbound', method: 'cash', amount: '', reference: '', notes: '', payment_date: new Date().toISOString().split('T')[0], partner_type: '', partner_id: '' })
       fetchPayments()
     } catch (err) {
-      toastError(err.response?.data?.error || 'Failed')
+      toastError(err.response?.data?.error || t('common.failed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -86,7 +86,7 @@ export default function PaymentsPage() {
       fetchPayments()
       setDeleteTarget(null)
     } catch (err) {
-      toastError(err.response?.data?.error || 'Failed')
+      toastError(err.response?.data?.error || t('common.failed'))
     } finally {
       setDeleting(false)
     }

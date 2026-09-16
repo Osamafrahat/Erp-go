@@ -43,7 +43,7 @@ export default function CommissionsPage() {
       setStats(statsRes.data)
       setEmployees(employeesRes.data || [])
     } catch (err) {
-      toastError(err.message || 'Failed to load data')
+      toastError(err.message || t('commissions.failedToLoad'))
     } finally {
       setLoading(false)
     }
@@ -56,27 +56,27 @@ export default function CommissionsPage() {
   const handleApprove = async (id) => {
     try {
       await commissionsApi.approve(id)
-      toastSuccess('Commission approved')
+      toastSuccess(t('commissions.approved'))
       fetchData()
     } catch (err) {
-      toastError(err.response?.data?.error || 'Failed to approve commission')
+      toastError(err.response?.data?.error || t('commissions.approveFailed'))
     }
   }
 
   const handlePay = async (id) => {
     try {
       await commissionsApi.pay(id)
-      toastSuccess('Commission marked as paid')
+      toastSuccess(t('commissions.markedPaid'))
       fetchData()
     } catch (err) {
-      toastError(err.response?.data?.error || 'Failed to mark commission as paid')
+      toastError(err.response?.data?.error || t('commissions.markPaidFailed'))
     }
   }
 
   const handleBulkCalculate = async (e) => {
     e.preventDefault()
     if (!bulkForm.period_start || !bulkForm.period_end) {
-      toastError('Please select both start and end dates')
+      toastError(t('commissions.datesRequired'))
       return
     }
     try {
@@ -86,12 +86,12 @@ export default function CommissionsPage() {
         period_end: bulkForm.period_end,
       })
       const data = res.data
-      toastSuccess(`Calculated ${data.count} commissions for ${data.orders_processed} orders`)
+      toastSuccess(t('commissions.calculated', { count: data.count, orders: data.orders_processed }))
       setShowBulkModal(false)
       setBulkForm({ period_start: '', period_end: '' })
       fetchData()
     } catch (err) {
-      toastError(err.response?.data?.error || 'Failed to calculate commissions')
+      toastError(err.response?.data?.error || t('commissions.calculateFailed'))
     } finally {
       setSubmitting(false)
     }

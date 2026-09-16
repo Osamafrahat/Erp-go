@@ -43,7 +43,7 @@ export default function CashShiftPage() {
       setShifts(shiftsRes.data || [])
       setSummary(summaryRes.data)
     } catch (err) {
-      toastError(err.message || 'Failed to load data')
+      toastError(err.message || t('cashShift.failedToLoad'))
     } finally {
       setLoading(false)
     }
@@ -72,7 +72,7 @@ export default function CashShiftPage() {
   const handleOpenShift = async (e) => {
     e.preventDefault()
     if (!openForm.opening_balance || parseFloat(openForm.opening_balance) < 0) {
-      toastError('Please enter a valid opening balance')
+      toastError(t('cashShift.invalidOpeningBalance'))
       return
     }
     try {
@@ -81,12 +81,12 @@ export default function CashShiftPage() {
         opening_balance: parseFloat(openForm.opening_balance),
         notes: openForm.notes
       })
-      toastSuccess('Cash shift opened successfully')
+      toastSuccess(t('cashShift.opened'))
       setShowOpenForm(false)
       setOpenForm({ opening_balance: '', notes: '' })
       fetchData()
     } catch (err) {
-      toastError(err.message || 'Failed to open shift')
+      toastError(err.message || t('cashShift.openFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -95,7 +95,7 @@ export default function CashShiftPage() {
   const handleCloseShift = async (e) => {
     e.preventDefault()
     if (!closeForm.actual_cash || parseFloat(closeForm.actual_cash) < 0) {
-      toastError('Please enter a valid actual cash amount')
+      toastError(t('cashShift.invalidActualCash'))
       return
     }
     try {
@@ -105,12 +105,12 @@ export default function CashShiftPage() {
         actual_cash: parseFloat(closeForm.actual_cash),
         notes: closeForm.notes
       })
-      toastSuccess('Cash shift closed successfully')
+      toastSuccess(t('cashShift.closed'))
       setShowCloseForm(false)
       setCloseForm({ closing_balance: '', actual_cash: '', notes: '' })
       fetchData()
     } catch (err) {
-      toastError(err.message || 'Failed to close shift')
+      toastError(err.message || t('cashShift.closeFailed'))
     } finally {
       setSubmitting(false)
     }

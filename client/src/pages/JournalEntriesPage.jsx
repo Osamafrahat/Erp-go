@@ -89,7 +89,7 @@ export default function JournalEntriesPage() {
       setFormData({ date: new Date().toISOString().split('T')[0], description: '', reference: '', lines: [{ accountId: '', debit: '', credit: '', description: '' }, { accountId: '', debit: '', credit: '', description: '' }] })
       fetchEntries()
     } catch (err) {
-      toastError(err.response?.data?.error || 'Failed')
+      toastError(err.response?.data?.error || t('common.failed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -103,7 +103,7 @@ export default function JournalEntriesPage() {
       fetchEntries()
       setReverseTarget(null)
     } catch (err) {
-      toastError(err.response?.data?.error || 'Failed')
+      toastError(err.response?.data?.error || t('common.failed'))
     } finally {
       setReversing(false)
     }
@@ -263,7 +263,7 @@ export default function JournalEntriesPage() {
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => setShowDetail(entry)} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-primary-600"><Eye className="w-4 h-4" /></button>
                         {!entry.is_reversed && entry.is_posted && (
-                          <button onClick={() => setReverseTarget(entry.id)} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-orange-600" title="Reverse"><RotateCcw className="w-4 h-4" /></button>
+                          <button onClick={() => setReverseTarget(entry.id)} className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-orange-600" title={t('common.reverse')}><RotateCcw className="w-4 h-4" /></button>
                         )}
                       </div>
                     </td>

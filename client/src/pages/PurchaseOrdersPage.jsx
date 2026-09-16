@@ -46,7 +46,7 @@ export default function PurchaseOrdersPage() {
       setOrders(ordersRes.data || [])
       setStats(statsRes.data)
     } catch (err) {
-      toastError(err.message || 'Failed to load data')
+      toastError(err.message || t('purchaseOrders.failedToLoad'))
     } finally {
       setLoading(false)
     }
@@ -91,12 +91,12 @@ export default function PurchaseOrdersPage() {
   const handleCreatePO = async (e) => {
     e.preventDefault()
     if (!form.supplier_id) {
-      toastError('Please select a supplier')
+      toastError(t('purchaseOrders.selectSupplierRequired'))
       return
     }
     const validItems = form.items.filter((item) => item.product_id && item.quantity && item.unit_price)
     if (validItems.length === 0) {
-      toastError('Please add at least one item')
+      toastError(t('purchaseOrders.addItemRequired'))
       return
     }
 
@@ -112,12 +112,12 @@ export default function PurchaseOrdersPage() {
           unit_price: parseFloat(item.unit_price)
         }))
       })
-      toastSuccess('Purchase order created successfully')
+      toastSuccess(t('purchaseOrders.created'))
       setShowCreateForm(false)
       setForm({ supplier_id: '', expected_date: '', notes: '', items: [{ product_id: '', quantity: '', unit_price: '' }] })
       fetchData()
     } catch (err) {
-      toastError(err.message || 'Failed to create purchase order')
+      toastError(err.message || t('purchaseOrders.createFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -128,40 +128,40 @@ export default function PurchaseOrdersPage() {
       const res = await purchaseOrdersApi.getById(id)
       setShowDetail(res.data)
     } catch (err) {
-      toastError(err.message || 'Failed to load details')
+      toastError(err.message || t('purchaseOrders.loadDetailsFailed'))
     }
   }
 
   const handleSend = async (id) => {
-    if (!confirm('Mark this order as sent to supplier?')) return
+    if (!confirm(t('purchaseOrders.confirmSend'))) return
     try {
       await purchaseOrdersApi.update(id, { status: 'sent' })
-      toastSuccess('Order marked as sent')
+      toastSuccess(t('purchaseOrders.markedSent'))
       fetchData()
     } catch (err) {
-      toastError(err.message || 'Failed to send order')
+      toastError(err.message || t('purchaseOrders.sendFailed'))
     }
   }
 
   const handleReceive = async (id) => {
-    if (!confirm(t('confirmReceive') || 'Mark this order as received?')) return
+    if (!confirm(t('purchaseOrders.confirmReceive'))) return
     try {
       await purchaseOrdersApi.receive(id)
-      toastSuccess('Order marked as received')
+      toastSuccess(t('purchaseOrders.markedReceived'))
       fetchData()
     } catch (err) {
-      toastError(err.message || 'Failed to receive order')
+      toastError(err.message || t('purchaseOrders.receiveFailed'))
     }
   }
 
   const handleDeletePO = async (id) => {
-    if (!confirm(t('confirmDelete') || 'Are you sure you want to delete this order?')) return
+    if (!confirm(t('purchaseOrders.confirmDelete'))) return
     try {
       await purchaseOrdersApi.delete(id)
-      toastSuccess('Order deleted successfully')
+      toastSuccess(t('purchaseOrders.deleted'))
       fetchData()
     } catch (err) {
-      toastError(err.message || 'Failed to delete order')
+      toastError(err.message || t('purchaseOrders.deleteFailed'))
     }
   }
 

@@ -47,7 +47,7 @@ export default function CreditSalesPage() {
       setSales(roundedSales)
       setStats(statsRes.data)
     } catch (err) {
-      toastError(err.message || 'Failed to load data')
+      toastError(err.message || t('creditSales.failedToLoad'))
     } finally {
       setLoading(false)
     }
@@ -74,11 +74,11 @@ export default function CreditSalesPage() {
   const handleRecordPayment = async (e) => {
     e.preventDefault()
     if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
-      toastError('Please enter a valid payment amount')
+      toastError(t('creditSales.invalidPaymentAmount'))
       return
     }
     if (parseFloat(paymentForm.amount) > parseFloat(selectedSale.remaining_amount)) {
-      toastError('Payment amount cannot exceed remaining balance')
+      toastError(t('creditSales.exceedsBalance'))
       return
     }
     try {
@@ -88,12 +88,12 @@ export default function CreditSalesPage() {
         payment_method: paymentForm.method,
         reference: paymentForm.reference
       })
-      toastSuccess('Payment recorded successfully')
+      toastSuccess(t('creditSales.paymentRecorded'))
       setShowPaymentModal(false)
       setSelectedSale(null)
       fetchData()
     } catch (err) {
-      toastError(err.message || 'Failed to record payment')
+      toastError(err.message || t('creditSales.recordPaymentFailed'))
     } finally {
       setSubmitting(false)
     }

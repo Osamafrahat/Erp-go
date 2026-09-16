@@ -67,7 +67,7 @@ export default function PayrollPage() {
       if (showDetail) fetchDetail(showDetail.id)
       fetchPayrolls()
     } catch (err) {
-      toastError(err.response?.data?.error || 'Failed to mark as paid')
+      toastError(err.response?.data?.error || t('hr.payroll.markPaidFailed') || 'Failed to mark as paid')
     } finally {
       setPaying(false)
     }
@@ -82,7 +82,7 @@ export default function PayrollPage() {
       setDeleteTarget(null)
       fetchPayrolls()
     } catch (err) {
-      toastError(err.response?.data?.error || 'Failed to delete')
+      toastError(err.response?.data?.error || t('hr.payroll.deleteFailed') || 'Failed to delete')
     } finally {
       setDeleting(false)
     }

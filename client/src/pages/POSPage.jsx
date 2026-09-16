@@ -80,7 +80,7 @@ export default function POSPage() {
   const handleOpenCashBox = async (e) => {
     e.preventDefault()
     if (!cashBoxBalance || parseFloat(cashBoxBalance) < 0) {
-      toastError('Please enter a valid opening balance')
+      toastError(t('pos.invalidOpeningBalance'))
       return
     }
     try {
@@ -89,13 +89,13 @@ export default function POSPage() {
         opening_balance: parseFloat(cashBoxBalance),
         notes: cashBoxNotes
       })
-      toastSuccess('Cash box opened')
+      toastSuccess(t('pos.cashBoxOpened'))
       setShowCashBoxModal(false)
       setCashBoxBalance('')
       setCashBoxNotes('')
       await fetchActiveShift()
     } catch (err) {
-      toastError(err.message || 'Failed to open cash box')
+      toastError(err.message || t('pos.openCashBoxFailed'))
     } finally {
       setCashBoxSubmitting(false)
     }
@@ -103,7 +103,7 @@ export default function POSPage() {
 
   const handleCloseShift = async () => {
     if (!closeShiftActual || parseFloat(closeShiftActual) < 0) {
-      toastError('Please enter a valid actual cash amount')
+      toastError(t('pos.invalidActualCash'))
       return
     }
     try {
@@ -113,14 +113,14 @@ export default function POSPage() {
         actual_cash: parseFloat(closeShiftActual),
         notes: ''
       })
-      toastSuccess('Cash box closed')
+      toastSuccess(t('pos.cashBoxClosed'))
       setShowCloseShiftModal(false)
       setCloseShiftActual('')
       setActiveShift(null)
       setShiftStats(null)
       setShowCashBoxPanel(false)
     } catch (err) {
-      toastError(err.message || 'Failed to close cash box')
+      toastError(err.message || t('pos.closeCashBoxFailed'))
     } finally {
       setCashBoxSubmitting(false)
     }

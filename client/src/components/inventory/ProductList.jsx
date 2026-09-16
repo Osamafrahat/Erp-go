@@ -90,7 +90,7 @@ export default function ProductList({ products, canEdit, onEdit, onDelete, onPri
       setReceiveCostPrice('')
       onRefresh?.()
     } catch (err) {
-      toastError(err.response?.data?.error || err.message || 'Failed')
+      toastError(err.response?.data?.error || err.message || t('common.failed') || 'Failed')
     } finally {
       setReceiveLoading(false)
     }

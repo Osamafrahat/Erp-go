@@ -533,7 +533,7 @@ export const translations = {
     'common.next': 'Next',
     'common.previous': 'Previous',
     'common.items': 'items',
-    'common.product': 'product',
+    'common.product': 'Product',
     'common.products': 'products',
     'common.actions': 'Actions',
     'common.date': 'Date',
@@ -800,7 +800,7 @@ export const translations = {
 
     // Print Sheet
     'print.gard': 'GARD',
-    'print.gardAr': 'جرد المخزون',
+    'print.gardAr': 'Stock Inventory',
     'print.totalProducts': 'Total Products',
     'print.totalItems': 'Total Items',
     'print.lowStock': 'Low Stock',
@@ -934,94 +934,6 @@ export const translations = {
     'customers.digitsRemaining': 'digits remaining',
     'employees.salaryCurrency': 'EGP',
     'users.permissionsWarning': 'Changing permissions will force the user to re-login',
-
-    // Common fallbacks
-    'common.add': 'Add',
-    'common.edit': 'Edit',
-    'common.delete': 'Delete',
-    'common.save': 'Save',
-    'common.cancel': 'Cancel',
-    'common.loading': 'Loading...',
-    'common.confirm': 'Confirm',
-    'common.noResults': 'No results found',
-    'common.actions': 'Actions',
-    'common.status': 'Status',
-    'common.notes': 'Notes',
-    'common.amount': 'Amount',
-    'common.date': 'Date',
-    'common.name': 'Name',
-    'common.description': 'Description',
-    'common.price': 'Price',
-    'common.quantity': 'Quantity',
-    'common.total': 'Total',
-    'common.search': 'Search',
-    'common.filter': 'Filter',
-    'common.export': 'Export',
-    'common.print': 'Print',
-    'common.close': 'Close',
-    'common.back': 'Back',
-    'common.next': 'Next',
-    'common.previous': 'Previous',
-    'common.yes': 'Yes',
-    'common.no': 'No',
-    'common.active': 'Active',
-    'common.inactive': 'Inactive',
-    'common.enabled': 'Enabled',
-    'common.disabled': 'Disabled',
-    'common.today': 'Today',
-    'common.yesterday': 'Yesterday',
-    'common.thisWeek': 'This Week',
-    'common.thisMonth': 'This Month',
-    'common.custom': 'Custom',
-    'common.from': 'From',
-    'common.to': 'To',
-    'common.apply': 'Apply',
-    'common.reset': 'Reset',
-    'common.clear': 'Clear',
-    'common.view': 'View',
-    'common.details': 'Details',
-    'common.summary': 'Summary',
-    'common.success': 'Success',
-    'common.error': 'Error',
-    'common.warning': 'Warning',
-    'common.info': 'Info',
-    'common.copy': 'Copy',
-    'common.download': 'Download',
-    'common.upload': 'Upload',
-    'common.refresh': 'Refresh',
-    'common.retry': 'Retry',
-    'common.submit': 'Submit',
-    'common.processing': 'Processing...',
-    'common.selected': 'selected',
-    'common.selectAll': 'Select All',
-    'common.deselectAll': 'Deselect All',
-    'common.currency': 'EGP',
-    'common.phone': 'Phone',
-    'common.email': 'Email',
-    'common.address': 'Address',
-    'common.role': 'Role',
-    'common.type': 'Type',
-    'common.category': 'Category',
-    'common.customer': 'Customer',
-    'common.supplier': 'Supplier',
-    'common.employee': 'Employee',
-    'common.user': 'User',
-    'common.product': 'Product',
-    'common.order': 'Order',
-    'common.payment': 'Payment',
-    'common.expense': 'Expense',
-    'common.refund': 'Refund',
-    'common.promotion': 'Promotion',
-    'common.inventory': 'Inventory',
-    'common.report': 'Report',
-    'common.settings': 'Settings',
-    'common.dashboard': 'Dashboard',
-
-    // Services
-    'services.nameAr': 'Name (Arabic)',
-    'services.validFrom': 'Valid From',
-    'services.validTo': 'Valid To',
-    'services.actions': 'Actions',
 
     // Nav - Services
     'nav.services': 'Services',
@@ -2268,6 +2180,204 @@ export const translations = {
     'noDeadStockFound': 'No dead stock found',
     'days': 'Days',
     'markForClearance': 'Mark for Clearance',
+
+    // Purchase Orders
+    'purchaseOrders.failedToLoad': 'Failed to load data',
+    'purchaseOrders.selectSupplierRequired': 'Please select a supplier',
+    'purchaseOrders.addItemRequired': 'Please add at least one item',
+    'purchaseOrders.created': 'Purchase order created successfully',
+    'purchaseOrders.createFailed': 'Failed to create purchase order',
+    'purchaseOrders.loadDetailsFailed': 'Failed to load details',
+    'purchaseOrders.confirmSend': 'Mark this order as sent to supplier?',
+    'purchaseOrders.markedSent': 'Order marked as sent',
+    'purchaseOrders.sendFailed': 'Failed to send order',
+    'purchaseOrders.confirmReceive': 'Mark this order as received?',
+    'purchaseOrders.markedReceived': 'Order marked as received',
+    'purchaseOrders.receiveFailed': 'Failed to receive order',
+    'purchaseOrders.confirmDelete': 'Are you sure you want to delete this order?',
+    'purchaseOrders.deleted': 'Order deleted successfully',
+    'purchaseOrders.deleteFailed': 'Failed to delete order',
+
+    // Commissions
+    'commissions.failedToLoad': 'Failed to load data',
+    'commissions.approved': 'Commission approved',
+    'commissions.approveFailed': 'Failed to approve commission',
+    'commissions.markedPaid': 'Commission marked as paid',
+    'commissions.markPaidFailed': 'Failed to mark commission as paid',
+    'commissions.datesRequired': 'Please select both start and end dates',
+    'commissions.calculated': 'Calculated {count} commissions for {orders} orders',
+    'commissions.calculateFailed': 'Failed to calculate commissions',
+
+    // Cash Shift
+    'cashShift.failedToLoad': 'Failed to load data',
+    'cashShift.invalidOpeningBalance': 'Please enter a valid opening balance',
+    'cashShift.opened': 'Cash shift opened successfully',
+    'cashShift.openFailed': 'Failed to open shift',
+    'cashShift.invalidActualCash': 'Please enter a valid actual cash amount',
+    'cashShift.closed': 'Cash shift closed successfully',
+    'cashShift.closeFailed': 'Failed to close shift',
+
+    // Credit Sales
+    'creditSales.failedToLoad': 'Failed to load data',
+    'creditSales.invalidPaymentAmount': 'Please enter a valid payment amount',
+    'creditSales.exceedsBalance': 'Payment amount cannot exceed remaining balance',
+    'creditSales.paymentRecorded': 'Payment recorded successfully',
+    'creditSales.recordPaymentFailed': 'Failed to record payment',
+    'creditSales.customerRequired': 'Customer is required for credit sales',
+    'creditSales.createFailed': 'Failed to create credit sale',
+    'creditSales.created': 'Credit sale created',
+
+    // POS
+    'pos.invalidOpeningBalance': 'Please enter a valid opening balance',
+    'pos.cashBoxOpened': 'Cash box opened',
+    'pos.openCashBoxFailed': 'Failed to open cash box',
+    'pos.invalidActualCash': 'Please enter a valid actual cash amount',
+    'pos.cashBoxClosed': 'Cash box closed',
+    'pos.closeCashBoxFailed': 'Failed to close cash box',
+    'pos.customerRequiredForSubscription': 'Customer is required for subscriptions',
+    'pos.duplicateSubscription': 'Customer already has an active subscription for this plan',
+    'pos.customerRequiredForCredit': 'Customer is required for pay later',
+    'pos.dueDateRequired': 'Due date is required for pay later',
+    'pos.outOfStock': 'Out of stock',
+    'pos.insufficientStock': 'Insufficient stock',
+    'pos.pcsNeed': 'pcs, need',
+
+    // Invoices
+    'invoices.alreadySubmittedToETA': 'Already submitted to ETA. UUID: {uuid}',
+    'invoices.submittedToETA': 'Submitted to ETA. UUID: {uuid}',
+    'invoices.etaRejected': 'Submission rejected by ETA',
+    'invoices.etaSubmitFailed': 'Failed to submit to ETA',
+
+    // Common extras
+    'common.updated': 'Updated',
+    'common.failed': 'Failed',
+    'common.deleted': 'Deleted',
+    'common.removeFailed': 'Failed to remove',
+    'common.deleteFailed': 'Failed to delete',
+    'common.reverse': 'Reverse',
+
+    // Super Admin
+    'admin.impersonateConfirm': 'Login as this tenant admin?',
+
+    // Accounting
+    'accounting.balancesRecalculated': 'Balances recalculated',
+    'accounting.capitalRecorded': 'Initial capital recorded',
+
+    // Dead Stock
+    'inventory.deadStockReportFailed': 'Failed to load dead stock report',
+    'inventory.costExceedsPrice': 'Cost price cannot exceed selling price',
+    'inventory.productDuplicated': 'Created new product for supplier',
+    'inventory.received': 'Received',
+    'inventory.printBarcode': 'Print Barcode',
+
+    // Settings
+    'settings.logoTooLarge': 'Logo must be under 512KB',
+    'settings.saveFailed': 'Failed to save settings',
+    'settings.locationCaptured': 'Location captured successfully',
+    'settings.geolocationNotSupported': 'Geolocation is not supported by your browser',
+    'settings.locationFailed': 'Failed to get location',
+
+    // Profile
+    'profile.passwordMinLength': 'Password must be at least 6 characters',
+
+    // HR - Payroll
+    'hr.payroll.fetchFailed': 'Failed to load payroll',
+    'hr.payroll.processFailed': 'Failed to process payroll',
+    'hr.payroll.markPaidFailed': 'Failed to mark as paid',
+    'hr.payroll.fetchDetailFailed': 'Failed to load payroll details',
+    'hr.payroll.processed': 'Payroll processed successfully',
+    'hr.payroll.paid': 'Marked as paid',
+    'hr.payroll.deleted': 'Payroll deleted',
+
+    // HR - Leave
+    'hr.leave.fetchFailed': 'Failed to load leave data',
+    'hr.leave.submitFailed': 'Failed to submit request',
+    'hr.leave.updateFailed': 'Failed to update request',
+    'hr.leave.createTypeFailed': 'Failed to create leave type',
+    'hr.leave.fillRequired': 'Please fill required fields',
+    'hr.leave.endDateBeforeStart': 'End date cannot be before start date',
+    'hr.leave.requestCreated': 'Leave request submitted',
+    'hr.leave.requestUpdated': 'Leave request updated',
+    'hr.leave.requestDeleted': 'Request deleted',
+    'hr.leave.typeCreated': 'Leave type created',
+    'hr.leave.requestSubmitted': 'Leave request submitted',
+
+    // HR - Shifts
+    'hr.shifts.createFailed': 'Failed to create shift',
+    'hr.shifts.assignFailed': 'Failed to assign shift',
+    'hr.shifts.created': 'Shift created',
+    'hr.shifts.assigned': 'Shift assigned',
+    'hr.shifts.deleted': 'Shift deleted',
+    'hr.shifts.assignmentRemoved': 'Assignment removed',
+
+    // HR - Performance
+    'hr.performance.fetchFailed': 'Failed to load reviews',
+    'hr.performance.saveFailed': 'Failed to save review',
+    'hr.performance.completeFailed': 'Failed to complete review',
+    'hr.performance.fetchDetailFailed': 'Failed to load review details',
+    'hr.performance.updated': 'Review updated',
+    'hr.performance.created': 'Review created',
+    'hr.performance.completed': 'Review marked as completed',
+    'hr.performance.deleted': 'Review deleted',
+
+    // HR - Attendance
+    'hr.attendance.fetchFailed': 'Failed to load attendance',
+    'hr.attendance.createFailed': 'Failed to record attendance',
+    'hr.attendance.created': 'Attendance recorded',
+    'hr.attendance.deleted': 'Record deleted',
+    'hr.attendance.clockedIn': 'Clocked in successfully',
+    'hr.attendance.clockInFailed': 'Failed to clock in',
+    'hr.attendance.clockedOut': 'Clocked out successfully',
+    'hr.attendance.clockOutFailed': 'Failed to clock out',
+    'hr.attendance.breakStarted': 'Break started',
+    'hr.attendance.breakStartFailed': 'Failed to start break',
+    'hr.attendance.breakEnded': 'Break ended',
+    'hr.attendance.breakEndFailed': 'Failed to end break',
+
+    // Employees
+    'employees.deleted': 'Employee deleted successfully',
+    'employees.failedToDelete': 'Failed to delete employee',
+    'employees.failedToToggle': 'Failed to toggle employee status',
+    'employees.updated': 'Employee updated successfully',
+    'employees.created': 'Employee added successfully',
+    'employees.failedToSave': 'Failed to save employee',
+
+    // Customers
+    'customers.deleted': 'Customer deleted successfully',
+    'customers.failedToDelete': 'Failed to delete customer',
+    'customers.updated': 'Customer updated successfully',
+    'customers.created': 'Customer added successfully',
+
+    // Suppliers
+    'suppliers.deleted': 'Supplier deleted successfully',
+    'suppliers.updated': 'Supplier updated successfully',
+    'suppliers.created': 'Supplier added successfully',
+
+    // Expenses
+    'expenses.deleted': 'Expense deleted successfully',
+    'expenses.failedToDelete': 'Failed to delete expense',
+    'expenses.updated': 'Expense updated successfully',
+    'expenses.created': 'Expense added successfully',
+    'expenses.failedToSave': 'Failed to save expense',
+
+    // Promotions
+    'promotions.deleted': 'Promotion deleted successfully',
+    'promotions.updated': 'Promotion updated',
+    'promotions.failedToUpdate': 'Failed to update promotion',
+    'promotions.created': 'Promotion created successfully',
+
+    // Services
+    'services.subscriptionCancelled': 'Subscription cancelled',
+    'services.subscriptionRenewed': 'Subscription renewed',
+    'services.subscriptionDeleted': 'Subscription deleted',
+    'services.paymentRecorded': 'Payment recorded',
+
+    // Layout
+    'layout.expandSidebar': 'Expand sidebar',
+
+    // Chat
+    'chat.deleteAll': 'Delete all messages',
+    'chat.noMessages': 'No messages yet',
   },
   ar: {
     // Dashboard
@@ -3205,88 +3315,6 @@ export const translations = {
     'customers.digitsRemaining': 'أرقام متبقية',
     'employees.salaryCurrency': 'ج.م',
     'users.permissionsWarning': 'تغيير الصلاحيات سيجبر المستخدم على تسجيل الخروج',
-
-    // Common fallbacks (Arabic)
-    'common.add': 'إضافة',
-    'common.edit': 'تعديل',
-    'common.delete': 'حذف',
-    'common.save': 'حفظ',
-    'common.cancel': 'إلغاء',
-    'common.loading': 'جاري التحميل...',
-    'common.confirm': 'تأكيد',
-    'common.noResults': 'لا توجد نتائج',
-    'common.actions': 'الإجراءات',
-    'common.status': 'الحالة',
-    'common.notes': 'ملاحظات',
-    'common.amount': 'المبلغ',
-    'common.date': 'التاريخ',
-    'common.name': 'الاسم',
-    'common.description': 'الوصف',
-    'common.price': 'السعر',
-    'common.quantity': 'الكمية',
-    'common.total': 'الإجمالي',
-    'common.search': 'بحث',
-    'common.filter': 'تصفية',
-    'common.export': 'تصدير',
-    'common.print': 'طباعة',
-    'common.close': 'إغلاق',
-    'common.back': 'رجوع',
-    'common.next': 'التالي',
-    'common.previous': 'السابق',
-    'common.yes': 'نعم',
-    'common.no': 'لا',
-    'common.active': 'نشط',
-    'common.inactive': 'غير نشط',
-    'common.enabled': 'مفعّل',
-    'common.disabled': 'معطّل',
-    'common.today': 'اليوم',
-    'common.yesterday': 'أمس',
-    'common.thisWeek': 'هذا الأسبوع',
-    'common.thisMonth': 'هذا الشهر',
-    'common.custom': 'مخصص',
-    'common.from': 'من',
-    'common.to': 'إلى',
-    'common.apply': 'تطبيق',
-    'common.reset': 'إعادة تعيين',
-    'common.clear': 'مسح',
-    'common.view': 'عرض',
-    'common.details': 'التفاصيل',
-    'common.summary': 'ملخص',
-    'common.success': 'نجاح',
-    'common.error': 'خطأ',
-    'common.warning': 'تحذير',
-    'common.info': 'معلومات',
-    'common.copy': 'نسخ',
-    'common.download': 'تحميل',
-    'common.upload': 'رفع',
-    'common.refresh': 'تحديث',
-    'common.retry': 'إعادة المحاولة',
-    'common.submit': 'إرسال',
-    'common.processing': 'جاري المعالجة...',
-    'common.selected': 'محدد',
-    'common.selectAll': 'تحديد الكل',
-    'common.deselectAll': 'إلغاء تحديد الكل',
-    'common.currency': 'ج.م',
-    'common.phone': 'الهاتف',
-    'common.email': 'البريد الإلكتروني',
-    'common.address': 'العنوان',
-    'common.role': 'الدور',
-    'common.type': 'النوع',
-    'common.category': 'التصنيف',
-    'common.customer': 'العميل',
-    'common.supplier': 'المورد',
-    'common.employee': 'الموظف',
-    'common.user': 'المستخدم',
-    'common.product': 'المنتج',
-    'common.order': 'الطلب',
-    'common.payment': 'الدفع',
-    'common.expense': 'المصروف',
-    'common.refund': 'المرتجع',
-    'common.promotion': 'العرض',
-    'common.inventory': 'المخزون',
-    'common.report': 'التقرير',
-    'common.settings': 'الإعدادات',
-    'common.dashboard': 'لوحة التحكم',
 
     // Nav - Services (Arabic)
     'nav.services': 'الخدمات',
@@ -4529,6 +4557,204 @@ export const translations = {
     'noDeadStockFound': 'لم يتم العثور على مخزون راكد',
     'days': 'أيام',
     'markForClearance': 'تحديد للتصفية',
+
+    // Purchase Orders
+    'purchaseOrders.failedToLoad': 'فشل تحميل البيانات',
+    'purchaseOrders.selectSupplierRequired': 'يرجى اختيار مورد',
+    'purchaseOrders.addItemRequired': 'يرجى إضافة عنصر واحد على الأقل',
+    'purchaseOrders.created': 'تم إنشاء طلب الشراء بنجاح',
+    'purchaseOrders.createFailed': 'فشل إنشاء طلب الشراء',
+    'purchaseOrders.loadDetailsFailed': 'فشل تحميل التفاصيل',
+    'purchaseOrders.confirmSend': 'تحديد هذا الطلب كمرسل للمورد؟',
+    'purchaseOrders.markedSent': 'تم تحديد الطلب كمرسل',
+    'purchaseOrders.sendFailed': 'فشل إرسال الطلب',
+    'purchaseOrders.confirmReceive': 'تحديد هذا الطلب كمستلم؟',
+    'purchaseOrders.markedReceived': 'تم تحديد الطلب كمستلم',
+    'purchaseOrders.receiveFailed': 'فشل استلام الطلب',
+    'purchaseOrders.confirmDelete': 'هل أنت متأكد من حذف هذا الطلب؟',
+    'purchaseOrders.deleted': 'تم حذف طلب الشراء بنجاح',
+    'purchaseOrders.deleteFailed': 'فشل حذف طلب الشراء',
+
+    // Commissions
+    'commissions.failedToLoad': 'فشل تحميل البيانات',
+    'commissions.approved': 'تمت الموافقة على العمولة',
+    'commissions.approveFailed': 'فشل الموافقة على العمولة',
+    'commissions.markedPaid': 'تم تحديد العمولة كمدفوعة',
+    'commissions.markPaidFailed': 'فشل تحديد العمولة كمدفوعة',
+    'commissions.datesRequired': 'يرجى تحديد تاريخ البداية والنهاية',
+    'commissions.calculated': 'تم حساب {count} عمولة لـ {orders} طلب',
+    'commissions.calculateFailed': 'فشل حساب العمولات',
+
+    // Cash Shift
+    'cashShift.failedToLoad': 'فشل تحميل البيانات',
+    'cashShift.invalidOpeningBalance': 'يرجى إدخال رصيد افتتاحي صالح',
+    'cashShift.opened': 'تم فتح الصرفة بنجاح',
+    'cashShift.openFailed': 'فشل فتح الصرفة',
+    'cashShift.invalidActualCash': 'يرجى إدخال مبلغ نقدي فعلي صالح',
+    'cashShift.closed': 'تم إغلاق الصرفة بنجاح',
+    'cashShift.closeFailed': 'فشل إغلاق الصرفة',
+
+    // Credit Sales
+    'creditSales.failedToLoad': 'فشل تحميل البيانات',
+    'creditSales.invalidPaymentAmount': 'يرجى إدخال مبلغ دفع صالح',
+    'creditSales.exceedsBalance': 'مبلغ الدفع لا يمكن أن يتجاوز الرصيد المتبقي',
+    'creditSales.paymentRecorded': 'تم تسجيل الدفعة بنجاح',
+    'creditSales.recordPaymentFailed': 'فشل تسجيل الدفعة',
+    'creditSales.customerRequired': 'العميل مطلوب للمبيعات الآجلة',
+    'creditSales.createFailed': 'فشل إنشاء المبيعة الآجلة',
+    'creditSales.created': 'تم إنشاء المبيعة الآجلة',
+
+    // POS
+    'pos.invalidOpeningBalance': 'يرجى إدخال رصيد افتتاحي صالح',
+    'pos.cashBoxOpened': 'تم فتح الصندوق',
+    'pos.openCashBoxFailed': 'فشل فتح الصندوق',
+    'pos.invalidActualCash': 'يرجى إدخال مبلغ نقدي فعلي صالح',
+    'pos.cashBoxClosed': 'تم إغلاق الصندوق',
+    'pos.closeCashBoxFailed': 'فشل إغلاق الصندوق',
+    'pos.customerRequiredForSubscription': 'العميل مطلوب للاشتراكات',
+    'pos.duplicateSubscription': 'العميل لديه بالفعل اشتراك نشط لهذا الخطة',
+    'pos.customerRequiredForCredit': 'العميل مطلوب للدفع الآجل',
+    'pos.dueDateRequired': 'تاريخ الاستحقاق مطلوب للدفع الآجل',
+    'pos.outOfStock': 'نفذ من المخزون',
+    'pos.insufficientStock': 'المخزون غير كافٍ',
+    'pos.pcsNeed': 'قطعة، يحتاج',
+
+    // Invoices
+    'invoices.alreadySubmittedToETA': 'تم التسليم بالفعل للهيئة. المعرف: {uuid}',
+    'invoices.submittedToETA': 'تم التسليم للهيئة. المعرف: {uuid}',
+    'invoices.etaRejected': 'تم رفض التسليم من الهيئة',
+    'invoices.etaSubmitFailed': 'فشل التسليم للهيئة',
+
+    // Common extras
+    'common.updated': 'تم التحديث',
+    'common.failed': 'فشل',
+    'common.deleted': 'تم الحذف',
+    'common.removeFailed': 'فشل الإزالة',
+    'common.deleteFailed': 'فشل الحذف',
+    'common.reverse': 'عكس',
+
+    // Super Admin
+    'admin.impersonateConfirm': 'تسجيل الدخول كمدير هذا المستأجر؟',
+
+    // Accounting
+    'accounting.balancesRecalculated': 'تم إعادة حساب الأرصدة',
+    'accounting.capitalRecorded': 'تم تسجيلرأس المال',
+
+    // Dead Stock
+    'inventory.deadStockReportFailed': 'فشل تحميل تقرير المخزون الراكد',
+    'inventory.costExceedsPrice': 'سعر التكلفة لا يمكن أن يتجاوز سعر البيع',
+    'inventory.productDuplicated': 'تم إنشاء منتج جديد للمورد',
+    'inventory.received': 'تم الاستلام',
+    'inventory.printBarcode': 'طباعة الباركود',
+
+    // Settings
+    'settings.logoTooLarge': 'يجب أن يكون الشعار أقل من 512 كيلوبايت',
+    'settings.saveFailed': 'فشل حفظ الإعدادات',
+    'settings.locationCaptured': 'تم التقاط الموقع بنجاح',
+    'settings.geolocationNotSupported': 'الموقع الجغرافي غير مدعوم من متصفحك',
+    'settings.locationFailed': 'فشل الحصول على الموقع',
+
+    // Profile
+    'profile.passwordMinLength': 'يجب أن تكون كلمة المرور 6 أحرف على الأقل',
+
+    // HR - Payroll
+    'hr.payroll.fetchFailed': 'فشل تحميل كشوف المرتبات',
+    'hr.payroll.processFailed': 'فشل معالجة كشوف المرتبات',
+    'hr.payroll.markPaidFailed': 'فشل التحديد كمدفوع',
+    'hr.payroll.fetchDetailFailed': 'فشل تحميل تفاصيل كشوف المرتبات',
+    'hr.payroll.processed': 'تمت معالجة كشوف المرتبات بنجاح',
+    'hr.payroll.paid': 'تم التحديد كمدفوع',
+    'hr.payroll.deleted': 'تم حذف كشوف المرتبات',
+
+    // HR - Leave
+    'hr.leave.fetchFailed': 'فشل تحميل بيانات الإجازات',
+    'hr.leave.submitFailed': 'فشل إرسال الطلب',
+    'hr.leave.updateFailed': 'فشل تحديث الطلب',
+    'hr.leave.createTypeFailed': 'فشل إنشاء نوع الإجازة',
+    'hr.leave.fillRequired': 'يرجى ملء الحقول المطلوبة',
+    'hr.leave.endDateBeforeStart': 'لا يمكن أن يكون تاريخ النهاية قبل تاريخ البداية',
+    'hr.leave.requestCreated': 'تم إرسال طلب الإجازة',
+    'hr.leave.requestUpdated': 'تم تحديث طلب الإجازة',
+    'hr.leave.requestDeleted': 'تم حذف الطلب',
+    'hr.leave.typeCreated': 'تم إنشاء نوع الإجازة',
+    'hr.leave.requestSubmitted': 'تم إرسال طلب الإجازة',
+
+    // HR - Shifts
+    'hr.shifts.createFailed': 'فشل إنشاء الوردية',
+    'hr.shifts.assignFailed': 'فشل تعيين الوردية',
+    'hr.shifts.created': 'تم إنشاء الوردية',
+    'hr.shifts.assigned': 'تم تعيين الوردية',
+    'hr.shifts.deleted': 'تم حذف الوردية',
+    'hr.shifts.assignmentRemoved': 'تم إزالة التعيين',
+
+    // HR - Performance
+    'hr.performance.fetchFailed': 'فشل تحميل التقييمات',
+    'hr.performance.saveFailed': 'فشل حفظ التقييم',
+    'hr.performance.completeFailed': 'فشل إكمال التقييم',
+    'hr.performance.fetchDetailFailed': 'فشل تحميل تفاصيل التقييم',
+    'hr.performance.updated': 'تم تحديث التقييم',
+    'hr.performance.created': 'تم إنشاء التقييم',
+    'hr.performance.completed': 'تم تحديد التقييم كمكتمل',
+    'hr.performance.deleted': 'تم حذف التقييم',
+
+    // HR - Attendance
+    'hr.attendance.fetchFailed': 'فشل تحميل الحضور',
+    'hr.attendance.createFailed': 'فشل تسجيل الحضور',
+    'hr.attendance.created': 'تم تسجيل الحضور',
+    'hr.attendance.deleted': 'تم حذف السجل',
+    'hr.attendance.clockedIn': 'تم تسجيل الدخول بنجاح',
+    'hr.attendance.clockInFailed': 'فشل تسجيل الدخول',
+    'hr.attendance.clockedOut': 'تم تسجيل الخروج بنجاح',
+    'hr.attendance.clockOutFailed': 'فشل تسجيل الخروج',
+    'hr.attendance.breakStarted': 'بدأت الاستراحة',
+    'hr.attendance.breakStartFailed': 'فشل بدء الاستراحة',
+    'hr.attendance.breakEnded': 'انتهت الاستراحة',
+    'hr.attendance.breakEndFailed': 'فشل إنهاء الاستراحة',
+
+    // Employees
+    'employees.deleted': 'تم حذف الموظف بنجاح',
+    'employees.failedToDelete': 'فشل حذف الموظف',
+    'employees.failedToToggle': 'فشل تبديل حالة الموظف',
+    'employees.updated': 'تم تحديث الموظف بنجاح',
+    'employees.created': 'تم إضافة الموظف بنجاح',
+    'employees.failedToSave': 'فشل حفظ الموظف',
+
+    // Customers
+    'customers.deleted': 'تم حذف العميل بنجاح',
+    'customers.failedToDelete': 'فشل حذف العميل',
+    'customers.updated': 'تم تحديث العميل بنجاح',
+    'customers.created': 'تم إضافة العميل بنجاح',
+
+    // Suppliers
+    'suppliers.deleted': 'تم حذف المورد بنجاح',
+    'suppliers.updated': 'تم تحديث المورد بنجاح',
+    'suppliers.created': 'تم إضافة المورد بنجاح',
+
+    // Expenses
+    'expenses.deleted': 'تم حذف المصروف بنجاح',
+    'expenses.failedToDelete': 'فشل حذف المصروف',
+    'expenses.updated': 'تم تحديث المصروف بنجاح',
+    'expenses.created': 'تم إضافة المصروف بنجاح',
+    'expenses.failedToSave': 'فشل حفظ المصروف',
+
+    // Promotions
+    'promotions.deleted': 'تم حذف الترويج بنجاح',
+    'promotions.updated': 'تم تحديث الترويج',
+    'promotions.failedToUpdate': 'فشل تحديث الترويج',
+    'promotions.created': 'تم إنشاء الترويج بنجاح',
+
+    // Services
+    'services.subscriptionCancelled': 'تم إلغاء الاشتراك',
+    'services.subscriptionRenewed': 'تم تجديد الاشتراك',
+    'services.subscriptionDeleted': 'تم حذف الاشتراك',
+    'services.paymentRecorded': 'تم تسجيل الدفعة',
+
+    // Layout
+    'layout.expandSidebar': 'توسيع الشريط الجانبي',
+
+    // Chat
+    'chat.deleteAll': 'حذف جميع الرسائل',
+    'chat.noMessages': 'لا توجد رسائل بعد',
   },
 }
 

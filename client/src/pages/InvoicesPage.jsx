@@ -138,15 +138,15 @@ export default function InvoicesPage() {
       const res = await etaApi.submit(order.id)
       const data = res.data
       if (data.alreadySubmitted) {
-        toastSuccess(`Already submitted to ETA. UUID: ${data.etaUUID?.substring(0, 12)}...`)
+        toastSuccess(t('invoices.alreadySubmittedToETA', { uuid: data.etaUUID?.substring(0, 12) }))
       } else if (data.status === 'submitted') {
-        toastSuccess(`Submitted to ETA. UUID: ${data.etaUUID?.substring(0, 12)}...`)
+        toastSuccess(t('invoices.submittedToETA', { uuid: data.etaUUID?.substring(0, 12) }))
       } else {
-        toastError(data.rejectedDocuments?.[0]?.error || 'Submission rejected by ETA')
+        toastError(data.rejectedDocuments?.[0]?.error || t('invoices.etaRejected'))
       }
       loadData()
     } catch (err) {
-      toastError(err.response?.data?.error || err.message || 'Failed to submit to ETA')
+      toastError(err.response?.data?.error || err.message || t('invoices.etaSubmitFailed'))
     } finally {
       setEtaSubmitting(null)
     }
@@ -519,7 +519,7 @@ export default function InvoicesPage() {
                     setCreditDueDate('')
                     loadData()
                   } catch (err) {
-                    toastError(err.message || 'Failed to create credit sale')
+                    toastError(t('creditSales.createFailed'))
                   } finally {
                     setCreditSubmitting(false)
                   }

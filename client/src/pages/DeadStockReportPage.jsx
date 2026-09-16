@@ -47,7 +47,7 @@ export default function DeadStockReportPage() {
       const cats = [...new Set(data.map((i) => i.category).filter(Boolean))]
       setCategories(cats)
     } catch (err) {
-      toastError(err.message || 'Failed to load dead stock report')
+      toastError(err.message || t('inventory.deadStockReportFailed'))
     } finally {
       setLoading(false)
     }
