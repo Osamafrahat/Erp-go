@@ -222,7 +222,7 @@ router.post('/calculate', async (req, res, next) => {
 
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('id, total, salesperson_id, order_items(product_id, quantity, unit_price, discount, total)')
+      .select('id, total, salesperson_id')
       .eq('id', order_id)
       .eq('tenant_id', req.user?.tenantId)
       .single()
@@ -246,7 +246,11 @@ router.post('/calculate', async (req, res, next) => {
       return res.status(400).json({ error: 'Commissions already calculated for this order' })
     }
 
-    const items = order.order_items || []
+    // Query order_items separately (avoid PostgREST FK join issues)
+    const { data: items } = await supabase
+      .from('order_items')
+      .select('product_id, quantity, unit_price, discount, total')
+      .eq('order_id', order_id)
     if (items.length === 0) {
       return res.status(400).json({ error: 'No order items found' })
     }
@@ -385,10 +389,13 @@ router.post('/bulk-calculate', async (req, res, next) => {
       return res.status(400).json({ error: 'period_start and period_end are required' })
     }
 
+    const tid = req.user.tenantId
+
+    // Query orders WITHOUT join (avoid PostgREST FK join issues)
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
-      .select('id, total, salesperson_id, order_items(product_id, quantity, unit_price, discount, total)')
-      .eq('tenant_id', req.user?.tenantId)
+      .select('id, total, salesperson_id')
+      .eq('tenant_id', tid)
       .not('salesperson_id', 'is', null)
       .gte('created_at', period_start)
       .lte('created_at', period_end + 'T23:59:59.999Z')
@@ -399,19 +406,39 @@ router.post('/bulk-calculate', async (req, res, next) => {
       return res.status(200).json({ commissions: [], total_commission: 0, count: 0, orders_processed: 0 })
     }
 
+    const orderIds = orders.map(o => o.id)
+
+    // Query order_items separately (like dead stock)
+    const BATCH = 20
+    const allItems = []
+    for (let i = 0; i < orderIds.length; i += BATCH) {
+      const batch = orderIds.slice(i, i + BATCH)
+      const { data: items } = await supabase
+        .from('order_items')
+        .select('order_id, product_id, quantity, unit_price, discount, total')
+        .in('order_id', batch)
+      if (items) allItems.push(...items)
+    }
+
+    // Index items by order_id
+    const itemsByOrder = {}
+    allItems.forEach(item => {
+      if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = []
+      itemsByOrder[item.order_id].push(item)
+    })
+
+    // Check existing commissions
     const existingResult = await supabase
       .from('commissions')
       .select('order_id')
-      .eq('tenant_id', req.user?.tenantId)
-      .in('order_id', orders.map(o => o.id))
-
+      .eq('tenant_id', tid)
+      .in('order_id', orderIds)
     const existingOrderIds = new Set((existingResult.data || []).map(e => e.order_id))
 
+    // Get product commission rates
     const allProductIds = new Set()
-    orders.forEach(order => {
-      (order.order_items || []).forEach(item => {
-        if (item.product_id) allProductIds.add(item.product_id)
-      })
+    allItems.forEach(item => {
+      if (item.product_id) allProductIds.add(item.product_id)
     })
 
     let productMap = {}
@@ -420,8 +447,8 @@ router.post('/bulk-calculate', async (req, res, next) => {
         .from('products')
         .select('id, commission_rate')
         .in('id', [...allProductIds])
-        .eq('tenant_id', req.user?.tenantId)
-      if (products) products.forEach(p => { productMap[p.id] = p.commission_rate || 0 })
+        .eq('tenant_id', tid)
+      if (products) products.forEach(p => { productMap[p.id] = parseFloat(p.commission_rate || 0) })
     }
 
     const allCommissions = []
@@ -431,7 +458,7 @@ router.post('/bulk-calculate', async (req, res, next) => {
     for (const order of orders) {
       if (existingOrderIds.has(order.id)) continue
 
-      const items = order.order_items || []
+      const items = itemsByOrder[order.id] || []
       let orderHasCommission = false
 
       for (const item of items) {
@@ -439,14 +466,14 @@ router.post('/bulk-calculate', async (req, res, next) => {
         if (rate <= 0) continue
 
         const itemTotal = parseFloat(item.total || 0) || (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0) - parseFloat(item.discount || 0))
-        const commission = itemTotal * (rate / 100)
+        const commission = Math.round(itemTotal * (rate / 100) * 100) / 100
 
         if (commission > 0) {
           allCommissions.push({
-            tenant_id: req.user?.tenantId,
+            tenant_id: tid,
             employee_id: order.salesperson_id,
             order_id: order.id,
-            sale_amount: itemTotal,
+            sale_amount: Math.round(itemTotal * 100) / 100,
             commission_rate: rate,
             commission_amount: commission,
             status: 'pending',
