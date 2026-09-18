@@ -435,6 +435,7 @@ export const commissionsApi = {
   getAll: (params) => api.get('/commissions', { params }),
   getStats: () => api.get('/commissions/stats'),
   getSetupCheck: () => api.get('/commissions/setup-check'),
+  getDebug: () => api.get('/commissions/debug'),
   getByEmployee: (employeeId) => api.get(`/commissions/employee/${employeeId}`),
   calculate: (data) => api.post('/commissions/calculate', data),
   approve: (id) => api.patch(`/commissions/${id}/approve`),

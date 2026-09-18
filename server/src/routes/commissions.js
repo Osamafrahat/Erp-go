@@ -527,4 +527,94 @@ router.post('/backfill-salesperson', async (req, res, next) => {
   }
 })
 
+// Diagnostic: show full pipeline state for debugging
+router.get('/debug', async (req, res, next) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.json({ error: 'No tenant' })
+    }
+    const tid = req.user.tenantId
+
+    // 1. Check commission_rate on products
+    const { data: products } = await supabase
+      .from('products')
+      .select('id, name, commission_rate')
+      .eq('tenant_id', tid)
+    const productStats = {
+      total: (products || []).length,
+      withRate: (products || []).filter(p => parseFloat(p.commission_rate || 0) > 0).length,
+      sampleProducts: (products || []).slice(0, 5).map(p => ({ name: p.name, rate: p.commission_rate }))
+    }
+
+    // 2. Check user→employee links
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, full_name, employee_id, role')
+      .eq('tenant_id', tid)
+    const userStats = {
+      total: (users || []).length,
+      withEmployee: (users || []).filter(u => u.employee_id).length,
+      sampleUsers: (users || []).slice(0, 5).map(u => ({ name: u.full_name, employee_id: u.employee_id, role: u.role }))
+    }
+
+    // 3. Check orders with/without salesperson
+    const { count: totalOrders } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tid)
+    const { count: withSalesperson } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tid)
+      .not('salesperson_id', 'is', null)
+    const { count: withoutSalesperson } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tid)
+      .is('salesperson_id', null)
+    const { count: withUserId } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tid)
+      .not('user_id', 'is', null)
+
+    // 4. Check commissions
+    const { count: totalCommissions } = await supabase
+      .from('commissions')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tid)
+
+    // 5. Sample order with user_id
+    const { data: sampleOrder } = await supabase
+      .from('orders')
+      .select('id, user_id, salesperson_id, total, created_at')
+      .eq('tenant_id', tid)
+      .not('user_id', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(3)
+
+    // 6. Check if employees exist
+    const { count: employeeCount } = await supabase
+      .from('employees')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tid)
+    const { data: sampleEmployees } = await supabase
+      .from('employees')
+      .select('id, name, is_active')
+      .eq('tenant_id', tid)
+      .limit(5)
+
+    res.json({
+      products: productStats,
+      users: userStats,
+      orders: { total: totalOrders || 0, withSalesperson: withSalesperson || 0, withoutSalesperson: withoutSalesperson || 0, withUserId: withUserId || 0 },
+      commissions: { total: totalCommissions || 0 },
+      employees: { count: employeeCount || 0, sample: sampleEmployees || [] },
+      sampleOrders: sampleOrder || [],
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
 export default router
