@@ -118,7 +118,7 @@ export default function Layout({ children }) {
   if (canAccess('/credit-sales') && currentUser?.role !== 'SUPER_ADMIN') {
     salesItems.push({ name: t('nav.creditSales') || 'Credit Sales', href: '/credit-sales', icon: Banknote })
   }
-  if (canAccess('/cash-shifts')) {
+  if (canAccess('/cash-shifts') && currentUser?.role !== 'SUPER_ADMIN') {
     salesItems.push({ name: t('nav.cashShifts') || 'Cash Box', href: '/cash-shifts', icon: Banknote })
   }
   if (currentUser?.role !== 'SUPER_ADMIN') {
