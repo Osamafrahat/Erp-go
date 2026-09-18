@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS commissions (
   commission_rate NUMERIC NOT NULL,
   commission_amount NUMERIC NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending','approved','paid')),
+  approved_at TIMESTAMPTZ,
+  approved_by BIGINT,
+  paid_at TIMESTAMPTZ,
   period_start DATE,
   period_end DATE,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -21,11 +24,16 @@ CREATE TABLE IF NOT EXISTS commissions (
 CREATE INDEX IF NOT EXISTS idx_commissions_tenant ON commissions(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_commissions_employee ON commissions(employee_id);
 
--- 3. Ensure commission_rate column exists on products
+-- 3. Add missing columns if table already exists
+ALTER TABLE commissions ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
+ALTER TABLE commissions ADD COLUMN IF NOT EXISTS approved_by BIGINT;
+ALTER TABLE commissions ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+
+-- 4. Ensure commission_rate column exists on products
 ALTER TABLE products ADD COLUMN IF NOT EXISTS commission_rate NUMERIC DEFAULT 0;
 
--- 4. Ensure salesperson_id column exists on orders
+-- 5. Ensure salesperson_id column exists on orders
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS salesperson_id BIGINT REFERENCES employees(id) ON DELETE SET NULL;
 
--- 5. Disable RLS on commissions (like other tables)
+-- 6. Disable RLS on commissions (like other tables)
 ALTER TABLE commissions DISABLE ROW LEVEL SECURITY;

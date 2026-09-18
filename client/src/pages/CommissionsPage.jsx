@@ -376,28 +376,44 @@ export default function CommissionsPage() {
               {employeeBreakdown.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">{t('noData') || 'No commission data'}</p>
               ) : (
-                employeeBreakdown.map((emp) => (
-                  <div key={emp.employee_id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">{emp.employee_name}</span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(emp.total)}</span>
+                employeeBreakdown.map((emp) => {
+                  const total = emp.total || 0
+                  const paidPct = total > 0 ? ((emp.paid || 0) / total * 100) : 0
+                  const approvedPct = total > 0 ? ((emp.approved || 0) / total * 100) : 0
+                  const pendingPct = total > 0 ? ((emp.pending || 0) / total * 100) : 0
+                  return (
+                    <div key={emp.employee_id} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-sm font-bold text-blue-600 dark:text-blue-400 flex-shrink-0">
+                          {(emp.employee_name || '?')[0].toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{emp.employee_name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{formatCurrency(total)}</p>
+                        </div>
+                      </div>
+                      <div className="h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden flex mb-3">
+                        {paidPct > 0 && <div className="h-full bg-green-500" style={{ width: `${paidPct}%` }} />}
+                        {approvedPct > 0 && <div className="h-full bg-blue-500" style={{ width: `${approvedPct}%` }} />}
+                        {pendingPct > 0 && <div className="h-full bg-yellow-500" style={{ width: `${pendingPct}%` }} />}
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wide text-yellow-600 dark:text-yellow-400 font-medium">{t('pending') || 'Pending'}</p>
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white">{formatCurrency(emp.pending || 0)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wide text-blue-600 dark:text-blue-400 font-medium">{t('approved') || 'Approved'}</p>
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white">{formatCurrency(emp.approved || 0)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wide text-green-600 dark:text-green-400 font-medium">{t('paid') || 'Paid'}</p>
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white">{formatCurrency(emp.paid || 0)}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {formatCurrency(emp.pending || 0)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <CheckCircle className="h-3 w-3" />
-                        {formatCurrency(emp.approved || 0)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="h-3 w-3" />
-                        {formatCurrency(emp.paid || 0)}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
           </div>
