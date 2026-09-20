@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
 import { useAppStore } from '../stores/appStore'
-import { productsApi, ordersApi, reportsApi, suppliersApi, promotionsApi, expensesApi, accountingReportsApi, paymentsApi } from '../lib/api'
+import { productsApi, ordersApi, reportsApi, suppliersApi, promotionsApi, expensesApi, accountingReportsApi, paymentsApi, bannersApi } from '../lib/api'
 import { formatCurrency } from '../lib/utils'
 import ClockWidget from '../components/attendance/ClockWidget'
+import BannerCarousel from '../components/BannerCarousel'
 import {
   ShoppingCart,
   Package,
@@ -45,9 +46,11 @@ export default function DashboardPage() {
     accountCount: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [banners, setBanners] = useState([])
 
   useEffect(() => {
     fetchDashboardData()
+    bannersApi.getActive().then(({ data }) => setBanners(data || [])).catch(() => {})
   }, [])
 
   const fetchDashboardData = async () => {
@@ -180,6 +183,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Banners */}
+      <BannerCarousel banners={banners} />
+
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-4 sm:p-6 text-white">
         <h1 className="text-xl sm:text-2xl font-bold break-words">{getGreeting()}, {currentUser?.fullName}!</h1>

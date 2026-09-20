@@ -638,4 +638,82 @@ router.get('/analytics', async (req, res) => {
   }
 })
 
+// ==================== BANNERS ====================
+
+// List all banners (super admin)
+router.get('/banners', authenticateToken, requireSuperAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('banners')
+      .select('*')
+      .order('position', { ascending: true })
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    res.json(data || [])
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Create banner
+router.post('/banners', authenticateToken, requireSuperAdmin, async (req, res) => {
+  try {
+    const { title, content, image_url, link_url, is_active, position, background_color, text_color } = req.body
+    if (!title) return res.status(400).json({ error: 'Title is required' })
+
+    const { data, error } = await supabase
+      .from('banners')
+      .insert({
+        title,
+        content: content || null,
+        image_url: image_url || null,
+        link_url: link_url || null,
+        is_active: is_active !== false,
+        position: position || 0,
+        background_color: background_color || '#3b82f6',
+        text_color: text_color || '#ffffff',
+      })
+      .select()
+      .single()
+    if (error) throw error
+    res.status(201).json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Update banner
+router.put('/banners/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+  try {
+    const { title, content, image_url, link_url, is_active, position, background_color, text_color } = req.body
+    const { data, error } = await supabase
+      .from('banners')
+      .update({
+        title, content, image_url, link_url, is_active, position, background_color, text_color,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', req.params.id)
+      .select()
+      .single()
+    if (error) throw error
+    res.json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Delete banner
+router.delete('/banners/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('banners')
+      .delete()
+      .eq('id', req.params.id)
+    if (error) throw error
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 export default router

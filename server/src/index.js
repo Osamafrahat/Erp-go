@@ -186,6 +186,22 @@ app.use('/api/credit-sales', authenticateToken, setTenantContext, activityLogger
 app.use('/api/product-batches', authenticateToken, setTenantContext, activityLogger, productBatchesRouter)
 app.use('/api/purchase-orders', authenticateToken, setTenantContext, activityLogger, purchaseOrdersRouter)
 
+// Public banners endpoint (no auth required — shown on dashboard)
+app.get('/api/banners', async (req, res) => {
+  try {
+    const { default: supabase } = await import('./db/supabase.js')
+    const { data, error } = await supabase
+      .from('banners')
+      .select('*')
+      .eq('is_active', true)
+      .order('position', { ascending: true })
+    if (error) throw error
+    res.json(data || [])
+  } catch (err) {
+    res.json([])
+  }
+})
+
 app.get('/api/health', (req, res) => {
   const emailConfigured = !!(process.env.RESEND_API_KEY)
   const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS)

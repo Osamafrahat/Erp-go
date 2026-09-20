@@ -370,6 +370,7 @@ export const superAdminApi = {
   getActivity: (params) => api.get('/super-admin/activity', { params }),
   getPayments: (params) => api.get('/super-admin/payments', { params }),
   getAnalytics: (params) => api.get('/super-admin/analytics', { params }),
+  getBanners: () => api.get('/super-admin/banners'),
 }
 
 // Billing API
@@ -445,6 +446,14 @@ export const commissionsApi = {
 }
 
 // Customer Statements API
+export const bannersApi = {
+  getActive: () => api.get('/banners'),
+  getAll: () => api.get('/super-admin/banners'),
+  create: (data) => api.post('/super-admin/banners', data),
+  update: (id, data) => api.put(`/super-admin/banners/${id}`, data),
+  delete: (id) => api.delete(`/super-admin/banners/${id}`),
+}
+
 export const customerStatementsApi = {
   getStatement: (customerId, params) => api.get(`/customer-statements/customer/${customerId}`, { params }),
 }

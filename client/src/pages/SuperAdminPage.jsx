@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { superAdminApi } from '../lib/api'
-import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard, Database } from 'lucide-react'
+import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard, Database, Megaphone } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
 
 const tierColors = {
@@ -61,6 +61,7 @@ export default function SuperAdminPage() {
     { key: 'tenants', label: t('admin.tabTenants') || 'Tenants', icon: Building2 },
     { key: 'payments', label: t('admin.tabPayments') || 'Payments', icon: CreditCard },
     { key: 'plans', label: t('admin.tabPlans') || 'Plans', icon: DollarSign },
+    { key: 'banners', label: t('admin.tabBanners') || 'Banners', icon: Megaphone },
     { key: 'activity', label: t('admin.tabActivity') || 'Activity', icon: Activity },
   ]
 
@@ -105,6 +106,7 @@ export default function SuperAdminPage() {
       {tab === 'tenants' && <TenantsTab t={t} showToast={showToast} />}
       {tab === 'payments' && <PaymentsTab t={t} />}
       {tab === 'plans' && <PlansTab t={t} showToast={showToast} />}
+      {tab === 'banners' && <BannersTab t={t} showToast={showToast} />}
       {tab === 'activity' && <ActivityTab t={t} />}
     </div>
   )
@@ -675,6 +677,198 @@ function PlansTab({ t, showToast }) {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+function BannersTab({ t, showToast }) {
+  const [banners, setBanners] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [editingBanner, setEditingBanner] = useState(null)
+  const [form, setForm] = useState({ title: '', content: '', image_url: '', link_url: '', is_active: true, position: 0, background_color: '#3b82f6', text_color: '#ffffff' })
+
+  const fetchBanners = async () => {
+    try {
+      const { data } = await superAdminApi.getBanners ? await superAdminApi.getBanners() : { data: [] }
+      setBanners(data || [])
+    } catch {
+      try {
+        const res = await fetch('/api/super-admin/banners', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
+        })
+        const data = await res.json()
+        setBanners(Array.isArray(data) ? data : [])
+      } catch { setBanners([]) }
+    } finally { setLoading(false) }
+  }
+
+  useEffect(() => { fetchBanners() }, [])
+
+  const handleSave = async () => {
+    if (!form.title.trim()) return showToast(t('banners.titleRequired') || 'Title is required', 'error')
+    try {
+      const res = await fetch(editingBanner ? `/api/super-admin/banners/${editingBanner.id}` : '/api/super-admin/banners', {
+        method: editingBanner ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('auth_token')}` },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error('Failed')
+      showToast(t('banners.saved') || 'Banner saved', 'success')
+      setShowModal(false)
+      setEditingBanner(null)
+      setForm({ title: '', content: '', image_url: '', link_url: '', is_active: true, position: 0, background_color: '#3b82f6', text_color: '#ffffff' })
+      fetchBanners()
+    } catch { showToast(t('banners.saveFailed') || 'Failed to save', 'error') }
+  }
+
+  const handleDelete = async (id) => {
+    if (!confirm(t('banners.confirmDelete') || 'Delete this banner?')) return
+    try {
+      await fetch(`/api/super-admin/banners/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` },
+      })
+      showToast(t('banners.deleted') || 'Banner deleted', 'success')
+      fetchBanners()
+    } catch { showToast(t('banners.deleteFailed') || 'Failed to delete', 'error') }
+  }
+
+  const openEdit = (banner) => {
+    setEditingBanner(banner)
+    setForm({ title: banner.title, content: banner.content || '', image_url: banner.image_url || '', link_url: banner.link_url || '', is_active: banner.is_active, position: banner.position || 0, background_color: banner.background_color || '#3b82f6', text_color: banner.text_color || '#ffffff' })
+    setShowModal(true)
+  }
+
+  const openCreate = () => {
+    setEditingBanner(null)
+    setForm({ title: '', content: '', image_url: '', link_url: '', is_active: true, position: 0, background_color: '#3b82f6', text_color: '#ffffff' })
+    setShowModal(true)
+  }
+
+  if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <Megaphone className="h-5 w-5" />
+          {t('admin.banners') || 'Dashboard Banners'}
+        </h2>
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+          <Plus className="h-4 w-4" /> {t('banners.create') || 'Create Banner'}
+        </button>
+      </div>
+      <p className="text-sm text-gray-500 dark:text-gray-400">{t('banners.description') || 'Manage banners shown on all tenant dashboards.'}</p>
+
+      {banners.length === 0 ? (
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          <Megaphone className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-500 dark:text-gray-400">{t('banners.noBanners') || 'No banners yet'}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {banners.map((b) => (
+            <div key={b.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="flex items-center">
+                {b.image_url && (
+                  <div className="w-32 h-20 flex-shrink-0 overflow-hidden">
+                    <img src={b.image_url} alt={b.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex-1 p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${b.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}`}>
+                      {b.is_active ? (t('active') || 'Active') : (t('inactive') || 'Inactive')}
+                    </span>
+                    <span className="text-xs text-gray-400">#{b.position}</span>
+                  </div>
+                  <p className="font-semibold text-gray-900 dark:text-white text-sm">{b.title}</p>
+                  {b.content && <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{b.content}</p>}
+                </div>
+                <div className="flex items-center gap-2 pr-4">
+                  <div className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600" style={{ backgroundColor: b.background_color }} title="Background" />
+                  <button onClick={() => openEdit(b)} className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"><Edit3 className="h-4 w-4" /></button>
+                  <button onClick={() => handleDelete(b.id)} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {editingBanner ? (t('banners.edit') || 'Edit Banner') : (t('banners.create') || 'Create Banner')}
+              </h3>
+              <button onClick={() => { setShowModal(false); setEditingBanner(null) }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.title') || 'Title'} *</label>
+                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.content') || 'Content'}</label>
+                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.imageUrl') || 'Image URL'}</label>
+                <input value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" placeholder="https://..." />
+                {form.image_url && <img src={form.image_url} alt="Preview" className="mt-2 h-20 rounded-lg object-cover" onError={e => e.target.style.display = 'none'} />}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.linkUrl') || 'Link URL'}</label>
+                <input value={form.link_url} onChange={e => setForm({ ...form, link_url: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" placeholder="https://..." />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.bgColor') || 'Background'}</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.background_color} onChange={e => setForm({ ...form, background_color: e.target.value })} className="w-8 h-8 rounded border-0 cursor-pointer" />
+                    <span className="text-xs text-gray-500">{form.background_color}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.textColor') || 'Text Color'}</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.text_color} onChange={e => setForm({ ...form, text_color: e.target.value })} className="w-8 h-8 rounded border-0 cursor-pointer" />
+                    <span className="text-xs text-gray-500">{form.text_color}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.position') || 'Position'}</label>
+                  <input type="number" value={form.position} onChange={e => setForm({ ...form, position: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} className="rounded border-gray-300" id="banner-active" />
+                <label htmlFor="banner-active" className="text-sm text-gray-700 dark:text-gray-300">{t('banners.isActive') || 'Active'}</label>
+              </div>
+              {/* Live Preview */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.preview') || 'Preview'}</label>
+                <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700" style={{ backgroundColor: form.background_color, color: form.text_color }}>
+                  <div className="flex items-center">
+                    {form.image_url && <div className="w-20 h-16 flex-shrink-0 overflow-hidden"><img src={form.image_url} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display='none'} /></div>}
+                    <div className="flex-1 p-3">
+                      <p className="font-bold text-sm">{form.title || 'Banner Title'}</p>
+                      {form.content && <p className="text-xs opacity-90 line-clamp-1">{form.content}</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => { setShowModal(false); setEditingBanner(null) }} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">{t('cancel') || 'Cancel'}</button>
+              <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">{t('save') || 'Save'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

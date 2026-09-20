@@ -1455,6 +1455,24 @@ SELECT
 FROM tenants t;
 
 -- ============================================================
+-- BANNERS (global, managed by super admin)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS banners (
+  id BIGSERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT,
+  image_url TEXT,
+  link_url TEXT,
+  is_active BOOLEAN DEFAULT true,
+  position INT DEFAULT 0,
+  background_color TEXT DEFAULT '#3b82f6',
+  text_color TEXT DEFAULT '#ffffff',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE banners DISABLE ROW LEVEL SECURITY;
+
+-- ============================================================
 -- RELOAD PostgREST schema cache
 -- ============================================================
 NOTIFY pgrst, 'reload schema';
