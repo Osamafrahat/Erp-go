@@ -111,16 +111,30 @@ router.get('/sales', async (req, res, next) => {
 // Get stock report
 router.get('/stock', async (req, res, next) => {
   try {
-    // Get all products
+    const tid = req.user.tenantId
+
+    // Get all products WITHOUT FK join
     const { data: products, error: productsError } = await supabase
       .from('products')
-      .select('*, categories(name)')
-      .eq('tenant_id', req.user.tenantId)
+      .select('id, name, stock_quantity, price, cost_price, low_stock_threshold, category_id')
+      .eq('tenant_id', tid)
       .order('name')
 
     if (productsError) throw productsError
 
     const safeProducts = products || []
+
+    // Get categories separately
+    const catIds = [...new Set(safeProducts.map(p => p.category_id).filter(Boolean))]
+    let catMap = {}
+    if (catIds.length > 0) {
+      const { data: cats } = await supabase
+        .from('categories')
+        .select('id, name')
+        .eq('tenant_id', tid)
+        .in('id', catIds)
+      if (cats) cats.forEach(c => { catMap[c.id] = c.name })
+    }
 
     const totalProducts = safeProducts.length
     const lowStockProducts = safeProducts.filter(p => p.stock_quantity <= (p.low_stock_threshold || 10))
@@ -132,7 +146,7 @@ router.get('/stock', async (req, res, next) => {
     // Category breakdown with cost
     const categoryMap = {}
     safeProducts.forEach(p => {
-      const catName = p.categories?.name || 'Uncategorized'
+      const catName = catMap[p.category_id] || 'Uncategorized'
       if (!categoryMap[catName]) {
         categoryMap[catName] = { name: catName, value: 0, cost: 0 }
       }

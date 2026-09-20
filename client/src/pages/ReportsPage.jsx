@@ -306,27 +306,46 @@ export default function ReportsPage() {
 
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold mb-4">{t('reports.stockByCategory')}</h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={stockData.categoryBreakdown}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {stockData.categoryBreakdown?.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            {stockData.categoryBreakdown?.length > 0 ? (
+              <div>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={stockData.categoryBreakdown}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={90}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {stockData.categoryBreakdown.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value, name) => [`${value} ${t('units') || 'units'}`, name]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex flex-wrap gap-3 mt-2 justify-center">
+                  {stockData.categoryBreakdown.map((entry, index) => {
+                    const total = stockData.categoryBreakdown.reduce((s, c) => s + (c.value || 0), 0)
+                    const pct = total > 0 ? ((entry.value / total) * 100).toFixed(1) : 0
+                    return (
+                      <div key={index} className="flex items-center gap-1.5 text-xs">
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                        <span className="text-gray-600 dark:text-gray-400">{entry.name}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{pct}%</span>
+                        <span className="text-gray-400 dark:text-gray-500">({entry.value})</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">{t('noData') || 'No data'}</p>
+            )}
           </div>
         </div>
       )}
