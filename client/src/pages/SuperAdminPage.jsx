@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { superAdminApi } from '../lib/api'
-import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, CheckCircle2, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard, Database, Megaphone, Upload, Link2, Image } from 'lucide-react'
+import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard, Database, Megaphone, Upload, Link2, Image } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
 
 const tierColors = {
@@ -820,7 +820,7 @@ function BannersTab({ t, showToast }) {
                 {form.image_url && form.image_url.startsWith('data:') ? (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2">
-                      <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 flex-shrink-0" />
                       <span className="truncate">{t('banners.fileUploaded') || 'Image uploaded successfully'}</span>
                     </div>
                     <div className="relative inline-block">
