@@ -48,13 +48,7 @@ export default function BannerCarousel({ banners }) {
               alt=""
               className="absolute inset-0 w-full h-full object-cover"
             />
-            <div
-              className="absolute inset-0"
-              style={{
-                background: `linear-gradient(135deg, ${(banner.background_color || '#000000')}ee 0%, ${(banner.background_color || '#000000')}aa 40%, ${(banner.background_color || '#000000')}55 100%)`,
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
           </>
         )}
 
