@@ -38,6 +38,7 @@ export default function BannerCarousel({ banners }) {
         style={{
           backgroundColor: hasImage ? (banner.background_color || '#1a1a2e') : (banner.background_color || '#3b82f6'),
           color: banner.text_color || '#ffffff',
+          minHeight: hasImage ? '500px' : '320px',
         }}
       >
         {hasImage && (
@@ -57,7 +58,7 @@ export default function BannerCarousel({ banners }) {
           </>
         )}
 
-        <div className="relative z-10 p-6 md:p-10" style={{ paddingBottom: visibleBanners.length > 1 ? '3rem' : undefined }}>
+        <div className="relative z-10 p-12 md:p-20" style={{ paddingBottom: visibleBanners.length > 1 ? '4rem' : undefined }}>
           {hasImage && (
             <div className="mb-3">
               <span className="inline-block px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-sm border border-white/20">
@@ -67,15 +68,15 @@ export default function BannerCarousel({ banners }) {
           )}
           <h3 className={`font-extrabold mb-3 leading-tight ${
             hasImage
-              ? 'text-2xl md:text-4xl lg:text-5xl drop-shadow-lg'
-              : 'text-lg md:text-xl'
+              ? 'text-4xl md:text-6xl lg:text-7xl drop-shadow-lg'
+              : 'text-xl md:text-2xl'
           }`} style={{ textShadow: hasImage ? '0 2px 12px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5)' : 'none' }}>
             {banner.title}
           </h3>
           {banner.content && (
             <p className={`opacity-95 leading-relaxed ${
               hasImage
-                ? 'text-sm md:text-lg drop-shadow-md'
+                ? 'text-base md:text-xl lg:text-2xl drop-shadow-md'
                 : 'text-sm md:text-base'
             }`} style={{ textShadow: hasImage ? '0 1px 8px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.4)' : 'none' }}>
               {banner.content}
