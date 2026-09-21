@@ -68,15 +68,15 @@ export default function BannerCarousel({ banners }) {
           )}
           <h3 className={`font-extrabold mb-3 leading-tight ${
             hasImage
-              ? 'text-4xl md:text-6xl lg:text-7xl drop-shadow-lg'
-              : 'text-xl md:text-2xl'
+              ? 'text-xl md:text-3xl lg:text-4xl drop-shadow-lg'
+              : 'text-sm md:text-lg'
           }`} style={{ textShadow: hasImage ? '0 2px 12px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5)' : 'none' }}>
             {banner.title}
           </h3>
           {banner.content && (
             <p className={`opacity-95 leading-relaxed ${
               hasImage
-                ? 'text-base md:text-xl lg:text-2xl drop-shadow-md'
+                ? 'text-xs md:text-sm lg:text-base drop-shadow-md'
                 : 'text-sm md:text-base'
             }`} style={{ textShadow: hasImage ? '0 1px 8px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.4)' : 'none' }}>
               {banner.content}
