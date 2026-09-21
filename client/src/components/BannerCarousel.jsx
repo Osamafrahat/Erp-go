@@ -52,7 +52,7 @@ export default function BannerCarousel({ banners }) {
           </>
         )}
 
-        <div className={`relative z-10 p-12 md:p-20 ${hasImage ? 'bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl mx-6 md:mx-10 my-6 md:my-10' : ''}`} style={{ paddingBottom: visibleBanners.length > 1 ? '4rem' : undefined }}>
+        <div className={`relative z-10 p-6 md:p-10 ${hasImage ? 'bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl mx-4 md:mx-8 my-4 md:my-8' : ''}`} style={{ paddingBottom: visibleBanners.length > 1 ? '4rem' : undefined }}>
           {hasImage && (
             <div className="mb-3">
               <span className="inline-block px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-sm border border-white/20">
