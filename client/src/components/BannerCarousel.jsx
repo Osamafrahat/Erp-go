@@ -34,7 +34,7 @@ export default function BannerCarousel({ banners }) {
     <div className="relative rounded-2xl overflow-hidden shadow-lg border border-gray-200/50 dark:border-gray-700/50 group">
       <Wrapper
         {...wrapperProps}
-        className={`block relative overflow-hidden ${hasImage ? 'min-h-[180px] md:min-h-[220px]' : 'min-h-[120px] md:min-h-[160px]'}`}
+        className={`block relative overflow-hidden ${hasImage ? 'min-h-[360px] md:min-h-[440px]' : 'min-h-[240px] md:min-h-[320px]'}`}
         style={{
           backgroundColor: hasImage ? (banner.background_color || '#1a1a2e') : (banner.background_color || '#3b82f6'),
           color: banner.text_color || '#ffffff',
@@ -59,8 +59,8 @@ export default function BannerCarousel({ banners }) {
         )}
 
         {/* Content overlay */}
-        <div className={`relative z-10 flex items-center ${hasImage ? 'justify-start min-h-[180px] md:min-h-[220px]' : 'justify-center min-h-[120px] md:min-h-[160px]'}`}>
-          <div className={`px-6 md:px-10 max-w-2xl ${hasImage ? '' : 'text-center'}`}>
+        <div className={`relative z-10 flex items-center ${hasImage ? 'justify-start min-h-[360px] md:min-h-[440px]' : 'justify-center min-h-[240px] md:min-h-[320px]'}`}>
+          <div className={`px-8 md:px-12 max-w-2xl ${hasImage ? '' : 'text-center'}`}>
             {hasImage && (
               <div className="mb-3">
                 <span className="inline-block px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-sm border border-white/20">
@@ -70,7 +70,7 @@ export default function BannerCarousel({ banners }) {
             )}
             <h3 className={`font-extrabold mb-2 leading-tight ${
               hasImage
-                ? 'text-2xl md:text-4xl drop-shadow-lg'
+                ? 'text-3xl md:text-5xl drop-shadow-lg'
                 : 'text-lg md:text-xl'
             }`} style={{ textShadow: hasImage ? '0 2px 8px rgba(0,0,0,0.4)' : 'none' }}>
               {banner.title}
