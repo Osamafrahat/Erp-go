@@ -51,16 +51,16 @@ export default function BannerCarousel({ banners }) {
             <div
               className="absolute inset-0"
               style={{
-                background: `linear-gradient(135deg, ${(banner.background_color || '#000000')}cc 0%, ${(banner.background_color || '#000000')}66 50%, transparent 100%)`,
+                background: `linear-gradient(135deg, ${(banner.background_color || '#000000')}ee 0%, ${(banner.background_color || '#000000')}aa 40%, ${(banner.background_color || '#000000')}55 100%)`,
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
           </>
         )}
 
         {/* Content overlay */}
         <div className={`relative z-10 flex items-center ${hasImage ? 'justify-start min-h-[360px] md:min-h-[440px]' : 'justify-center min-h-[240px] md:min-h-[320px]'}`}>
-          <div className={`px-8 md:px-12 max-w-2xl ${hasImage ? '' : 'text-center'}`}>
+          <div className={`px-8 md:px-12 max-w-2xl ${hasImage ? 'bg-black/30 backdrop-blur-sm rounded-2xl p-6 md:p-8 border border-white/10' : 'text-center'}`}>
             {hasImage && (
               <div className="mb-3">
                 <span className="inline-block px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-sm border border-white/20">
@@ -72,15 +72,15 @@ export default function BannerCarousel({ banners }) {
               hasImage
                 ? 'text-3xl md:text-5xl drop-shadow-lg'
                 : 'text-lg md:text-xl'
-            }`} style={{ textShadow: hasImage ? '0 2px 8px rgba(0,0,0,0.4)' : 'none' }}>
+            }`} style={{ textShadow: hasImage ? '0 2px 12px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5)' : 'none' }}>
               {banner.title}
             </h3>
             {banner.content && (
-              <p className={`opacity-95 line-clamp-2 ${
+              <p className={`opacity-95 line-clamp-3 ${
                 hasImage
-                  ? 'text-sm md:text-base max-w-lg drop-shadow-md'
+                  ? 'text-sm md:text-lg max-w-xl drop-shadow-md'
                   : 'text-sm md:text-base'
-              }`} style={{ textShadow: hasImage ? '0 1px 4px rgba(0,0,0,0.3)' : 'none' }}>
+              }`} style={{ textShadow: hasImage ? '0 1px 8px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.4)' : 'none' }}>
                 {banner.content}
               </p>
             )}
