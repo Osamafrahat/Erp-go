@@ -26,74 +26,112 @@ export default function BannerCarousel({ banners }) {
   if (!visibleBanners.length || dismissed) return null
 
   const banner = visibleBanners[current]
+  const hasImage = !!banner.image_url
   const Wrapper = banner.link_url ? 'a' : 'div'
   const wrapperProps = banner.link_url ? { href: banner.link_url, target: '_blank', rel: 'noopener noreferrer' } : {}
 
   return (
-    <div className="relative rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700">
+    <div className="relative rounded-2xl overflow-hidden shadow-lg border border-gray-200/50 dark:border-gray-700/50 group">
       <Wrapper
         {...wrapperProps}
-        className="block relative min-h-[120px] md:min-h-[160px]"
+        className={`block relative overflow-hidden ${hasImage ? 'min-h-[180px] md:min-h-[220px]' : 'min-h-[120px] md:min-h-[160px]'}`}
         style={{
-          backgroundColor: banner.background_color || '#3b82f6',
+          backgroundColor: hasImage ? (banner.background_color || '#1a1a2e') : (banner.background_color || '#3b82f6'),
           color: banner.text_color || '#ffffff',
         }}
       >
-        <div className="flex items-center">
-          {banner.image_url && (
-            <div className="w-1/3 md:w-1/4 flex-shrink-0 h-[120px] md:h-[160px] overflow-hidden">
-              <img
-                src={banner.image_url}
-                alt={banner.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-          <div className={`flex-1 p-4 md:p-6 ${banner.image_url ? '' : 'text-center'}`}>
-            <h3 className="text-lg md:text-xl font-bold mb-1">{banner.title}</h3>
+        {/* Full background image with overlay */}
+        {hasImage && (
+          <>
+            <img
+              src={banner.image_url}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(135deg, ${(banner.background_color || '#000000')}cc 0%, ${(banner.background_color || '#000000')}66 50%, transparent 100%)`,
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          </>
+        )}
+
+        {/* Content overlay */}
+        <div className={`relative z-10 flex items-center ${hasImage ? 'justify-start min-h-[180px] md:min-h-[220px]' : 'justify-center min-h-[120px] md:min-h-[160px]'}`}>
+          <div className={`px-6 md:px-10 max-w-2xl ${hasImage ? '' : 'text-center'}`}>
+            {hasImage && (
+              <div className="mb-3">
+                <span className="inline-block px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-sm border border-white/20">
+                  Featured
+                </span>
+              </div>
+            )}
+            <h3 className={`font-extrabold mb-2 leading-tight ${
+              hasImage
+                ? 'text-2xl md:text-4xl drop-shadow-lg'
+                : 'text-lg md:text-xl'
+            }`} style={{ textShadow: hasImage ? '0 2px 8px rgba(0,0,0,0.4)' : 'none' }}>
+              {banner.title}
+            </h3>
             {banner.content && (
-              <p className="text-sm md:text-base opacity-90 line-clamp-2">{banner.content}</p>
+              <p className={`opacity-95 line-clamp-2 ${
+                hasImage
+                  ? 'text-sm md:text-base max-w-lg drop-shadow-md'
+                  : 'text-sm md:text-base'
+              }`} style={{ textShadow: hasImage ? '0 1px 4px rgba(0,0,0,0.3)' : 'none' }}>
+                {banner.content}
+              </p>
             )}
             {banner.link_url && (
-              <span className="inline-block mt-2 text-xs font-semibold opacity-75 underline">
-                Learn more →
+              <span className="inline-flex items-center gap-1.5 mt-3 px-4 py-1.5 rounded-full text-xs font-bold bg-white/20 backdrop-blur-sm border border-white/20 hover:bg-white/30 transition-colors cursor-pointer">
+                Learn more
+                <ChevronRight className="h-3 w-3" />
               </span>
             )}
           </div>
         </div>
       </Wrapper>
 
+      {/* Navigation arrows */}
       {visibleBanners.length > 1 && (
         <>
           <button
             onClick={(e) => { e.stopPropagation(); prev() }}
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-colors"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 border border-white/20"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); next() }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 border border-white/20"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {/* Dots */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
             {visibleBanners.map((_, i) => (
               <button
                 key={i}
                 onClick={(e) => { e.stopPropagation(); setCurrent(i) }}
-                className={`w-2 h-2 rounded-full transition-all ${i === current ? 'bg-white scale-110' : 'bg-white/50 hover:bg-white/75'}`}
+                className={`rounded-full transition-all duration-300 ${
+                  i === current
+                    ? 'w-6 h-2 bg-white'
+                    : 'w-2 h-2 bg-white/40 hover:bg-white/60'
+                }`}
               />
             ))}
           </div>
         </>
       )}
 
+      {/* Dismiss */}
       <button
         onClick={(e) => { e.stopPropagation(); setDismissed(true) }}
-        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center text-xs transition-colors"
+        className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 border border-white/20"
       >
-        <X className="h-3 w-3" />
+        <X className="h-3.5 w-3.5" />
       </button>
     </div>
   )
