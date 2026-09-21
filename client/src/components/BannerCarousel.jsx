@@ -60,7 +60,7 @@ export default function BannerCarousel({ banners }) {
 
         {/* Content overlay */}
         <div className={`relative z-10 flex items-center ${hasImage ? 'justify-start min-h-[360px] md:min-h-[440px]' : 'justify-center min-h-[240px] md:min-h-[320px]'}`}>
-          <div className={`px-8 md:px-12 max-w-2xl ${hasImage ? 'bg-black/30 backdrop-blur-sm rounded-2xl p-6 md:p-8 border border-white/10' : 'text-center'}`}>
+          <div className={`px-8 md:px-12 max-w-3xl ${hasImage ? '' : 'text-center'}`}>
             {hasImage && (
               <div className="mb-3">
                 <span className="inline-block px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-sm border border-white/20">
