@@ -126,18 +126,165 @@ router.post('/checkout', authenticateToken, requireManager, async (req, res) => 
   }
 })
 
+// ---------------------------------------------------------------------------
+// Paymob callback verification
+// ---------------------------------------------------------------------------
+// Paymob's HMAC signature for acceptance callbacks: HMAC-SHA512 over the
+// ordered, concatenated callback fields, keyed with PAYMOB_HMAC_SECRET.
+const PAYMOB_HMAC_ORDER = [
+  'amount_cents', 'currency', 'error_messages', 'integration_id',
+  'is_3d_secure', 'is_auth', 'is_capture', 'is_refunded', 'is_voided',
+  'merchant_id', 'merchant_order_id', 'order_id', 'owner', 'pan',
+  'profile_id', 'source_data.sub_type', 'source_data.type',
+  'statement_descriptor', 'success',
+]
+
+function dig(obj, path) {
+  return path.split('.').reduce((acc, k) => (acc == null ? acc : acc[k]), obj)
+}
+
+function computePaymobHmac(payload, secret) {
+  const concat = PAYMOB_HMAC_ORDER.map((key) => {
+    const v = dig(payload, key)
+    return v === undefined || v === null ? '' : String(v)
+  }).join('')
+  return crypto.createHmac('sha512', secret).update(concat).digest('hex')
+}
+
+function safeEqualHex(a, b) {
+  const bufA = Buffer.from(String(a || ''), 'utf8')
+  const bufB = Buffer.from(String(b || ''), 'utf8')
+  if (bufA.length !== bufB.length || bufA.length === 0) return false
+  return crypto.timingSafeEqual(bufA, bufB)
+}
+
+/**
+ * Decide whether a Paymob callback can be trusted.
+ * Returns { ok: true } or { ok: false, status, reason }.
+ *
+ * Two independent gates, both required to pass:
+ *  1. HMAC signature (when PAYMOB_HMAC_SECRET is configured and `hmac` present)
+ *  2. Authoritative re-fetch from Paymob's own API -- the callback body is
+ *     attacker-controlled, so we never grant a tier based on it alone.
+ */
+async function verifyPaymobCallback(callback) {
+  const secret = process.env.PAYMOB_HMAC_SECRET
+  const receivedHmac = callback?.hmac || callback?.obj?.hmac
+
+  if (secret) {
+    if (!receivedHmac) {
+      return { ok: false, status: 401, reason: 'missing hmac' }
+    }
+    const source = callback?.obj || callback
+    const expected = computePaymobHmac(source, secret)
+    if (!safeEqualHex(expected, receivedHmac)) {
+      return { ok: false, status: 401, reason: 'hmac mismatch' }
+    }
+  }
+
+  // Re-fetch the payment from Paymob rather than trusting the POST body.
+  const lookupId = callback?.obj?.id || callback?.id
+    || callback?.obj?.order?.id || callback?.order?.id
+
+  if (!lookupId) {
+    return { ok: false, status: 400, reason: 'no transaction id to verify' }
+  }
+
+  const secretKey = process.env.PAYMOB_SECRET_KEY
+  const apiKey = process.env.PAYMOB_API_KEY
+  if (!secretKey && !apiKey) {
+    return { ok: false, status: 503, reason: 'Paymob not configured' }
+  }
+
+  let paymentData = null
+  try {
+    if (String(lookupId).startsWith('pi_') && process.env.PAYMOB_PUBLIC_KEY) {
+      const res = await fetch(
+        `${PAYMOB_BASE_URL}/v1/intention/element/${process.env.PAYMOB_PUBLIC_KEY}/${lookupId}/`
+      )
+      if (res.ok) paymentData = await res.json()
+    } else if (apiKey) {
+      const authRes = await fetch(`${PAYMOB_BASE_URL}/api/auth/tokens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: apiKey }),
+      })
+      const authData = await authRes.json()
+      if (authData?.token) {
+        const txnRes = await fetch(
+          `${PAYMOB_BASE_URL}/api/acceptance/transactions/${lookupId}?token=${authData.token}`
+        )
+        if (txnRes.ok) paymentData = await txnRes.json()
+      }
+    } else {
+      const txnRes = await fetch(
+        `${PAYMOB_BASE_URL}/api/acceptance/transactions/${lookupId}?token=${secretKey}`
+      )
+      if (txnRes.ok) paymentData = await txnRes.json()
+    }
+  } catch (e) {
+    console.error('[Paymob] Verification fetch failed:', e.message)
+    return { ok: false, status: 502, reason: 'verification request failed' }
+  }
+
+  if (!paymentData) {
+    return { ok: false, status: 502, reason: 'no response from Paymob' }
+  }
+
+  const authoritativeSuccess = paymentData?.success === true
+    || paymentData?.status === 'paid'
+    || paymentData?.status === 'successful'
+    || paymentData?.payment_status === 'success'
+    || paymentData?.obj?.success === true
+    || (paymentData?.pending === false && paymentData?.is_refunded === false)
+
+  if (!authoritativeSuccess) {
+    return { ok: false, status: 400, reason: 'Paymob reports payment not successful' }
+  }
+
+  return { ok: true, paymentData }
+}
+
 // POST /api/billing/paymob/webhook - Handle Paymob callback
+//
+// SECURITY: this handler previously trusted the raw POST body entirely --
+// anyone could POST { success:true, special_reference:"tenant-1-pro-..." }
+// and upgrade any tenant to Enterprise (and inject card tokens). It now
+// verifies the HMAC signature and re-fetches the payment from Paymob.
 router.post('/webhook', async (req, res) => {
   try {
-    console.log('[Paymob] Webhook received:', JSON.stringify(req.body).substring(0, 500))
+    // Log a redacted summary only -- never the full payload (contains PII /
+    // payment data).
+    console.log('[Paymob] Webhook received (keys):', Object.keys(req.body || {}).join(','))
 
     const body = req.body
     const obj = body.obj || body
 
     const merchantOrderId = obj.special_reference || obj.order?.merchant_order_id || body.special_reference || body.order?.merchant_order_id || ''
-    const paymentSuccess = obj.success === true || obj.success === 'true' || body.success === true
 
-    console.log(`[Paymob] Webhook: success=${paymentSuccess}, order=${merchantOrderId}, type=${body.type}`)
+    const verification = await verifyPaymobCallback(body)
+    if (!verification.ok) {
+      console.warn(`[Paymob] Webhook rejected (${verification.reason})`)
+      // Non-2xx so Paymob retries on transient failures, but do not leak why.
+      return res.status(verification.status).json({ error: 'Verification failed' })
+    }
+
+    const paymentSuccess = true
+    const vObj = verification.paymentData
+    const claimedMerchantOrderId = vObj?.order?.merchant_order_id
+      || vObj?.merchant_order_id
+      || vObj?.obj?.order?.merchant_order_id
+      || vObj?.special_reference
+      || ''
+
+    // The order id Paymob confirms must match the one in the callback,
+    // otherwise an attacker could replay a real payment for another tenant.
+    if (claimedMerchantOrderId && merchantOrderId && claimedMerchantOrderId !== merchantOrderId) {
+      console.warn(`[Paymob] Webhook rejected: merchant_order_id mismatch (${claimedMerchantOrderId} != ${merchantOrderId})`)
+      return res.status(400).json({ error: 'Order reference mismatch' })
+    }
+
+    console.log(`[Paymob] Webhook verified: success=${paymentSuccess}, order=${merchantOrderId}, type=${body.type}`)
 
     const tenantIdMatch = merchantOrderId.match(/tenant-(\d+)-/)
     const tokenizeMatch = merchantOrderId.match(/tokenize-tenant-(\d+)-/)
@@ -252,7 +399,7 @@ router.post('/webhook', async (req, res) => {
     res.json({ received: true })
   } catch (err) {
     console.error('[Paymob] Webhook error:', err.message)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 

@@ -725,10 +725,11 @@ function BannersTab({ t, showToast }) {
   const handleDelete = async (id) => {
     if (!confirm(t('banners.confirmDelete') || 'Delete this banner?')) return
     try {
-      await fetch(`/api/super-admin/banners/${id}`, {
+      const res = await fetch(`/api/super-admin/banners/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` },
       })
+      if (!res.ok) throw new Error(`Delete failed with status ${res.status}`)
       showToast(t('banners.deleted') || 'Banner deleted', 'success')
       fetchBanners()
     } catch { showToast(t('banners.deleteFailed') || 'Failed to delete', 'error') }

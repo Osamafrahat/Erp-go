@@ -39,13 +39,20 @@ const ALL_ALLOWED_SETTINGS = [
 const HIDDEN_SETTINGS = ['eta_client_secret']
 
 // Public endpoint - no auth needed (login page, receipt, etc.)
+// Settings rows are tenant-scoped, so without a resolvable tenant we must not
+// query at all (`.eq('tenant_id', undefined)` becomes `tenant_id=eq.undefined`
+// and errors against the BIGINT column) and must not fall back to another
+// tenant's data. Anonymous callers simply get an empty object.
 router.get('/', async (req, res, next) => {
   try {
+    const tenantId = req.user?.tenantId
+    if (!tenantId) return res.json({})
+
     const { data, error } = await supabase
       .from('store_settings')
       .select('key, value')
       .in('key', PUBLIC_SETTINGS)
-      .eq('tenant_id', req.user?.tenantId)
+      .eq('tenant_id', tenantId)
 
     if (error) throw error
 

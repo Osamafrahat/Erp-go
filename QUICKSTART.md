@@ -10,7 +10,7 @@
 1. Create a Supabase project at [supabase.com](https://supabase.com)
 2. Open **Supabase SQL Editor**
 3. Copy the entire contents of `server/supabase-schema.sql` and run it
-   - This creates all **24 tables**, indexes, RLS policies, admin user, **21 chart of accounts**, and default settings
+   - This creates all **49 tables**, indexes, RLS policies, admin user, **18 chart of accounts**, and default settings
    - Single file — no separate migrations needed
 4. Get your Supabase credentials from **Project Settings > API**
 5. Create `.env` file in `server/` directory:
@@ -126,29 +126,37 @@ npm run dev
 
 ## Reset Data
 
-To clear all data and start fresh:
-1. Run `server/reset-all-data.sql` in Supabase SQL Editor
-2. This truncates all transactional data and re-seeds settings & chart of accounts
-3. Users are preserved
+There is **no reset script in this repository**. To clear transactional data:
+
+1. `DELETE` from the transactional tables (`orders`, `order_items`, `refunds`,
+   `refund_items`, `payments`, `journal_entries`, `journal_entry_lines`,
+   `expenses`, `stock_movements`, `activity_log`, …) in Supabase SQL Editor,
+   keeping `users`, `tenants`, `accounts` and `store_settings`
+2. Re-run the seed blocks at the end of `server/supabase-schema.sql` to restore
+   default settings and the chart of accounts
+
+⚠️ Do **not** run `fix-all-db.sql` or `fix-fk-cascade.sql` from older checkouts —
+they disable RLS platform-wide and grant full DML to the public `anon` role.
 
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
 | Server won't start | Check port 3001, run `npm install`, verify `.env` |
-| Frontend can't connect | Ensure server running on 3001, check CORS |
-| Database issues | Verify Supabase credentials, re-run `supabase-schema.sql` |
+| Frontend can't connect | Ensure server running on 3001, check CORS / `ALLOWED_ORIGINS` |
+| Database issues | Verify Supabase credentials. Re-running `supabase-schema.sql` on a *fresh* DB stops at the `admin` seed (missing `tenant_id`) — ignore that error and re-run; the `CREATE TABLE ... IF NOT EXISTS` statements are idempotent |
+| Schema missing tables | Run the files in `server/migrations/` — several tables (`saved_payment_methods`, commission approval columns, `tenants.subscription_expires_at`) exist only there |
 | Build fails | Run `cd client && npx vite build` to see error |
 | Deploy not updating | Hard-refresh browser (Ctrl+Shift+R) |
-| Admin password lost | Run `fix-admin.sql` or re-run `supabase-schema.sql` |
+| Admin password lost | Reset it from an authenticated manager account via `/api/users`; there is intentionally **no** `fix-admin.sql` and the old anonymous bootstrap endpoint no longer resets passwords |
 
 ## Project Structure
 ```
 store-management/
-├── client/          # React frontend (20 pages, 15 components)
-├── server/          # Node.js backend (21 routes, 3 services)
-├── server/supabase-schema.sql   # Complete DB schema (one file)
-├── server/reset-all-data.sql    # Reset data script
+├── client/          # React frontend (42 pages, 23 components)
+├── server/          # Node.js backend (42 routes, 10 services)
+├── server/supabase-schema.sql   # Consolidated DB schema (49 tables)
+├── server/migrations/           # 7 incremental SQL migrations (run manually, in order)
 ├── README.md        # Full documentation
 └── QUICKSTART.md    # This file
 ```

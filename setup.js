@@ -320,7 +320,12 @@ function generateNginxConfig(domain) {
     server_name ${domain} www.${domain};
 
     location / {
-        proxy_pass http://127.0.0.1:80;
+        # Proxy to the client container, NOT to this same server block.
+        # The old config used `proxy_pass http://127.0.0.1:80;` inside a
+        # `listen 80` block, which is an infinite loop (500 on every request).
+        # The client container publishes on loopback 8080 so that host nginx
+        # owns port 80 and can terminate TLS with certbot.
+        proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

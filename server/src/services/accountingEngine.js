@@ -1,5 +1,11 @@
 import supabase from '../db/supabase.js'
 
+// Round to 2 decimal places (currency minor units) so that summed line items
+// reconcile against the order header instead of drifting in float space.
+function round2(n) {
+  return Math.round((Number(n) || 0) * 100) / 100
+}
+
 // Generate entry number: JE-YYYYMMDD-XXXX
 function generateEntryNumber() {
   const now = new Date()
@@ -267,31 +273,58 @@ export async function postOrderJournal(order, orderItems, customer = null, tenan
 
   const lines = []
 
+  const orderTotal = parseFloat(order.total) || 0
+  const orderVat = parseFloat(order.tax_amount) || 0
+
   // Debit AR (accounts receivable) — payment will clear this
   if (arAccount) {
     lines.push({
       accountId: arAccount.id,
-      debit: parseFloat(order.total),
+      debit: orderTotal,
       credit: 0,
       description: `AR - ${order.order_number}`,
     })
+  } else {
+    // Without a debit side the entry can never balance. Skip rather than
+    // throwing (the caller only logs the failure, which used to hide the
+    // fact that discounted sales never posted at all).
+    console.error(`[ORDER JOURNAL] No AR account for ${order.order_number}; skipping`)
+    return null
   }
 
-  // Separate product and service revenue
-  let productRevenue = 0
-  let serviceRevenue = 0
+  // Gross revenue per type, from the line items.
+  let grossProductRevenue = 0
+  let grossServiceRevenue = 0
   if (orderItems && orderItems.length > 0) {
     for (const item of orderItems) {
-      const itemTotal = parseFloat(item.unit_price) * item.quantity
+      const itemTotal = (parseFloat(item.unit_price) || 0) * (parseInt(item.quantity, 10) || 0)
       if (item._type === 'service') {
-        serviceRevenue += itemTotal
+        grossServiceRevenue += itemTotal
       } else {
-        productRevenue += itemTotal
+        grossProductRevenue += itemTotal
       }
     }
   } else {
-    // Fallback: use order subtotal if items not provided
-    productRevenue = parseFloat(order.subtotal) - (parseFloat(order.discount_amount) || 0)
+    // Fallback: derive the product/service split from the order header only.
+    grossProductRevenue = Math.max(orderTotal - orderVat, 0)
+  }
+
+  // Net revenue recognised = total charged minus the VAT component. Deriving
+  // it from order.total (rather than summing line items) guarantees the entry
+  // balances even when the header carries a discount, a promo, or any other
+  // client-supplied adjustment. Previously revenue was credited at the gross
+  // line-item sum while AR was debited at the discounted total, so any order
+  // with discount_amount > 0 produced an unbalanced entry that threw and was
+  // silently swallowed -- revenue journals were simply lost.
+  const netRevenue = round2(orderTotal - orderVat)
+  const grossRevenue = grossProductRevenue + grossServiceRevenue
+  let productRevenue = 0
+  let serviceRevenue = 0
+  if (grossRevenue > 0) {
+    productRevenue = round2(netRevenue * (grossProductRevenue / grossRevenue))
+    serviceRevenue = round2(netRevenue - productRevenue)
+  } else {
+    productRevenue = netRevenue
   }
 
   // Credit product sales revenue (4010)
@@ -315,11 +348,11 @@ export async function postOrderJournal(order, orderItems, customer = null, tenan
   }
 
   // Credit VAT payable
-  if (vatAccount && parseFloat(order.tax_amount) > 0) {
+  if (vatAccount && orderVat > 0) {
     lines.push({
       accountId: vatAccount.id,
       debit: 0,
-      credit: parseFloat(order.tax_amount),
+      credit: orderVat,
       description: `VAT for ${order.order_number}`,
     })
   }

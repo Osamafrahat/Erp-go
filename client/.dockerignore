@@ -1,11 +1,23 @@
-node_modules
-dist
+# Never bake environment files into the image.
 .env
 .env.*
+*.env
 !.env.example
+
+# Dependencies and build output are produced inside the image.
+node_modules
+dist
+npm-debug.log*
+
+# VCS / editor / OS noise
 .git
 .gitignore
-Dockerfile
-.dockerignore
-vercel.json
-README.md
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Not needed at runtime
+src/__tests__
+coverage
+vitest.config.js

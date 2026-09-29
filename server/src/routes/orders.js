@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import supabase from '../db/supabase.js'
+import { authenticateToken, requirePermission } from '../middleware/auth.js'
 import { checkTenantLimits } from '../middleware/limits.js'
 
 const router = Router()
@@ -169,7 +170,7 @@ router.get('/:id', async (req, res, next) => {
 })
 
 // Create order
-router.post('/', checkTenantLimits('orders'), async (req, res, next) => {
+router.post('/', authenticateToken, requirePermission('pos_access'), checkTenantLimits('orders'), async (req, res, next) => {
   try {
     const { order_number, items, subtotal, discount_amount, tax_amount, total,
       payment_method, payment_status, payments, customer_id, promotion_id, client_order_id, notes,

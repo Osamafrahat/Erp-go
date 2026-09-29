@@ -183,7 +183,11 @@ server {
     server_name mystore.com www.mystore.com;
 
     location / {
-        proxy_pass http://127.0.0.1:80;
+        # Proxy to the app's own frontend container, NOT back to this port.
+        # `proxy_pass http://127.0.0.1:80;` inside a `listen 80` server is an
+        # infinite loop and returns 500 on every request. The docker-compose
+        # client service publishes on loopback 8080 so host nginx owns port 80.
+        proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

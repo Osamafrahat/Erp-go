@@ -1,6 +1,29 @@
-/.git
-/node_modules
-.dockerignore
+# Never bake environment files or secrets into the image.
+# (server/Dockerfile uses `COPY . .` -- without this, server/.env containing
+# JWT_SECRET, SUPABASE keys and RESEND_API_KEY shipped inside every image.)
 .env
-Dockerfile
-fly.toml
+.env.*
+*.env
+!.env.example
+
+# Dependencies are installed inside the image from package.json / lockfile.
+node_modules
+npm-debug.log*
+
+# Backups must never be part of an image.
+backups
+*.log
+logs/
+
+# VCS / editor / OS noise
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Tests are not needed at runtime
+src/__tests__
+jest.config.js
+coverage

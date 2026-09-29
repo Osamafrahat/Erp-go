@@ -58,7 +58,7 @@ export default function SendPromotionModal({ promotion, onClose, onSent }) {
 
   const getStoreName = () => {
     try {
-      const settings = JSON.parse(localStorage.getItem('settings') || '{}')
+      const settings = JSON.parse(localStorage.getItem('app_settings') || '{}')
       return settings.storeName || 'المتجر'
     } catch { return 'المتجر' }
   }

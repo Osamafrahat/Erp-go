@@ -10,7 +10,7 @@ function generateBarcode(value) {
   const quietZone = 10
 
   // Simple encoding: use character codes to determine bar widths
-  let bars = []
+  const bars = []
   for (let i = 0; i < value.length; i++) {
     const charCode = value.charCodeAt(i)
     // Generate alternating bars based on character code

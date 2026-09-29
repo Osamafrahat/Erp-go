@@ -7,7 +7,10 @@ services:
     restart: unless-stopped
     env_file: .env.docker
     ports:
-      - "3001:3001"
+      # Bound to loopback so the API is never reachable directly from the
+      # internet -- host nginx owns :80 and proxies /api/ to 127.0.0.1:3001,
+      # which keeps TLS termination and rate limiting in one place.
+      - "127.0.0.1:3001:3001"
     volumes:
       - backups:/app/backups
     healthcheck:
@@ -26,7 +29,11 @@ services:
     container_name: store-client
     restart: unless-stopped
     ports:
-      - "80:80"
+      # Loopback only: host nginx (see setup.js / DEPLOY.md) proxies :80 ->
+      # 127.0.0.1:8080 and terminates TLS. Publishing "80:80" here collided
+      # with nginx's own listen 80, so the VPS install could never work.
+      # For plain `docker compose up` without host nginx, open :8080.
+      - "127.0.0.1:8080:80"
     depends_on:
       server:
         condition: service_healthy

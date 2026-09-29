@@ -21,6 +21,11 @@ import {
   ClipboardList,
   BookOpen,
   Receipt,
+  // Calendar and Star were referenced below (HR Manager dashboard, ~line 263)
+  // but never imported, which threw a ReferenceError and blanked the page for
+  // any user with the HR_MANAGER role.
+  Calendar,
+  Star,
 } from 'lucide-react'
 
 export default function DashboardPage() {

@@ -93,6 +93,12 @@ router.post('/', authenticateToken, requirePermission('user_manage'), checkTenan
   try {
     const { username, password, fullName, role, permissions, employeeId } = req.body
 
+    // Only managers may assign roles or permission sets (a MANAGER bypasses
+    // every permission check, so this must never be reachable via user_manage)
+    if (req.user.role !== 'MANAGER' && (role !== undefined || permissions !== undefined)) {
+      return res.status(403).json({ error: 'Only managers can set roles or permissions' })
+    }
+
     // Check if username exists per tenant
     const { data: existing } = await supabase
       .from('users')
@@ -159,6 +165,11 @@ router.put('/:id', authenticateToken, requirePermission('user_manage'), [
     }
 
     const { username, fullName, role, password, employeeId, permissions } = req.body
+
+    // Only managers may change roles or permission sets
+    if (req.user.role !== 'MANAGER' && (role !== undefined || permissions !== undefined)) {
+      return res.status(403).json({ error: 'Only managers can set roles or permissions' })
+    }
 
     const updateData = {
       updated_at: new Date().toISOString()

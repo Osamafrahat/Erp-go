@@ -1,11 +1,22 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
+import { timingSafeEqual } from 'node:crypto'
+import rateLimit from 'express-rate-limit'
 import { body, validationResult } from 'express-validator'
 import { generateToken, generateSessionToken, authenticateToken } from '../middleware/auth.js'
 import { logActivity } from '../middleware/activityLogger.js'
 import supabase from '../db/supabase.js'
 
 const router = Router()
+
+// Tight limit for the one-time bootstrap endpoint (separate from login limiter).
+const bootstrapLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
 
 function generateSlug(storeName) {
   let slug = storeName
@@ -321,23 +332,57 @@ router.post('/login', [
   }
 })
 
-// POST /api/auth/bootstrap-superadmin - Create super admin if not exists (one-time setup)
-router.post('/bootstrap-superadmin', async (req, res) => {
+// POST /api/auth/bootstrap-superadmin - ONE-TIME, creation-only super admin setup.
+//
+// SECURITY: this endpoint used to accept unauthenticated requests and reset an
+// existing super admin's password to a hardcoded literal, letting anyone on the
+// internet take over the platform. It is now:
+//   1. disabled unless BOOTSTRAP_SUPERADMIN_TOKEN is set in the environment
+//   2. creation-only -- it NEVER resets or modifies an existing account
+//   3. guarded by a constant-time token comparison
+//   4. rate limited (see authLimiter in index.js)
+// The password must be supplied by the operator, never hardcoded.
+router.post('/bootstrap-superadmin', bootstrapLimiter, async (req, res) => {
   try {
-    const { data: existing } = await supabase
+    const configuredToken = process.env.BOOTSTRAP_SUPERADMIN_TOKEN
+    if (!configuredToken) {
+      return res.status(403).json({
+        error: 'Bootstrap endpoint is disabled. Set BOOTSTRAP_SUPERADMIN_TOKEN to enable it.',
+      })
+    }
+
+    const provided = req.body?.token || req.get('x-bootstrap-token') || ''
+    const a = Buffer.from(String(provided))
+    const b = Buffer.from(String(configuredToken))
+    const matches = a.length === b.length && timingSafeEqual(a, b)
+    if (!matches) {
+      return res.status(403).json({ error: 'Invalid bootstrap token' })
+    }
+
+    const password = req.body?.password
+    if (typeof password !== 'string' || password.length < 12) {
+      return res.status(400).json({ error: 'password must be at least 12 characters' })
+    }
+
+    // Creation only: if the account already exists we refuse to touch it.
+    const { data: existing, error: lookupError } = await supabase
       .from('users')
       .select('id')
       .eq('username', 'superadmin')
-      .single()
+      .maybeSingle()
 
-    if (existing) {
-      // Update password in case it's wrong
-      const hashedPassword = await bcrypt.hash('SuperAdmin123!', 10)
-      await supabase.from('users').update({ password: hashedPassword, is_active: true, role: 'SUPER_ADMIN', permissions: JSON.stringify(['all']), tenant_id: null }).eq('id', existing.id)
-      return res.json({ message: 'Super admin exists, password reset', id: existing.id })
+    if (lookupError) {
+      console.error('[Auth] Bootstrap lookup failed:', lookupError.message)
+      return res.status(500).json({ error: 'Internal server error' })
     }
 
-    const hashedPassword = await bcrypt.hash('SuperAdmin123!', 10)
+    if (existing) {
+      // Do NOT reset the password. An existing super admin must be recovered
+      // through an authenticated admin flow, not an anonymous endpoint.
+      return res.status(409).json({ error: 'Super admin already exists' })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12)
 
     const { data: user, error } = await supabase
       .from('users')
@@ -345,23 +390,26 @@ router.post('/bootstrap-superadmin', async (req, res) => {
         username: 'superadmin',
         password: hashedPassword,
         full_name: 'Platform Super Admin',
-        email: 'admin@erp-go.com',
+        email: req.body?.email || null,
         role: 'SUPER_ADMIN',
         permissions: JSON.stringify(['all']),
         is_active: true,
-        must_change_password: false,
+        must_change_password: true,
         tenant_id: null,
       })
       .select('id, username, full_name, role')
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('[Auth] Bootstrap create failed:', error.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
 
     console.log('[Auth] Super admin created:', user.id)
-    res.json({ message: 'Super admin created', user })
+    res.status(201).json({ message: 'Super admin created', user })
   } catch (err) {
     console.error('[Auth] Bootstrap error:', err.message)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 

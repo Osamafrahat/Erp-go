@@ -8,8 +8,9 @@ import { check, sleep } from 'k6'
 import { Rate, Trend } from 'k6/metrics'
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3001'
-const LOGIN_USER = __ENV.LOGIN_USER || 'superadmin'
-const LOGIN_PASS = __ENV.LOGIN_PASS || 'SuperAdmin123!'
+// Credentials must come from the environment -- never from source control.
+const LOGIN_USER = __ENV.LOGIN_USER
+const LOGIN_PASS = __ENV.LOGIN_PASS
 
 const errorRate = new Rate('errors')
 const loginDuration = new Trend('login_duration')
@@ -27,6 +28,23 @@ export const options = {
     http_req_duration: ['p(95)<2000'],
     errors: ['rate<0.1'],
   },
+}
+
+// Login exactly ONCE, in setup(), and share the token with every VU.
+// Logging in per iteration (the old behaviour) meant ~35k requests hitting
+// /api/auth/login, which is limited to 10 attempts / 15 min -- the run
+// recorded 11,517 login failures and a 98% overall error rate, i.e. the test
+// only ever measured its own rate limiting.
+export function setup() {
+  if (!LOGIN_USER || !LOGIN_PASS) {
+    throw new Error(
+      'Set LOGIN_USER and LOGIN_PASS (k6 run -e LOGIN_USER=... -e LOGIN_PASS=...). ' +
+      'No credentials are hardcoded in this file on purpose.'
+    )
+  }
+  const token = login()
+  if (!token) throw new Error('Login failed -- check credentials and rate limits')
+  return { token }
 }
 
 function login() {
@@ -75,7 +93,7 @@ function apiGet(path, token) {
   return res
 }
 
-export default function () {
+export default function (data) {
   // 1. Test public endpoints (no auth)
   const healthRes = http.get(`${BASE_URL}/api/health`)
   check(healthRes, {
@@ -87,8 +105,8 @@ export default function () {
     'banners endpoint works': (r) => r.status === 200,
   })
 
-  // 2. Login
-  const token = login()
+  // 2. Reuse the token obtained once in setup() -- see the comment there.
+  const token = data && data.token
   if (!token) return
 
   // 3. Hit protected endpoints

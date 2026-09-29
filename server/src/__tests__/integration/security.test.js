@@ -76,7 +76,10 @@ describe('Content Security Policy', () => {
     const res = await fetch(`${BASE}/api/health`)
     const csp = res.headers.get('content-security-policy')
     expect(csp).toBeDefined()
-    expect(csp).toContain("defaultSrc")
+    // helmet dash-cases directive names on the wire, so the header contains
+    // `default-src`, never the camelCased `defaultSrc` option name.
+    expect(csp).toContain("default-src")
+    expect(csp).toContain("'self'")
   })
 })
 

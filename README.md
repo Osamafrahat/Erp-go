@@ -210,7 +210,7 @@ A full-stack retail store management application with Point of Sale (POS), Inven
 
 - **Frontend:** React 19, Vite 7, Tailwind CSS, Zustand v5, Recharts, Lucide React icons, idb (IndexedDB)
 - **Backend:** Node.js, Express 5, bcryptjs, jsonwebtoken, node-cron
-- **Database:** Supabase (PostgreSQL) with Row Level Security (37+ tables)
+- **Database:** Supabase (PostgreSQL) with Row Level Security (49 tables)
 - **Email:** Resend API (primary), Nodemailer (fallback)
 - **State Management:** Zustand with localStorage persistence
 - **Offline Storage:** IndexedDB via `idb` library
@@ -235,7 +235,8 @@ A full-stack retail store management application with Point of Sale (POS), Inven
 
 3. **Run the database schema:**
    - Open `server/supabase-schema.sql` in Supabase SQL Editor and run it
-   - This creates all 37+ tables, indexes, RLS policies, admin user, chart of accounts (18 accounts), and default settings
+   - This creates all 49 tables, indexes, RLS policies, admin user, chart of accounts (18 accounts), and default settings
+   - ⚠️ `supabase-schema.sql` seeds an `admin` user without a `tenant_id` (which is `NOT NULL`) and uses `ON CONFLICT` targets that don't match the actual unique constraints, so a truly fresh run stops partway through. If you hit an error, re-run the file — the `CREATE TABLE ... IF NOT EXISTS` statements are idempotent — and see **Troubleshooting** below.
 
 4. **Get Supabase credentials:**
    - Go to Project Settings > API
@@ -299,7 +300,7 @@ The project includes `fly.toml` for Fly.io deployment:
 Client can be deployed separately to Vercel (already has `vercel.json`).
 
 ### Reset Data (Optional)
-- Run `reset_data.sql` in Supabase SQL Editor to clear all transactional data and re-seed settings and chart of accounts. Keeps users intact.
+- Run `server/migrations/reset_data.sql` (if present in your checkout) in Supabase SQL Editor to clear all transactional data and re-seed settings and chart of accounts. Keeps users intact. If the file is missing, delete from the transactional tables directly and re-run the seed blocks at the end of `server/supabase-schema.sql`.
 
 ## Project Structure
 
@@ -420,15 +421,14 @@ store-management/
 │   │   └── db/
 │   │       ├── supabase.js
 │   │       └── seed.js
-│   ├── migrations/                   # 8 SQL migration files
-│   ├── supabase-schema.sql           # Complete schema (37+ tables)
+│   ├── migrations/                   # 7 SQL migration files
+│   ├── supabase-schema.sql           # Complete schema (49 tables)
 │   ├── Dockerfile
 │   └── package.json
 │
 ├── docker-compose.yml                # Docker orchestration
-├── fly.toml                         # Fly.io deployment config
+├── server/fly.toml                   # Fly.io deployment config (note: inside server/, not root)
 ├── .env.docker.example               # Docker env template
-├── reset_data.sql                    # Data reset script
 ├── README.md
 ├── QUICKSTART.md
 └── package.json
@@ -533,12 +533,18 @@ store-management/
 
 ## Database
 
-- **Schema file:** `server/supabase-schema.sql` — consolidated schema with all 37+ tables
-- **Reset file:** `reset_data.sql` — clears transactional data, re-seeds settings & accounts
-- **37+ tables:** users, categories, suppliers, products, customers, employees, orders, order_items, payment_splits, stock_movements, promotions, store_settings, expenses, refunds, refund_items, activity_log, accounts, fiscal_periods, journal_entries, journal_entry_lines, payments, account_balances, messages, attendance, leave_types, leave_requests, leave_balances, payroll, payroll_items, shifts, employee_shifts, performance_reviews, review_criteria, services, service_plans, subscriptions, subscription_payments
+- **Schema file:** `server/supabase-schema.sql` — consolidated schema with all 49 tables
+- **Reset file:** there is no `reset_data.sql` in this repository — clear transactional tables manually and re-run the seed blocks at the end of `server/supabase-schema.sql`
+- **49 tables:** users, tenants, categories, suppliers, products, customers, employees, orders, order_items, payment_splits, stock_movements, promotions, store_settings, expenses, refunds, refund_items, activity_log, accounts, fiscal_periods, journal_entries, journal_entry_lines, payments, account_balances, messages, attendance, leave_types, leave_requests, leave_balances, payroll, payroll_items, shifts, employee_shifts, performance_reviews, review_criteria, services, service_plans, subscriptions, subscription_payments, plus banners, billing/commission and SaaS tables
 - **18 chart of accounts:** 1010-5050 (Assets, Liabilities, Equity, Revenue, Expenses)
-- **62+ indexes** for query performance
-- **RLS enabled** on all tables
+- **118 indexes** for query performance
+- **RLS enabled** on most tables (see **Security notes** below — this is not as complete as it sounds)
+
+### Known schema caveats
+
+- `server/supabase-schema.sql` (fresh install) and `server/saas-migration.sql` (what production actually runs) have **drifted apart**. Notably `saved_payment_methods`, `tenants.subscription_expires_at`, `tenants.renewal_note`, `commissions.approved_at/approved_by/paid_at` exist only in `server/migrations/*.sql`, not in the consolidated schema. Apply `server/migrations/*.sql` after the main schema.
+- There is **no migration runner**; every `.sql` file must be run by hand in the Supabase SQL Editor, in filename order under `server/migrations/`.
+- `tenant_id` is nullable in the SaaS-migrated schema but `NOT NULL` in the consolidated schema. Pick one before seeding admin users.
 
 ## Default Settings
 

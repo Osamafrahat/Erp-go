@@ -24,6 +24,11 @@ import {
   updateCachedProduct,
 } from '../lib/offlineDB'
 
+// Window listeners must be bound at most once for the page lifetime:
+// Layout re-mounts on every navigation and calls init() each time.
+let listenersBound = false
+const boundHandlers = { online: null, offline: null }
+
 export const useOfflineStore = create((set, get) => ({
   isOnline: navigator.onLine,
   pendingCount: 0,
@@ -33,17 +38,33 @@ export const useOfflineStore = create((set, get) => ({
 
   // Initialize - check online status and load pending count
   init: async () => {
+    // Bind synchronously (before any await) so concurrent init() calls can't double-bind
+    if (!listenersBound) {
+      listenersBound = true
+      boundHandlers.online = () => {
+        set({ isOnline: true })
+        get().syncPendingOrders()
+      }
+      boundHandlers.offline = () => {
+        set({ isOnline: false })
+      }
+      window.addEventListener('online', boundHandlers.online)
+      window.addEventListener('offline', boundHandlers.offline)
+    }
+
     const count = await getPendingOrderCount()
     const lastSync = await getLastSyncTime()
     set({ pendingCount: count, lastSyncTime: lastSync })
+  },
 
-    window.addEventListener('online', () => {
-      set({ isOnline: true })
-      get().syncPendingOrders()
-    })
-    window.addEventListener('offline', () => {
-      set({ isOnline: false })
-    })
+  // Unbind the window listeners (idempotent) — only used on full teardown
+  destroy: () => {
+    if (!listenersBound) return
+    listenersBound = false
+    if (boundHandlers.online) window.removeEventListener('online', boundHandlers.online)
+    if (boundHandlers.offline) window.removeEventListener('offline', boundHandlers.offline)
+    boundHandlers.online = null
+    boundHandlers.offline = null
   },
 
   setOnline: (isOnline) => set({ isOnline }),

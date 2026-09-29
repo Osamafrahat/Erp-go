@@ -312,11 +312,11 @@ router.post('/fiscal-periods/:id/close', async (req, res) => {
       .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
 
+    req.logActivity?.({ action: 'closed', entity_type: 'fiscal_period', entity_id: req.params.id, entity_name: period.name, details: { total_revenue: totalRevenue, total_expenses: totalExpenses, net_income: netIncome } })
     res.json({ message: 'Fiscal period closed successfully' })
-    req.logActivity({ action: 'closed', entity_type: 'fiscal_period', entity_id: req.params.id, entity_name: period.name, details: { total_revenue: totalRevenue, total_expenses: totalExpenses, net_income: netIncome } })
   } catch (err) {
     console.error('Close fiscal period error:', err.message, err.stack)
-    res.status(500).json({ error: err.message || 'Internal server error' })
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 

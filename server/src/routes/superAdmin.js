@@ -48,7 +48,8 @@ router.get('/stats', async (req, res) => {
       mrr,
     })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -89,7 +90,8 @@ router.get('/tenants', async (req, res) => {
 
     res.json({ tenants: tenantsWithStats, total: count || 0, page: Number(page), limit: Number(limit) })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -131,7 +133,8 @@ router.get('/tenants/:id', async (req, res) => {
       recent_orders: recentOrders || [],
     })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -190,7 +193,8 @@ router.post('/tenants', [
 
     res.status(201).json({ tenant, message: 'Tenant and admin user created. Admin must change password on first login.' })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -263,30 +267,49 @@ router.put('/tenants/:id', async (req, res) => {
     console.log(`[SuperAdmin] Tenant ${tenantId} updated: tier=${subscription_tier || 'unchanged'}, limits=${updateData.max_products}/${updateData.max_users}/${updateData.max_orders_monthly}`)
     res.json(data)
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
 // DELETE /api/super-admin/tenants/:id - Delete a tenant and all its data
 router.delete('/tenants/:id', async (req, res) => {
   try {
-    const tenantId = req.params.id
+    // Strict validation before any delete: positive integer id only
+    const rawTenantId = String(req.params.id)
+    if (!/^[1-9][0-9]*$/.test(rawTenantId)) {
+      return res.status(400).json({ error: 'Invalid tenant id' })
+    }
+    const tid = Number(rawTenantId)
+    if (!Number.isSafeInteger(tid)) {
+      return res.status(400).json({ error: 'Invalid tenant id' })
+    }
 
     const { data: tenant, error: findErr } = await supabase
       .from('tenants')
       .select('id, name')
-      .eq('id', tenantId)
+      .eq('id', tid)
       .single()
     if (findErr || !tenant) return res.status(404).json({ error: 'Tenant not found' })
 
-    const tid = tenantId
+    const failedDeletes = []
 
-    // Helper: safe delete via exec_sql (uses SECURITY DEFINER to bypass FK constraints)
+    // Helper: parameterized delete via the Supabase client (no raw SQL).
+    // `where` is an allow-listed condition built only from validated integers,
+    // so no request input is ever interpolated into a query.
     const safeDel = async (table, where) => {
-      const { error } = await supabase.rpc('exec_sql', {
-        sql: `DELETE FROM ${table} WHERE ${where};`
-      })
-      if (error) console.error(`[SuperAdmin] Delete ${table}: ${error.message}`)
+      if (!/^[a-z_]+$/.test(table)) throw new Error(`Invalid table name: ${table}`)
+      const match = /^(tenant_id|id|order_id|refund_id|journal_entry_id|payroll_id|purchase_order_id) (= ([0-9]+)|IN \(([0-9]+(,[0-9]+)*)\))$/.exec(where)
+      if (!match) throw new Error(`Unsupported delete condition for ${table}`)
+      const column = match[1]
+      const query = supabase.from(table).delete()
+      const { error } = match[4] !== undefined
+        ? await query.in(column, match[4].split(',').map(Number))
+        : await query.eq(column, Number(match[3]))
+      if (error) {
+        console.error(`[SuperAdmin] Delete ${table}: ${error.message}`)
+        failedDeletes.push(table)
+      }
     }
 
     // 1. Collect parent IDs first
@@ -302,7 +325,7 @@ router.delete('/tenants/:id', async (req, res) => {
     const poIds = (pos || []).map(r => r.id)
     const rIds = (refs || []).map(r => r.id)
 
-    // 2. Delete deepest children via exec_sql
+    // 2. Delete deepest children
     if (oIds.length) await safeDel('order_items', `order_id IN (${oIds.join(',')})`)
     if (rIds.length) await safeDel('refund_items', `refund_id IN (${rIds.join(',')})`)
     if (jIds.length) await safeDel('journal_entry_lines', `journal_entry_id IN (${jIds.join(',')})`)
@@ -354,10 +377,15 @@ router.delete('/tenants/:id', async (req, res) => {
     // 5. Tenant itself
     await safeDel('tenants', `id = ${tid}`)
 
+    if (failedDeletes.length > 0) {
+      console.error(`[SuperAdmin] Tenant ${tid} delete incomplete, failed tables: ${failedDeletes.join(', ')}`)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+
     res.json({ message: `Tenant "${tenant.name}" and all its data have been permanently deleted` })
   } catch (err) {
     console.error('[SuperAdmin] Delete tenant error:', err.message)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -400,7 +428,8 @@ router.post('/tenants/:id/impersonate', async (req, res) => {
       tenant: { id: tenant.id, name: tenant.name },
     })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -414,7 +443,8 @@ router.get('/plans', async (req, res) => {
     if (error) throw error
     res.json(data || [])
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -449,7 +479,8 @@ router.put('/plans/:id', async (req, res) => {
 
     res.json(data)
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -493,7 +524,8 @@ router.get('/activity', async (req, res) => {
       pagination: { page: Number(page), limit: Number(limit), total: count || 0, totalPages: Math.ceil((count || 0) / Number(limit)) },
     })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -527,7 +559,8 @@ router.post('/migrate', async (req, res) => {
 
     res.json({ results, sql: 'ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz; ALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;' })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -564,7 +597,8 @@ router.get('/payments', async (req, res) => {
 
     res.json(enriched)
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -634,7 +668,8 @@ router.get('/analytics', async (req, res) => {
       successful_payments: (payments || []).filter(p => p.status === 'paid').length,
     })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -651,7 +686,8 @@ router.get('/banners', authenticateToken, requireSuperAdmin, async (req, res) =>
     if (error) throw error
     res.json(data || [])
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -678,7 +714,8 @@ router.post('/banners', authenticateToken, requireSuperAdmin, async (req, res) =
     if (error) throw error
     res.status(201).json(data)
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -698,7 +735,8 @@ router.put('/banners/:id', authenticateToken, requireSuperAdmin, async (req, res
     if (error) throw error
     res.json(data)
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -712,7 +750,8 @@ router.delete('/banners/:id', authenticateToken, requireSuperAdmin, async (req, 
     if (error) throw error
     res.json({ success: true })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
 

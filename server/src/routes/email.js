@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import supabase from '../db/supabase.js'
+import { authenticateToken, requirePermission } from '../middleware/auth.js'
 import { sendPromotionEmail, sendCustomEmail } from '../services/emailService.js'
 import { sendPromotionWhatsApp, sendCustomWhatsApp } from '../services/whatsappService.js'
 
@@ -82,7 +83,7 @@ async function processPromotionSend(promoId, { send_email, send_whatsapp, tenant
   }
 }
 
-router.post('/promotion', (req, res) => {
+router.post('/promotion', authenticateToken, requirePermission('promotions_edit'), (req, res) => {
   try {
     const { promotion_id, send_email, send_whatsapp } = req.body
     const numericId = Number(promotion_id)

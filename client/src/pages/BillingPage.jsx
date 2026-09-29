@@ -182,16 +182,6 @@ export default function BillingPage() {
   const [plans, setPlans] = useState([])
   const [addingCard, setAddingCard] = useState(false)
 
-  if (currentUser?.role !== 'MANAGER' && currentUser?.role !== 'SUPER_ADMIN') {
-    return (
-      <div className="flex flex-col items-center justify-center h-96 gap-4">
-        <Shield className="w-12 h-12 text-gray-400" />
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('common.accessDenied') || 'Access Denied'}</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{t('billing.managerOnly') || 'Only managers can access billing.'}</p>
-      </div>
-    )
-  }
-
   const fetchBilling = async () => {
     try {
       setLoading(true)
@@ -215,6 +205,10 @@ export default function BillingPage() {
     }
   }
 
+  // NOTE: all hooks must be declared before any early return. This role guard
+  // used to sit above the useEffects below, so switching the current user to a
+  // non-manager role re-rendered the component with more hooks than the
+  // previous render and React threw a rules-of-hooks error.
   useEffect(() => { fetchBilling() }, [currentUser])
 
   useEffect(() => {
@@ -230,6 +224,16 @@ export default function BillingPage() {
   useEffect(() => {
     api.get('/billing/plans').then(({ data }) => setPlans(data || [])).catch(() => {})
   }, [])
+
+  if (currentUser?.role !== 'MANAGER' && currentUser?.role !== 'SUPER_ADMIN') {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <Shield className="w-12 h-12 text-gray-400" />
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('common.accessDenied') || 'Access Denied'}</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t('billing.managerOnly') || 'Only managers can access billing.'}</p>
+      </div>
+    )
+  }
 
   const handleDeleteCard = async (cardId) => {
     setDeletingCard(cardId)

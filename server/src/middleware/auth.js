@@ -76,6 +76,21 @@ export async function authenticateToken(req, res, next) {
   }
 }
 
+// Attach req.user when a valid bearer token is supplied, but never reject the
+// request. Used by public endpoints that still need a tenant context when the
+// caller happens to be authenticated (e.g. GET /api/settings).
+export function optionalAuthenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
+  if (!token) return next()
+  try {
+    req.user = jwt.verify(token, JWT_SECRET)
+  } catch {
+    // Invalid/expired token on an optional-auth route -> treat as anonymous
+  }
+  next()
+}
+
 export function requireRole(...roles) {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {

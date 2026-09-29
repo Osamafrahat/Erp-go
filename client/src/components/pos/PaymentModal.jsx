@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useCartStore } from '../../stores/cartStore'
 import { useAppStore } from '../../stores/appStore'
 import { formatCurrency, calculateChange } from '../../lib/utils'
@@ -25,22 +25,28 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
   const total = getTotal(settings.taxRate)
   const remaining = Math.round((total - payments.reduce((sum, p) => sum + p.amount, 0)) * 100) / 100
 
+  // Always holds the latest handlers/state so the keydown listener
+  // never reads stale values (cash entry, refs, due date, ...)
+  const stateRef = useRef(null)
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Enter' && !e.target.closest('.no-enter-shortcut')) {
+        const state = stateRef.current
+        if (!state) return
         e.preventDefault()
-        if (selectedMethod === 'credit') {
-          handleComplete()
-        } else if (remaining <= 0.01 && payments.length > 0) {
-          handleComplete()
+        if (state.selectedMethod === 'credit') {
+          state.handleComplete()
+        } else if (state.remaining <= 0.01 && state.payments.length > 0) {
+          state.handleComplete()
         } else {
-          handleAddPayment()
+          state.handleAddPayment()
         }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [remaining, payments.length, selectedMethod, dueDate, selectedCustomer])
+  }, [])
 
   const handleAddPayment = () => {
     let amount = 0
@@ -95,6 +101,17 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
       return
     }
     onComplete({ method: payments[0]?.method || 'cash', payments })
+  }
+
+  // Refresh the ref every render (after the handlers above are redefined)
+  stateRef.current = {
+    remaining,
+    payments,
+    selectedMethod,
+    dueDate,
+    selectedCustomer,
+    handleAddPayment,
+    handleComplete,
   }
 
   const change = selectedMethod === 'cash' && cashTendered

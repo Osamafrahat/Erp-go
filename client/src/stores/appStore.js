@@ -17,9 +17,15 @@ export const useAppStore = create((set, get) => ({
     localStorage.setItem('app_language', language)
     set({ language })
   },
-  t: (key) => {
+  t: (key, params) => {
     const lang = get().language
-    return translations[lang]?.[key] || translations.en[key] || key
+    const value = translations[lang]?.[key] || translations.en[key] || key
+    if (params && typeof params === 'object') {
+      return value.replace(/\{(\w+)\}/g, (match, name) => (
+        params[name] !== undefined && params[name] !== null ? params[name] : match
+      ))
+    }
+    return value
   },
 
   // Store settings (loaded from localStorage first, then API)

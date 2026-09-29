@@ -714,24 +714,29 @@ export default function POSPage() {
               }, 0) * 100) / 100
               const serviceSubtotal = Math.round(serviceItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) * 100) / 100
               const orderSubtotal = Math.round((productSubtotal + serviceSubtotal) * 100) / 100
+              // Real promo discount from the cart store (0 when no promo applied)
+              const cartState = useCartStore.getState()
+              const discountAmount = Math.round((cartState.getDiscount() || 0) * 100) / 100
 
               // Create order if there are products or services (subscriptions are separate)
               if (allOrderItems.length > 0) {
                 const taxRate = settings.taxRate || 14
-                const taxAmount = Math.round(productSubtotal * (taxRate / 100) * 100) / 100
+                // Discount is applied BEFORE tax, matching cartStore.getTax()
+                const taxAmount = Math.round((productSubtotal - discountAmount) * (taxRate / 100) * 100) / 100
                 const orderData = {
                   order_number: generateOrderNumber(),
                   items: allOrderItems,
                   subtotal: orderSubtotal,
-                  discount_amount: 0,
+                  discount_amount: discountAmount,
                   tax_amount: taxAmount,
-                  total: Math.round((productSubtotal * (1 + taxRate / 100) + serviceSubtotal) * 100) / 100,
+                  // Matches cartStore.getTotal(): productSubtotal - discount + tax + services
+                  total: Math.round((productSubtotal - discountAmount + taxAmount + serviceSubtotal) * 100) / 100,
                   payment_method: paymentData.method,
                   payment_status: paymentData.method === 'credit' ? 'pending' : 'paid',
                   payments: paymentData.payments,
                   user_id: currentUser?.id,
                   customer_id: selectedCustomer?.id || null,
-                  promotion_id: null,
+                  promotion_id: cartState.promoId ?? null,
                   notes: serviceItems.length > 0 ? `Service sale - ${serviceItems.length} service(s)` : null,
                   created_at: new Date().toISOString(),
                   shift_id: activeShift?.id || null,

@@ -34,10 +34,38 @@ function log(req, params) {
   }).catch(() => {})
 }
 
+// Multi-tenant guard: every backup/restore is scoped to the caller's tenant.
+// Only a platform SUPER_ADMIN (tenant_id === null) may operate on global data.
+function isPlatformSuperAdmin(req) {
+  return req.user?.role === 'SUPER_ADMIN' && !req.user?.tenantId
+}
+
+// Sends a 403 and returns { ok: false } when the caller has no tenant scope.
+// Otherwise returns { ok: true, tenantId } (tenantId is null for super admin,
+// which backupService treats as "global").
+function resolveTenantScope(req, res) {
+  const tenantId = req.user?.tenantId ?? null
+  if (!tenantId && !isPlatformSuperAdmin(req)) {
+    res.status(403).json({ error: 'Backup operations require a tenant context' })
+    return { ok: false }
+  }
+  return { ok: true, tenantId }
+}
+
+// A tenant may only touch backup files that belong to them. Global backups
+// (no tenant prefix) are reserved for the platform super admin.
+function assertOwnsBackupFile(req, filename) {
+  if (isPlatformSuperAdmin(req)) return true
+  const tenantId = req.user?.tenantId
+  return tenantId != null && filename.startsWith(`backup-${tenantId}-`)
+}
+
 router.get('/', async (req, res) => {
   try {
+    const scope = resolveTenantScope(req, res)
+    if (!scope.ok) return
     const backups = await listBackups()
-    res.json(backups)
+    res.json(backups.filter(b => assertOwnsBackupFile(req, b.name)))
   } catch (err) {
     console.error('List backups error:', err)
     res.status(500).json({ error: 'Failed to list backups' })
@@ -46,8 +74,10 @@ router.get('/', async (req, res) => {
 
 router.post('/json', async (req, res) => {
   try {
+    const scope = resolveTenantScope(req, res)
+    if (!scope.ok) return
     log(req, { action: 'created', entity_type: 'backup', entity_name: 'JSON backup' })
-    const result = await backupToJson()
+    const result = await backupToJson(scope.tenantId)
     res.json({ message: 'JSON backup created', ...result })
   } catch (err) {
     console.error('JSON backup error:', err)
@@ -57,8 +87,10 @@ router.post('/json', async (req, res) => {
 
 router.post('/sql', async (req, res) => {
   try {
+    const scope = resolveTenantScope(req, res)
+    if (!scope.ok) return
     log(req, { action: 'created', entity_type: 'backup', entity_name: 'SQL backup' })
-    const result = await backupToSql()
+    const result = await backupToSql(scope.tenantId)
     res.json({ message: 'SQL backup created', ...result })
   } catch (err) {
     console.error('SQL backup error:', err)
@@ -79,6 +111,9 @@ router.get('/download/:filename', async (req, res) => {
     if (!isValidBackupFilename(filename)) {
       return res.status(400).json({ error: 'Invalid filename' })
     }
+    if (!assertOwnsBackupFile(req, filename)) {
+      return res.status(404).json({ error: 'Backup not found' })
+    }
     const jsonPath = path.join(BACKUP_DIR, 'json', filename)
     const sqlPath = path.join(BACKUP_DIR, 'sql', filename)
 
@@ -97,10 +132,19 @@ router.get('/download/:filename', async (req, res) => {
 
 router.post('/restore', async (req, res) => {
   try {
+    const scope = resolveTenantScope(req, res)
+    if (!scope.ok) return
+
     const { filename } = req.body
     if (!filename) return res.status(400).json({ error: 'Filename is required' })
     if (!isValidBackupFilename(filename)) {
       return res.status(400).json({ error: 'Invalid filename' })
+    }
+    // A tenant must never be able to restore a file that isn't theirs: the
+    // restore path deletes existing rows before re-inserting, so an unscoped
+    // restore wipes every tenant's data.
+    if (!assertOwnsBackupFile(req, filename)) {
+      return res.status(404).json({ error: 'Backup not found' })
     }
 
     const jsonPath = path.join(BACKUP_DIR, 'json', filename)
@@ -109,7 +153,7 @@ router.post('/restore', async (req, res) => {
     }
 
     log(req, { action: 'restored', entity_type: 'backup', entity_name: filename })
-    const result = await restoreFromJson(jsonPath)
+    const result = await restoreFromJson(jsonPath, scope.tenantId)
     res.json({ message: 'Database restored', ...result })
   } catch (err) {
     console.error('Restore error:', err)
@@ -122,6 +166,9 @@ router.delete('/:filename', async (req, res) => {
     if (!isValidBackupFilename(req.params.filename)) {
       return res.status(400).json({ error: 'Invalid filename' })
     }
+    if (!assertOwnsBackupFile(req, req.params.filename)) {
+      return res.status(404).json({ error: 'Backup not found' })
+    }
     await deleteBackup(req.params.filename)
     log(req, { action: 'deleted', entity_type: 'backup', entity_name: req.params.filename })
     res.json({ message: 'Backup deleted' })
@@ -133,7 +180,9 @@ router.delete('/:filename', async (req, res) => {
 
 router.post('/cleanup', async (req, res) => {
   try {
-    const days = parseInt(req.body.days) || 30
+    const scope = resolveTenantScope(req, res)
+    if (!scope.ok) return
+    const days = Math.min(Math.max(parseInt(req.body.days, 10) || 30, 1), 365)
     const result = await cleanupOldBackups(days)
     res.json({ message: `Cleaned up backups older than ${days} days`, ...result })
   } catch (err) {
@@ -175,8 +224,10 @@ router.post('/auto-disable', (req, res) => {
 
 router.get('/cloud', async (req, res) => {
   try {
+    const scope = resolveTenantScope(req, res)
+    if (!scope.ok) return
     const backups = await listCloudBackups()
-    res.json(backups)
+    res.json(backups.filter(b => assertOwnsBackupFile(req, b.name)))
   } catch (err) {
     console.error('List cloud backups error:', err)
     res.status(500).json({ error: 'Failed to list cloud backups' })
@@ -185,13 +236,15 @@ router.get('/cloud', async (req, res) => {
 
 router.post('/cloud/upload', async (req, res) => {
   try {
-    const format = req.body.format || 'json'
+    const scope = resolveTenantScope(req, res)
+    if (!scope.ok) return
+    const format = req.body.format === 'sql' ? 'sql' : 'json'
     log(req, { action: 'created', entity_type: 'cloud_backup', entity_name: `${format.toUpperCase()} cloud backup` })
-    const result = await backupToCloud(format)
+    const result = await backupToCloud(format, scope.tenantId)
     res.json({ message: 'Cloud backup uploaded', ...result })
   } catch (err) {
     console.error('Cloud upload error:', err.message || err)
-    res.status(500).json({ error: err.message || 'Failed to upload to cloud' })
+    res.status(500).json({ error: 'Failed to upload to cloud' })
   }
 })
 
@@ -199,6 +252,9 @@ router.get('/cloud/download/:filename', async (req, res) => {
   try {
     if (!isValidBackupFilename(req.params.filename)) {
       return res.status(400).json({ error: 'Invalid filename' })
+    }
+    if (!assertOwnsBackupFile(req, req.params.filename)) {
+      return res.status(404).json({ error: 'Backup not found' })
     }
     const data = await downloadFromCloud(req.params.filename)
     res.setHeader('Content-Type', 'application/octet-stream')
@@ -215,6 +271,9 @@ router.delete('/cloud/:filename', async (req, res) => {
   try {
     if (!isValidBackupFilename(req.params.filename)) {
       return res.status(400).json({ error: 'Invalid filename' })
+    }
+    if (!assertOwnsBackupFile(req, req.params.filename)) {
+      return res.status(404).json({ error: 'Backup not found' })
     }
     await deleteCloudBackup(req.params.filename)
     log(req, { action: 'deleted', entity_type: 'cloud_backup', entity_name: req.params.filename })

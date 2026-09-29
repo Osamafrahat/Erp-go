@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
 
@@ -25,13 +25,38 @@ const iconColors = {
 
 export default function Toast() {
   const { toasts, removeToast } = useAppStore()
+  const timersRef = useRef(new Map())
 
+  // Arm a timer exactly once per toast, when it is added
   useEffect(() => {
-    const timers = toasts
-      .filter(t => t.duration !== 0)
-      .map(toast => setTimeout(() => removeToast(toast.id), toast.duration || 4000))
-    return () => timers.forEach(id => clearTimeout(id))
+    const timers = timersRef.current
+    const activeIds = new Set(toasts.map(toast => toast.id))
+
+    // Clear timers belonging to toasts that were removed manually
+    timers.forEach((timerId, toastId) => {
+      if (!activeIds.has(toastId)) {
+        clearTimeout(timerId)
+        timers.delete(toastId)
+      }
+    })
+
+    toasts.forEach(toast => {
+      if (toast.duration === 0 || timers.has(toast.id)) return // sticky toasts never auto-dismiss
+      timers.set(toast.id, setTimeout(() => {
+        timers.delete(toast.id)
+        removeToast(toast.id)
+      }, toast.duration || 4000))
+    })
   }, [toasts, removeToast])
+
+  // Clear every pending timer on unmount
+  useEffect(() => {
+    const timers = timersRef.current
+    return () => {
+      timers.forEach(timerId => clearTimeout(timerId))
+      timers.clear()
+    }
+  }, [])
 
   if (toasts.length === 0) return null
 

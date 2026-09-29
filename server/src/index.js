@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url'
 import { errorHandler } from './middleware/errorHandler.js'
 import { activityLogger } from './middleware/activityLogger.js'
 import { authRouter } from './routes/auth.js'
-import { authenticateToken, requireManager, setTenantContext } from './middleware/auth.js'
+import { authenticateToken, optionalAuthenticateToken, requireManager, setTenantContext } from './middleware/auth.js'
 
 import productsRouter from './routes/products.js'
 import categoriesRouter from './routes/categories.js'
@@ -150,7 +150,7 @@ app.use('/api/stock', authenticateToken, setTenantContext, activityLogger, stock
 app.use('/api/suppliers', authenticateToken, setTenantContext, activityLogger, suppliersRouter)
 app.use('/api/promotions', authenticateToken, setTenantContext, activityLogger, promotionsRouter)
 app.use('/api/reports', authenticateToken, setTenantContext, activityLogger, reportsRouter)
-app.use('/api/settings', activityLogger, settingsRouter)
+app.use('/api/settings', activityLogger, optionalAuthenticateToken, settingsRouter)
 app.use('/api/users', authenticateToken, setTenantContext, requireManager, activityLogger, usersRouter)
 app.use('/api/customers', authenticateToken, setTenantContext, activityLogger, customersRouter)
 app.use('/api/employees', authenticateToken, setTenantContext, activityLogger, employeesRouter)
@@ -161,7 +161,7 @@ app.use('/api/activities', authenticateToken, setTenantContext, requireManager, 
 
 app.use('/api/accounting/accounts', authenticateToken, setTenantContext, requireManager, activityLogger, accountsRouter)
 app.use('/api/accounting/journals', authenticateToken, setTenantContext, requireManager, activityLogger, journalsRouter)
-app.use('/api/accounting/reports', authenticateToken, setTenantContext, requireManager, accountingReportsRouter)
+app.use('/api/accounting/reports', authenticateToken, setTenantContext, requireManager, activityLogger, accountingReportsRouter)
 app.use('/api/accounting/payments', authenticateToken, setTenantContext, requireManager, activityLogger, paymentsRouter)
 app.use('/api/sync', authenticateToken, setTenantContext, syncRouter)
 app.use('/api/eta', authenticateToken, setTenantContext, etaRouter)
