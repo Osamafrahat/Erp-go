@@ -624,7 +624,10 @@ export default function Layout({ children }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Header */}
-        <header className="bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700/50 px-3 sm:px-6 py-2 sm:py-3 shadow-sm">
+        {/* z-30: backdrop-blur forms a stacking context, so dropdowns here (z-50) are
+            trapped below page content such as BannerCarousel's `relative z-10`.
+            Must stay < 50 or the mobile drawer (z-50, earlier sibling) would be covered. */}
+        <header className="z-30 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700/50 px-3 sm:px-6 py-2 sm:py-3 shadow-sm">
           <div className="flex items-center justify-between gap-2 min-w-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
