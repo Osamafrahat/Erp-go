@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { body, validationResult } from 'express-validator'
 import supabase from '../db/supabase.js'
+import { summarizeShiftSales } from '../services/shiftSales.js'
 
 const router = Router()
 
@@ -19,6 +20,52 @@ const flattenShift = (shift) => {
 }
 
 const flattenShifts = (shifts) => (shifts || []).map(flattenShift)
+
+// Drawer revenue belonging to a shift window, from BOTH sources of takings.
+//
+// Subscription sales never create an `orders` row -- quickCreate, renew and
+// manual payments all write to `subscription_payments` instead -- so summing
+// `orders` alone made that money invisible: expected_cash came out low and
+// the shift closed with a phantom positive variance. Only one shift may be
+// open per tenant (POST /), so tenant + opened_at is a sound attribution
+// even though subscription_payments carries no user_id of its own.
+async function getShiftSales(tenantId, openedAt, closedAt = null, userId = null) {
+  let orderQuery = supabase
+    .from('orders')
+    .select('total, payment_method')
+    .eq('tenant_id', tenantId)
+    .gte('created_at', openedAt)
+
+  // `orders` knows who rang the sale, so keep the per-cashier filter where the
+  // caller had one. subscription_payments has no user column to filter on.
+  if (userId) orderQuery = orderQuery.eq('user_id', userId)
+
+  let subQuery = supabase
+    .from('subscription_payments')
+    .select('amount, payment_method')
+    .eq('tenant_id', tenantId)
+    .eq('status', 'paid')
+    .gte('created_at', openedAt)
+
+  if (closedAt) {
+    orderQuery = orderQuery.lte('created_at', closedAt)
+    subQuery = subQuery.lte('created_at', closedAt)
+  }
+
+  const [{ data: orders, error: ordersError }, { data: subs, error: subsError }] =
+    await Promise.all([orderQuery, subQuery])
+
+  if (ordersError) console.error('[SHIFT SALES] Orders query failed:', ordersError.message)
+  if (subsError) console.error('[SHIFT SALES] Subscription payments query failed:', subsError.message)
+
+  const orderList = orders || []
+  const subList = subs || []
+
+  return {
+    ok: !ordersError && !subsError,
+    ...summarizeShiftSales(orderList, subList),
+  }
+}
 
 // Get shift summary stats
 router.get('/summary', async (req, res, next) => {
@@ -80,31 +127,23 @@ router.get('/active/stats', async (req, res, next) => {
     if (shiftError) throw shiftError
     if (!shift) return res.json(null)
 
-    // Find orders by user + date range (no shift_id dependency)
-    const { data: orders, error: ordersError } = await supabase
-      .from('orders')
-      .select('total, payment_method')
-      .eq('tenant_id', req.user?.tenantId)
-      .eq('user_id', req.user.id)
-      .gte('created_at', shift.opened_at)
-
-    if (ordersError) console.error('[SHIFT STATS] Orders query failed:', ordersError.message)
-
-    const orderList = orders || []
-
-    const totalOrders = orderList.length
-    const totalCash = orderList
-      .filter(o => o.payment_method === 'cash')
-      .reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
-    const totalSales = orderList.reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
+    // Orders are scoped to this cashier; subscription payments carry no
+    // user_id, so they are scoped to the tenant + shift window instead.
+    const sales = await getShiftSales(
+      req.user?.tenantId,
+      shift.opened_at,
+      null,
+      req.user.id
+    )
 
     res.json({
       shift_id: shift.id,
       opening_balance: parseFloat(shift.opening_balance),
-      total_orders: totalOrders,
-      total_cash: totalCash,
-      total_sales: totalSales,
-      expected_cash: parseFloat(shift.opening_balance) + totalSales,
+      total_orders: sales.total_orders,
+      total_subscriptions: sales.total_subscriptions,
+      total_cash: sales.total_cash,
+      total_sales: sales.total_sales,
+      expected_cash: parseFloat(shift.opening_balance) + sales.total_sales,
       opened_at: shift.opened_at,
     })
   } catch (err) {
@@ -193,17 +232,19 @@ router.get('/:id', async (req, res, next) => {
 
     let orderSummary = null
     if (shift.status === 'closed' && shift.opened_at && shift.closed_at) {
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('id, total, created_at, payment_method')
-        .eq('tenant_id', req.user?.tenantId)
-        .gte('created_at', shift.opened_at)
-        .lte('created_at', shift.closed_at)
+      // Same two-source accounting as the live stats, so a closed shift's
+      // revenue matches what was on screen while it was open.
+      const sales = await getShiftSales(
+        req.user?.tenantId,
+        shift.opened_at,
+        shift.closed_at
+      )
 
-      if (orders) {
+      if (sales.ok) {
         orderSummary = {
-          total_orders: orders.length,
-          total_revenue: orders.reduce((sum, o) => sum + parseFloat(o.total || 0), 0),
+          total_orders: sales.total_orders,
+          total_subscriptions: sales.total_subscriptions,
+          total_revenue: sales.total_sales,
         }
       }
     }
@@ -270,16 +311,16 @@ router.patch('/:id/close', [
       return res.status(400).json({ error: 'Shift is not open' })
     }
 
-    // Calculate expected cash from actual sales, not user input
-    const { data: orders } = await supabase
-      .from('orders')
-      .select('total')
-      .eq('tenant_id', req.user?.tenantId)
-      .eq('user_id', req.user.id)
-      .gte('created_at', shift.opened_at)
-
-    const totalSales = (orders || []).reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
-    const expected_cash = parseFloat(shift.opening_balance) + totalSales
+    // Calculate expected cash from actual sales, not user input.
+    // Must use the same two-source accounting as /active/stats, otherwise the
+    // cashier reconciles against a number that omits subscription takings.
+    const sales = await getShiftSales(
+      req.user?.tenantId,
+      shift.opened_at,
+      null,
+      req.user.id
+    )
+    const expected_cash = parseFloat(shift.opening_balance) + sales.total_sales
     const variance = parseFloat(actual_cash) - expected_cash
 
     const { data, error } = await supabase
