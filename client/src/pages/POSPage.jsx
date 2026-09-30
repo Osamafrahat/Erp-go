@@ -797,15 +797,24 @@ export default function POSPage() {
                 }
               } else {
                 // Subscription-only: create a receipt without order
+                const subscriptionTotal = subscriptionItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
                 setLastOrder({
                   order_number: generateOrderNumber(),
+                  created_at: new Date().toISOString(),
                   items: subscriptionItems.map(item => ({
                     product_name: item.product.name,
                     quantity: item.quantity,
                     unit_price: item.product.price,
                     _type: 'subscription',
                   })),
-                  total: subscriptionItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0),
+                  // Subscriptions sell at list price with no tax or discount, so
+                  // subtotal must equal total for the receipt to balance. Omitting
+                  // these made formatCurrency(undefined) print "NaN".
+                  subtotal: subscriptionTotal,
+                  discount_amount: 0,
+                  tax_amount: 0,
+                  total: subscriptionTotal,
+                  payment_method: paymentData.method,
                   customers: selectedCustomer ? { name: selectedCustomer.name } : null,
                   users: currentUser ? { full_name: currentUser.fullName } : null,
                   subscription_sale: true,

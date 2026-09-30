@@ -1,6 +1,11 @@
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  // Match @vitejs/plugin-react's automatic JSX runtime so component tests
+  // don't need an explicit React import (esbuild's default is classic).
+  esbuild: {
+    jsx: 'automatic',
+  },
   test: {
     environment: 'jsdom',
     globals: true,

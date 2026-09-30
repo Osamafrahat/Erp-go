@@ -74,6 +74,11 @@ export default function InvoicesPage() {
     created_at: sp.payment_date || sp.created_at,
     customers: sp.subscription?.customer || null,
     total: parseFloat(sp.amount) || 0,
+    // Subscription payments are charged at list price with no tax or discount;
+    // without these the receipt rendered formatCurrency(undefined) as "NaN".
+    subtotal: parseFloat(sp.amount) || 0,
+    tax_amount: 0,
+    discount_amount: 0,
     payment_method: sp.payment_method || 'cash',
     payment_status: 'paid',
     items_count: 1,

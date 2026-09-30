@@ -9,6 +9,18 @@ export default function ReceiptModal({ order, onClose }) {
   const receiptRef = useRef(null)
   const [etaQR, setEtaQR] = useState(order.eta_qr_code || '')
 
+  // t() returns the key itself when a lookup misses (appStore), so a missing or
+  // unrecognised payment_method would print literally as "receipt.undefined".
+  // Known methods are translated, unknown ones fall back to the raw value, and
+  // an absent one hides the row rather than inventing a payment.
+  const paymentMethodLabel = (() => {
+    const method = order.payment_method
+    if (!method) return ''
+    const key = `receipt.${method}`
+    const label = t(key)
+    return label === key ? method : label
+  })()
+
   useEffect(() => {
     if (!etaQR && settings.eta_auto_submit !== 'disabled' && order.id) {
       etaApi.getQR(order.id).then(res => {
@@ -87,7 +99,7 @@ export default function ReceiptModal({ order, onClose }) {
         <div class="divider"></div>
         <div class="row">
           <span>${t('receipt.subtotal')}:</span>
-          <span>${formatCurrency(order.subtotal, settings.currencySymbol)}</span>
+          <span>${formatCurrency(order.subtotal ?? 0, settings.currencySymbol)}</span>
         </div>
         ${order.discount_amount > 0 ? `
           <div class="row" style="color: green;">
@@ -97,18 +109,20 @@ export default function ReceiptModal({ order, onClose }) {
         ` : ''}
         <div class="row">
           <span>${t('receipt.tax')} (${settings.taxRate}%):</span>
-          <span>${formatCurrency(order.tax_amount, settings.currencySymbol)}</span>
+          <span>${formatCurrency(order.tax_amount ?? 0, settings.currencySymbol)}</span>
         </div>
         <div class="divider"></div>
         <div class="row total-row">
           <span>${t('receipt.total')}:</span>
-          <span>${formatCurrency(order.total, settings.currencySymbol)}</span>
+          <span>${formatCurrency(order.total ?? 0, settings.currencySymbol)}</span>
         </div>
         <div class="divider"></div>
+        ${paymentMethodLabel ? `
         <div class="row">
           <span>${t('receipt.payment')}:</span>
-          <span>${t(`receipt.${order.payment_method}`)}</span>
+          <span>${paymentMethodLabel}</span>
         </div>
+        ` : ''}
         ${order.payment_method === 'cash' && order.change > 0 ? `
           <div class="row">
             <span>${t('receipt.change')}:</span>
@@ -207,7 +221,7 @@ export default function ReceiptModal({ order, onClose }) {
             {/* Totals */}
             <div className="flex justify-between mb-1">
               <span className="text-gray-500">{t('receipt.subtotal')}:</span>
-              <span>{formatCurrency(order.subtotal, settings.currencySymbol)}</span>
+              <span>{formatCurrency(order.subtotal ?? 0, settings.currencySymbol)}</span>
             </div>
             {order.discount_amount > 0 && (
               <div className="flex justify-between mb-1 text-green-600">
@@ -217,7 +231,7 @@ export default function ReceiptModal({ order, onClose }) {
             )}
             <div className="flex justify-between mb-1">
               <span className="text-gray-500">{t('receipt.tax')} ({settings.taxRate}%):</span>
-              <span>{formatCurrency(order.tax_amount, settings.currencySymbol)}</span>
+              <span>{formatCurrency(order.tax_amount ?? 0, settings.currencySymbol)}</span>
             </div>
 
             <hr className="border-dashed border-gray-300 my-3" />
@@ -225,16 +239,18 @@ export default function ReceiptModal({ order, onClose }) {
             {/* Total */}
             <div className="flex justify-between text-lg font-bold">
               <span>{t('receipt.total')}:</span>
-              <span>{formatCurrency(order.total, settings.currencySymbol)}</span>
+              <span>{formatCurrency(order.total ?? 0, settings.currencySymbol)}</span>
             </div>
 
             <hr className="border-dashed border-gray-300 my-3" />
 
             {/* Payment */}
-            <div className="flex justify-between mb-1">
-              <span className="text-gray-500">{t('receipt.payment')}:</span>
-              <span>{t(`receipt.${order.payment_method}`)}</span>
-            </div>
+            {paymentMethodLabel && (
+              <div className="flex justify-between mb-1">
+                <span className="text-gray-500">{t('receipt.payment')}:</span>
+                <span>{paymentMethodLabel}</span>
+              </div>
+            )}
             {order.payment_method === 'cash' && order.change > 0 && (
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('receipt.change')}:</span>
