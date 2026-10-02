@@ -4,6 +4,7 @@ import supabase from '../db/supabase.js'
 import { authenticateToken, requireSuperAdmin, generateToken } from '../middleware/auth.js'
 import { body, validationResult } from 'express-validator'
 import { logActivity } from '../middleware/activityLogger.js'
+import { sanitizeSearch } from '../helpers/search.js'
 
 const router = Router()
 
@@ -66,7 +67,8 @@ router.get('/tenants', async (req, res) => {
 
     let query = supabase.from('tenants').select('*', { count: 'exact' })
     if (search) {
-      query = query.or(`name.ilike.%${search}%,slug.ilike.%${search}%,email.ilike.%${search}%`)
+      const s = sanitizeSearch(search)
+      if (s) query = query.or(`name.ilike.%${s}%,slug.ilike.%${s}%,email.ilike.%${s}%`)
     }
     if (status) query = query.eq('subscription_status', status)
     if (tier) query = query.eq('subscription_tier', tier)
@@ -503,7 +505,10 @@ router.get('/activity', async (req, res) => {
     if (tenant_id) query = query.eq('tenant_id', tenant_id)
     if (entity_type) query = query.eq('entity_type', entity_type)
     if (action) query = query.eq('action', action)
-    if (search) query = query.or(`user_name.ilike.%${search}%,entity_name.ilike.%${search}%,action.ilike.%${search}%`)
+    if (search) {
+      const s = sanitizeSearch(search)
+      if (s) query = query.or(`user_name.ilike.%${s}%,entity_name.ilike.%${s}%,action.ilike.%${s}%`)
+    }
 
     const { data, error, count } = await query.range(offset, offset + Number(limit) - 1)
     if (error) throw error

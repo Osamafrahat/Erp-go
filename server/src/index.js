@@ -125,6 +125,26 @@ app.use(cors(corsOptions))
 app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
+// Every request, not just those under /api/. Until this existed only /api/
+// was limited, so a hit to / or any other unrouted path fell through to
+// Express's default 404 having passed no limiter at all — those paths were
+// completely unthrottled. Runs before the per-path limiters below, so it is
+// a ceiling; /api/ keeps its own tighter one underneath.
+//
+// The Stripe webhook is mounted further up and is deliberately not covered:
+// throttling payment callbacks would make Stripe drop retries.
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Fly probes /api/health every 15s to decide whether to keep this machine
+  // in rotation. Throttling our own health check would take it out of service.
+  skip: (req) => req.path === '/api/health',
+})
+app.use(globalLimiter)
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 500,
