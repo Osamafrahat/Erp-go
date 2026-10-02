@@ -3,6 +3,7 @@ import { formatCurrency, formatDateTime } from '../../lib/utils'
 import { Printer, X, Wrench } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
 import { etaApi } from '../../lib/api'
+import { escapeHtml } from '../../lib/html'
 
 export default function ReceiptModal({ order, onClose }) {
   const { settings, t } = useAppStore()
@@ -35,7 +36,7 @@ export default function ReceiptModal({ order, onClose }) {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Receipt - ${order.order_number}</title>
+        <title>Receipt - ${escapeHtml(order.order_number)}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
@@ -63,15 +64,15 @@ export default function ReceiptModal({ order, onClose }) {
       </head>
       <body>
         <div class="header">
-          ${settings.storeLogo ? `<img src="${settings.storeLogo}" alt="Logo" style="max-height: 60px; max-width: 60px; margin: 0 auto 5px;" />` : ''}
-          <div class="store-name">${settings.storeName}</div>
-          ${settings.storeAddress ? `<div class="store-info">${settings.storeAddress}</div>` : ''}
-          ${settings.storePhone ? `<div class="store-info">${settings.storePhone}</div>` : ''}
+          ${settings.storeLogo ? `<img src="${escapeHtml(settings.storeLogo)}" alt="Logo" style="max-height: 60px; max-width: 60px; margin: 0 auto 5px;" />` : ''}
+          <div class="store-name">${escapeHtml(settings.storeName)}</div>
+          ${settings.storeAddress ? `<div class="store-info">${escapeHtml(settings.storeAddress)}</div>` : ''}
+          ${settings.storePhone ? `<div class="store-info">${escapeHtml(settings.storePhone)}</div>` : ''}
         </div>
         <div class="divider"></div>
         <div class="row">
           <span>${t('receipt.orderNumber')}:</span>
-          <span>${order.order_number}</span>
+          <span>${escapeHtml(order.order_number)}</span>
         </div>
         <div class="row">
           <span>${t('receipt.date')}:</span>
@@ -80,7 +81,7 @@ export default function ReceiptModal({ order, onClose }) {
         ${order.users?.full_name ? `
           <div class="row">
             <span>${t('receipt.cashier')}</span>
-            <span>${order.users.full_name}</span>
+            <span>${escapeHtml(order.users.full_name)}</span>
           </div>
         ` : ''}
         <div class="divider"></div>
@@ -88,50 +89,50 @@ export default function ReceiptModal({ order, onClose }) {
         ${order.items.map(item => `
           <div class="item-row">
             <div class="row">
-              <span class="item-name">${item.product_name || item.products?.name || item.name || t('receipt.unknownItem')}${item._type === 'service' ? ' [SVC]' : ''}</span>
-              <span>${formatCurrency(item.unit_price * item.quantity, settings.currencySymbol)}</span>
+              <span class="item-name">${escapeHtml(item.product_name || item.products?.name || item.name || t('receipt.unknownItem'))}${item._type === 'service' ? ' [SVC]' : ''}</span>
+              <span>${escapeHtml(formatCurrency(item.unit_price * item.quantity, settings.currencySymbol))}</span>
             </div>
             <div class="item-details">
-              ${item.quantity} x ${formatCurrency(item.unit_price, settings.currencySymbol)}
+              ${item.quantity} x ${escapeHtml(formatCurrency(item.unit_price, settings.currencySymbol))}
             </div>
           </div>
         `).join('')}
         <div class="divider"></div>
         <div class="row">
           <span>${t('receipt.subtotal')}:</span>
-          <span>${formatCurrency(order.subtotal ?? 0, settings.currencySymbol)}</span>
+          <span>${escapeHtml(formatCurrency(order.subtotal ?? 0, settings.currencySymbol))}</span>
         </div>
         ${order.discount_amount > 0 ? `
           <div class="row" style="color: green;">
             <span>${t('receipt.discount')}:</span>
-            <span>-${formatCurrency(order.discount_amount, settings.currencySymbol)}</span>
+            <span>-${escapeHtml(formatCurrency(order.discount_amount, settings.currencySymbol))}</span>
           </div>
         ` : ''}
         <div class="row">
-          <span>${t('receipt.tax')} (${settings.taxRate}%):</span>
-          <span>${formatCurrency(order.tax_amount ?? 0, settings.currencySymbol)}</span>
+          <span>${t('receipt.tax')} (${escapeHtml(settings.taxRate)}%):</span>
+          <span>${escapeHtml(formatCurrency(order.tax_amount ?? 0, settings.currencySymbol))}</span>
         </div>
         <div class="divider"></div>
         <div class="row total-row">
           <span>${t('receipt.total')}:</span>
-          <span>${formatCurrency(order.total ?? 0, settings.currencySymbol)}</span>
+          <span>${escapeHtml(formatCurrency(order.total ?? 0, settings.currencySymbol))}</span>
         </div>
         <div class="divider"></div>
         ${paymentMethodLabel ? `
         <div class="row">
           <span>${t('receipt.payment')}:</span>
-          <span>${paymentMethodLabel}</span>
+          <span>${escapeHtml(paymentMethodLabel)}</span>
         </div>
         ` : ''}
         ${order.payment_method === 'cash' && order.change > 0 ? `
           <div class="row">
             <span>${t('receipt.change')}:</span>
-            <span>${formatCurrency(order.change, settings.currencySymbol)}</span>
+            <span>${escapeHtml(formatCurrency(order.change, settings.currencySymbol))}</span>
           </div>
         ` : ''}
         <div class="divider"></div>
         <div class="footer">
-          ${settings.receiptFooter || t('receipt.thankYou')}
+          ${escapeHtml(settings.receiptFooter || t('receipt.thankYou'))}
         </div>
         ${etaQR ? `
           <div style="text-align: center; margin-top: 10px;">

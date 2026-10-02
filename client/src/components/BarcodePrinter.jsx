@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { X, Printer, Download } from 'lucide-react'
 import { useAppStore } from '../stores/appStore'
+import { escapeHtml } from '../lib/html'
 
 // Simple barcode generator using Code 128
 function generateBarcode(value) {
@@ -103,20 +104,25 @@ export default function BarcodePrinter({ product, onClose }) {
         </head>
         <body>
           <div class="no-print" style="margin-bottom: 10px;">
-            <button onclick="window.print()">Print</button>
-            <button onclick="window.close()">Close</button>
+            <button id="print-now">Print</button>
+            <button id="print-close">Close</button>
           </div>
           ${Array(quantity).fill('').map(() => `
-            <div class="label" style="width: ${labelWidth}mm; height: ${labelHeight}mm;">
-              <div class="product-name">${product?.name || ''}</div>
+            <div class="label" style="width: ${escapeHtml(labelWidth)}mm; height: ${escapeHtml(labelHeight)}mm;">
+              <div class="product-name">${escapeHtml(product?.name || '')}</div>
               <div>${printContent.innerHTML}</div>
-              <div class="product-price">$${product?.price?.toFixed(2) || '0.00'}</div>
+              <div class="product-price">$${escapeHtml(product?.price?.toFixed(2) || '0.00')}</div>
             </div>
           `).join('')}
         </body>
       </html>
     `)
     printWindow.document.close()
+    // Attached programmatically: an inline `onclick` in this window would be
+    // blocked by our Content-Security-Policy, because an about:blank document
+    // inherits the CSP of the opener that created it.
+    printWindow.document.getElementById('print-now')?.addEventListener('click', () => printWindow.print())
+    printWindow.document.getElementById('print-close')?.addEventListener('click', () => printWindow.close())
   }
 
   const handleDownload = () => {
