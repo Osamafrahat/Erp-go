@@ -7,6 +7,12 @@
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#2563eb" />
+    <!-- Referrer policy declared in the document, not only as a response header,
+         so it also applies when the PWA service worker serves this from cache.
+         Editing this file also changes the Workbox precache revision, which is
+         how response-header-only changes (vercel.json) ever reach installed
+         clients — a cached index.html keeps the headers it was cached with. -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
 
     <!-- Primary SEO -->
     <title>ERP-GO | Store Management POS & Inventory System for Egypt</title>
