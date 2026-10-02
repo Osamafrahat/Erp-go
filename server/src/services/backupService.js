@@ -256,11 +256,14 @@ export async function backupToCloud(format = 'json', tenantId) {
   const filename = `backup-${tenantId || 'global'}-${timestamp}.${format}`
 
   let fileContent
+  let totalRows = 0
   if (format === 'sql') {
     const result = await backupToSql(tenantId)
+    totalRows = result.totalRows
     fileContent = await fs.readFile(result.filePath)
   } else {
     const result = await backupToJson(tenantId)
+    totalRows = result.totalRows
     fileContent = await fs.readFile(result.filePath)
   }
 
@@ -274,7 +277,9 @@ export async function backupToCloud(format = 'json', tenantId) {
   if (error) throw error
 
   console.log(`[BACKUP] Cloud backup uploaded: ${filename}`)
-  return { filename, timestamp, size: fileContent.length }
+  // totalRows lets callers fail an otherwise "successful" upload that captured
+  // nothing — an empty backup looks identical to a healthy one otherwise.
+  return { filename, timestamp, size: fileContent.length, totalRows }
 }
 
 export async function listCloudBackups() {

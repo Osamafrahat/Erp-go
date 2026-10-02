@@ -1,0 +1,50 @@
+name: Nightly backup
+
+on:
+  schedule:
+    # 02:00 UTC, matching BACKUP_SCHEDULE='0 2 * * *'. node-cron on Fly runs in
+    # UTC too (no TZ is set), so the wall clock is unchanged — only the machine
+    # that executes it is different.
+    #
+    # Deliberately not the in-process cron: min_machines_running = 0 with
+    # auto_stop_machines = 'stop' means the app is usually asleep at 02:00, and
+    # a scheduler can only fire while its process is alive. That job had never
+    # actually run.
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never cancel an in-flight backup; a stale one is worse than a delayed one.
+concurrency:
+  group: nightly-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Backup · Supabase Storage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      # The script reuses services/backupService.js, so this path and the
+      # in-process path cannot drift apart in what they consider a backup.
+      # It exits non-zero on: missing secrets, an anon-role service key,
+      # an upload error, a 0-row capture, or a file missing from the bucket.
+      - name: Run nightly backup
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          BACKUP_RETENTION_DAYS: ${{ vars.BACKUP_RETENTION_DAYS }}
+        run: node scripts/nightly-backup.mjs

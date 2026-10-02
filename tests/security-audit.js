@@ -43,6 +43,40 @@ for (const f of envFiles) {
   }
 }
 
+// The check above only spots the newer `sb_publishable` shape. A legacy JWT key
+// still parses happily in supabase-js even when its payload says role=anon, and
+// then fails much later — e.g. storage uploads rejected by row-level security,
+// which is how the nightly backup silently produced nothing. Decode and verify.
+console.log('\n=== Service key role ===')
+const keyFiles = ['server/.env', '.env.docker', '.env']
+let roleChecked = 0
+for (const f of keyFiles) {
+  const p = path.join(root, f)
+  if (!fs.existsSync(p)) continue
+  const line = fs.readFileSync(p, 'utf8').split(/\r?\n/)
+    .find((l) => l.startsWith('SUPABASE_SERVICE_KEY='))
+  if (!line) continue
+  const value = line.slice(line.indexOf('=') + 1).trim()
+  const payloadPart = value.split('.')[1]
+  if (!payloadPart) continue // sb_secret_* and similar are opaque; cannot inspect
+  try {
+    const b64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(Buffer.from(b64, 'base64').toString('utf8'))
+    roleChecked++
+    if (payload.role === 'service_role') {
+      pass(`${f}: SUPABASE_SERVICE_KEY is a service_role key`)
+    } else {
+      warn(`${f}: SUPABASE_SERVICE_KEY has role="${payload.role}", not service_role — ` +
+        'storage uploads and bucket management will be rejected')
+    }
+  } catch {
+    warn(`${f}: SUPABASE_SERVICE_KEY is JWT-shaped but could not be decoded`)
+  }
+}
+if (roleChecked === 0) {
+  console.log('\x1b[90m[SKIP]\x1b[0m No JWT-shaped SUPABASE_SERVICE_KEY found to inspect')
+}
+
 // --- 2. Check .gitignore ---
 console.log('\n=== .gitignore ===')
 const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8')
