@@ -3,14 +3,15 @@ import crypto from 'crypto'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requireManager } from '../middleware/auth.js'
 import { logActivity } from '../middleware/activityLogger.js'
+import { planEntitlements } from '../services/planLimits.js'
 
 const router = Router()
 
 const PAYMOB_BASE_URL = 'https://accept.paymob.com'
 
 const PLAN_MAP = {
-  pro: { tier: 'pro', max_products: 500, max_users: 15, max_orders_monthly: -1 },
-  enterprise: { tier: 'enterprise', max_products: -1, max_users: -1, max_orders_monthly: -1 },
+  pro: { tier: 'pro', ...planEntitlements('pro') },
+  enterprise: { tier: 'enterprise', ...planEntitlements('enterprise') },
 }
 
 // POST /api/billing/paymob/checkout - Create intention and return client_secret

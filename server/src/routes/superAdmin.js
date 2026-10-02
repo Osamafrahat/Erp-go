@@ -34,8 +34,13 @@ router.get('/stats', async (req, res) => {
     const planMap = {}
     for (const p of (plans || [])) planMap[p.slug] = p.price_monthly
 
-    const { data: tenants } = await supabase.from('tenants').select('subscription_tier')
-    const mrr = (tenants || []).reduce((sum, t) => sum + (planMap[t.subscription_tier] || 0), 0)
+    const { data: tenants } = await supabase.from('tenants').select('subscription_tier, subscription_status')
+    // MRR counts only tenants that are actually paying. Selecting tier alone
+    // summed cancelled and past_due tenants into the figure and overstated it.
+    const mrr = (tenants || []).reduce(
+      (sum, t) => (t.subscription_status === 'active' ? sum + (planMap[t.subscription_tier] || 0) : sum),
+      0
+    )
 
     res.json({
       total_tenants: totalTenants || 0,

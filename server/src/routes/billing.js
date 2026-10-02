@@ -3,6 +3,11 @@ import Stripe from 'stripe'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requireManager } from '../middleware/auth.js'
 import { logActivity } from '../middleware/activityLogger.js'
+import {
+  currentMonthStartIso,
+  planEntitlements,
+  resolveLimit,
+} from '../services/planLimits.js'
 
 const router = Router()
 
@@ -58,7 +63,7 @@ router.get('/current', authenticateToken, requireManager, async (req, res) => {
       .from('orders')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenant.id)
-      .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+      .gte('created_at', currentMonthStartIso())
 
     let subscription = null
     if (tenant.stripe_subscription_id) {
@@ -85,15 +90,22 @@ router.get('/current', authenticateToken, requireManager, async (req, res) => {
       .order('created_at', { ascending: false })
       .limit(20)
 
+    const tenantPlan = tenant.subscription_tier || 'free'
+
     res.json({
       tenant: {
         id: tenant.id,
         name: tenant.name,
-        plan: tenant.subscription_tier || 'free',
+        plan: tenantPlan,
         subscription_status: tenant.subscription_status || 'active',
-        max_products: tenant.max_products,
-        max_users: tenant.max_users,
-        max_orders_monthly: tenant.max_orders_monthly,
+        // Effective caps rather than raw columns. Every tenant is created
+        // with NULL max_* columns, and that null reached the client as -1
+        // (rendered as an unlimited "∞" bar) while the middleware was still
+        // enforcing the plan default — so a free tenant saw "5 / ∞" and then
+        // got blocked at 100.
+        max_products: resolveLimit('products', tenantPlan, tenant.max_products),
+        max_users: resolveLimit('users', tenantPlan, tenant.max_users),
+        max_orders_monthly: resolveLimit('orders', tenantPlan, tenant.max_orders_monthly),
         subscription_expires_at: tenant.subscription_expires_at || null,
         renewal_note: tenant.renewal_note || null,
       },
@@ -150,7 +162,9 @@ router.post('/downgrade', authenticateToken, requireManager, async (req, res) =>
       .eq('slug', planSlug)
       .single()
 
-    const limits = plan || { max_products: 50, max_users: 2, max_orders_monthly: 100 }
+    // subscription_plans is authoritative when seeded; otherwise fall back to
+    // the canonical plan limits for the slug rather than a hardcoded copy.
+    const limits = plan || planEntitlements(planSlug)
 
     const { error: updateErr } = await supabase
       .from('tenants')
@@ -309,10 +323,7 @@ export async function stripeWebhookHandler(req, res) {
         let tier = 'pro'
         if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) tier = 'enterprise'
 
-        const tierLimits = {
-          pro: { max_products: 500, max_users: 15, max_orders_monthly: Infinity },
-          enterprise: { max_products: Infinity, max_users: Infinity, max_orders_monthly: Infinity },
-        }
+        const tierLimits = planEntitlements(tier)
 
         await supabase
           .from('tenants')
@@ -389,9 +400,7 @@ export async function stripeWebhookHandler(req, res) {
             subscription_status: 'cancelled',
             subscription_tier: 'free',
             stripe_subscription_id: null,
-            max_products: 50,
-            max_users: 2,
-            max_orders_monthly: 100,
+            ...planEntitlements('free'),
             updated_at: new Date().toISOString(),
           })
           .eq('id', tenant.id)

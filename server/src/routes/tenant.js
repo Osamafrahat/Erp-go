@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requireManager } from '../middleware/auth.js'
+import { currentMonthStartIso, resolveLimit } from '../services/planLimits.js'
 
 const router = Router()
 
@@ -90,21 +91,14 @@ router.get('/usage', authenticateToken, async (req, res) => {
       .from('orders')
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', req.user.tenantId)
-      .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+      .gte('created_at', currentMonthStartIso())
 
     const tier = tenant.subscription_tier || 'free'
-    const limits = {
-      free: { max_products: 100, max_users: 3, max_orders_monthly: 1000 },
-      pro: { max_products: 1000, max_users: 50, max_orders_monthly: 100000 },
-      enterprise: { max_products: Infinity, max_users: Infinity, max_orders_monthly: Infinity },
-    }
-
-    const planLimits = limits[tier] || limits.free
 
     res.json({
-      products: { current: productCount || 0, limit: tenant.max_products || planLimits.max_products },
-      users: { current: userCount || 0, limit: tenant.max_users || planLimits.max_users },
-      orders_this_month: { current: orderCount || 0, limit: tenant.max_orders_monthly || planLimits.max_orders_monthly },
+      products: { current: productCount || 0, limit: resolveLimit('products', tier, tenant.max_products) },
+      users: { current: userCount || 0, limit: resolveLimit('users', tier, tenant.max_users) },
+      orders_this_month: { current: orderCount || 0, limit: resolveLimit('orders', tier, tenant.max_orders_monthly) },
       plan: tier,
     })
   } catch (err) {

@@ -1,14 +1,9 @@
 import cron from 'node-cron'
 import supabase from '../db/supabase.js'
 import { logActivity } from '../middleware/activityLogger.js'
+import { planEntitlements } from './planLimits.js'
 
 let expiryCheckJob = null
-
-const FREE_TIER_LIMITS = {
-  max_products: 50,
-  max_users: 2,
-  max_orders_monthly: 100,
-}
 
 export async function runSchemaMigrations() {
   console.log('[Migration] Checking schema...')
@@ -71,9 +66,7 @@ export async function checkExpiredSubscriptions() {
             subscription_tier: 'free',
             subscription_status: 'active',
             subscription_expires_at: null,
-            max_products: FREE_TIER_LIMITS.max_products,
-            max_users: FREE_TIER_LIMITS.max_users,
-            max_orders_monthly: FREE_TIER_LIMITS.max_orders_monthly,
+            ...planEntitlements('free'),
             renewal_note: `Your ${tenant.subscription_tier} plan has expired. Please renew to restore your limits.`,
             updated_at: now,
           })

@@ -1,11 +1,11 @@
 import supabase from '../db/supabase.js'
-
-const DEFAULT_LIMITS = {
-  products: { free: 50, pro: 500, enterprise: -1 },
-  users: { free: 2, pro: 15, enterprise: -1 },
-  orders: { free: 100, pro: -1, enterprise: -1 },
-  services: { free: 10, pro: 100, enterprise: -1 },
-}
+import {
+  DB_LIMIT_COLUMNS,
+  MONTHLY_RESOURCES,
+  currentMonthStartIso,
+  isUnlimited,
+  resolveLimit,
+} from '../services/planLimits.js'
 
 export function checkTenantLimits(resource) {
   return async (req, res, next) => {
@@ -27,36 +27,31 @@ export function checkTenantLimits(resource) {
 
       const plan = tenant.subscription_tier || 'free'
 
-      // Get limit from DB column, fall back to plan defaults
-      const dbLimits = {
-        products: tenant.max_products,
-        users: tenant.max_users,
-        orders: tenant.max_orders_monthly,
-      }
+      const column = DB_LIMIT_COLUMNS[resource]
+      const limit = resolveLimit(resource, plan, column ? tenant[column] : undefined)
 
-      let limit = dbLimits[resource]
-
-      // If DB value is null/undefined/0, use plan defaults
-      if (limit === null || limit === undefined) {
-        limit = DEFAULT_LIMITS[resource]?.[plan] ?? -1
-      }
-
-      // -1 or Infinity means unlimited
-      if (limit === -1 || limit === Infinity || limit === 'unlimited') {
+      if (isUnlimited(limit)) {
         return next()
       }
 
-      // Ensure limit is a number
-      limit = Number(limit)
-      if (isNaN(limit) || limit <= 0) {
+      const numericLimit = Number(limit)
+      if (isNaN(numericLimit) || numericLimit <= 0) {
         return next()
       }
 
-      // Count existing records
-      const { count, error: countErr } = await supabase
+      // Monthly resources (orders) are counted within the current calendar
+      // month so the cap resets with the counter shown on the billing page;
+      // cumulative resources (products, users, services) count all time.
+      let countQuery = supabase
         .from(resource)
         .select('*', { count: 'exact', head: true })
         .eq('tenant_id', req.user.tenantId)
+
+      if (MONTHLY_RESOURCES.has(resource)) {
+        countQuery = countQuery.gte('created_at', currentMonthStartIso())
+      }
+
+      const { count, error: countErr } = await countQuery
 
       if (countErr) {
         console.error(`[Limits] Count query failed for ${resource}:`, countErr.message)
@@ -66,20 +61,20 @@ export function checkTenantLimits(resource) {
 
       const current = count || 0
 
-      if (current >= limit) {
-        console.log(`[Limits] BLOCKED: Tenant ${req.user.tenantId} hit ${resource} limit: ${current}/${limit} (${plan})`)
+      if (current >= numericLimit) {
+        console.log(`[Limits] BLOCKED: Tenant ${req.user.tenantId} hit ${resource} limit: ${current}/${numericLimit} (${plan})`)
         return res.status(403).json({
           error: `${resource} limit reached for ${plan} plan`,
-          limit,
+          limit: numericLimit,
           current,
           upgradeRequired: true,
         })
       }
 
       // Warn when close to limit (90%)
-      if (current >= limit * 0.9) {
-        console.log(`[Limits] WARNING: Tenant ${req.user.tenantId} ${resource} at ${current}/${limit} (${plan})`)
-        res.setHeader('X-Plan-Limit-Warning', `${resource}: ${current}/${limit}`)
+      if (current >= numericLimit * 0.9) {
+        console.log(`[Limits] WARNING: Tenant ${req.user.tenantId} ${resource} at ${current}/${numericLimit} (${plan})`)
+        res.setHeader('X-Plan-Limit-Warning', `${resource}: ${current}/${numericLimit}`)
       }
 
       next()
