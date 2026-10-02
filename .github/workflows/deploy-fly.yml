@@ -1,0 +1,51 @@
+name: Deploy backend to Fly.io
+
+# The frontend auto-deploys from Vercel on push, but the backend has no such
+# hook — releases used to require a manual `flyctl deploy`, which once left a
+# broken build live for nine days. This closes that gap.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'server/**'
+      - '.github/workflows/deploy-fly.yml'
+
+permissions:
+  contents: read
+
+# Never cancel an in-flight release; overlapping deploys race on the same app.
+concurrency:
+  group: deploy-fly
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: flyctl deploy
+    runs-on: ubuntu-latest
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      # Skips cleanly rather than failing every push until the secret exists,
+      # but still emits a notice so it cannot be missed.
+      - name: Check for deploy token
+        id: gate
+        run: |
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::FLY_API_TOKEN is not set — backend deploy skipped. Add it to repo secrets to enable auto-deploy."
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.present == 'true'
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        if: steps.gate.outputs.present == 'true'
+
+      # Remote build: keeps the GitHub runner from needing a Docker daemon.
+      - name: Deploy
+        if: steps.gate.outputs.present == 'true'
+        working-directory: server
+        run: flyctl deploy --remote-only --yes

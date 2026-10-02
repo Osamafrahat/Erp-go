@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+# A newer push to the same branch supersedes an in-flight run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: Server · unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      # test:unit excludes the integration suite, which needs live services.
+      - run: npm run test:unit
+
+  client:
+    name: Client · lint, tests, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      # `eslint .` exits 0 on warnings, so the existing ~700 unused-import
+      # warnings do not fail the build — only new errors do.
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  audit:
+    name: Dependencies · npm audit
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [root, server, client]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # npm audit resolves the tree from package-lock.json alone; no install
+      # needed, which keeps this job fast enough to run on every push.
+      - name: Audit ${{ matrix.package }}
+        if: matrix.package == 'root'
+        run: npm audit --omit=dev
+      - name: Audit ${{ matrix.package }}
+        if: matrix.package != 'root'
+        working-directory: ${{ matrix.package }}
+        run: npm audit --omit=dev
