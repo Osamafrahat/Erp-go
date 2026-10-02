@@ -4,11 +4,15 @@ import { Printer, X, Wrench } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
 import { etaApi } from '../../lib/api'
 import { escapeHtml } from '../../lib/html'
+import { qrDataUrl } from '../../lib/qr'
 
 export default function ReceiptModal({ order, onClose }) {
   const { settings, t } = useAppStore()
   const receiptRef = useRef(null)
   const [etaQR, setEtaQR] = useState(order.eta_qr_code || '')
+  // Locally rendered PNG for the ETA QR. Kept out of etaQR so the raw content
+  // stays available and the image can be re-rendered at print time.
+  const [etaQRImage, setEtaQRImage] = useState('')
 
   // t() returns the key itself when a lookup misses (appStore), so a missing or
   // unrecognised payment_method would print literally as "receipt.undefined".
@@ -30,8 +34,30 @@ export default function ReceiptModal({ order, onClose }) {
     }
   }, [order.id])
 
-  const handlePrint = () => {
+  // Render the ETA QR locally whenever its content changes. No network call,
+  // so this also works with the till offline.
+  useEffect(() => {
+    let stale = false
+    if (!etaQR) {
+      setEtaQRImage('')
+      return undefined
+    }
+    qrDataUrl(etaQR).then(url => {
+      if (!stale) setEtaQRImage(url)
+    })
+    return () => {
+      stale = true
+    }
+  }, [etaQR])
+
+  const handlePrint = async () => {
+    // Open synchronously, before any await: window.open after a tick loses
+    // user activation and gets caught by popup blockers.
     const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+    // Regenerate instead of reusing state, so a print triggered the instant
+    // the QR arrives still carries it.
+    const qrImage = etaQR ? await qrDataUrl(etaQR) : ''
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -134,9 +160,9 @@ export default function ReceiptModal({ order, onClose }) {
         <div class="footer">
           ${escapeHtml(settings.receiptFooter || t('receipt.thankYou'))}
         </div>
-        ${etaQR ? `
+        ${qrImage ? `
           <div style="text-align: center; margin-top: 10px;">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(etaQR)}" alt="ETA QR" width="120" height="120" />
+            <img src="${qrImage}" alt="ETA QR" width="120" height="120" />
             <div style="font-size: 8px; color: #666; margin-top: 4px;">Scan for ETA receipt</div>
           </div>
         ` : ''}
@@ -267,10 +293,10 @@ export default function ReceiptModal({ order, onClose }) {
             </div>
 
             {/* ETA QR Code */}
-            {etaQR && (
+            {etaQRImage && (
               <div className="text-center mt-4">
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(etaQR)}`}
+                  src={etaQRImage}
                   alt="ETA QR"
                   className="mx-auto"
                   width={120}

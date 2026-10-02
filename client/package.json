@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@sentry/react": "^11.2.0",
     "@supabase/supabase-js": "^2.49.4",
     "@zxing/library": "^0.23.0",
     "axios": "^1.10.0",
@@ -22,6 +23,7 @@
     "html5-qrcode": "^2.3.8",
     "idb": "^8.0.3",
     "lucide-react": "^0.511.0",
+    "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.1",

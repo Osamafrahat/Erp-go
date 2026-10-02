@@ -1,5 +1,20 @@
+import { captureException } from '../services/sentry.js'
+
 export function errorHandler(err, req, res, next) {
   console.error('Error:', err.message || err)
+
+  // Report only unexpected failures. 4xx responses are part of normal
+  // operation, and reporting them would bury real faults in noise.
+  const reportedStatus = err.statusCode || 500
+  if (reportedStatus >= 500) {
+    captureException(err, {
+      method: req.method,
+      path: req.originalUrl,
+      status: reportedStatus,
+      tenantId: req.user?.tenantId,
+      userId: req.user?.id,
+    })
+  }
 
   // CORS errors — return 403, not 500
   if (err.message === 'Not allowed by CORS' || err.message === 'CORS not configured' || err.name === 'CORSError') {

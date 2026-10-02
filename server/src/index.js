@@ -57,9 +57,14 @@ import cashShiftsRouter from './routes/cashShifts.js'
 import creditSalesRouter from './routes/creditSales.js'
 import productBatchesRouter from './routes/productBatches.js'
 import purchaseOrdersRouter from './routes/purchaseOrders.js'
+import { initSentry } from './services/sentry.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
+
+// Runs before anything else in this module so boot-time failures are captured
+// too. No-ops unless SENTRY_DSN is set.
+initSentry()
 
 app.set('trust proxy', 1)
 
