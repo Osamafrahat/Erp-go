@@ -10,6 +10,9 @@ on:
     paths:
       - 'server/**'
       - '.github/workflows/deploy-fly.yml'
+  # Manual trigger from the Actions tab, for redeploys that need no code
+  # change (e.g. after rotating a Fly secret).
+  workflow_dispatch:
 
 permissions:
   contents: read
