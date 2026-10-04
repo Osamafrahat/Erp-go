@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import supabase from '../db/supabase.js'
+import { resolveSalesperson } from './orders.js'
 
 const router = Router()
 
@@ -9,7 +10,8 @@ router.post('/order', async (req, res, next) => {
     const {
       client_order_id, order_number, items, subtotal, discount_amount,
       tax_amount, total, payment_method, payment_status, payments,
-      customer_id, user_id, created_at
+      customer_id, user_id, created_at, shift_id, salesperson_id,
+      promotion_id, notes
     } = req.body
 
     if (!client_order_id) {
@@ -35,6 +37,14 @@ router.post('/order', async (req, res, next) => {
     // Use the authenticated user's ID (or override for sync)
     const userId = req.user.id
 
+    // Mirror POST /orders so a synced offline order carries the same
+    // attribution as one placed online. Dropping shift_id in particular made
+    // offline cash sales invisible to the drawer's expected_cash calculation.
+    let resolvedSalespersonId = salesperson_id || null
+    if (!resolvedSalespersonId) {
+      try { resolvedSalespersonId = await resolveSalesperson(userId, req.user?.tenantId) } catch { /* keep null */ }
+    }
+
     // Create order with client_order_id for dedup
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -49,6 +59,10 @@ router.post('/order', async (req, res, next) => {
         payment_status: payment_status || 'paid',
         user_id: userId,
         customer_id: customer_id || null,
+        promotion_id: promotion_id || null,
+        notes: notes || null,
+        shift_id: shift_id || null,
+        salesperson_id: resolvedSalespersonId || null,
         client_order_id,
         completed_at: created_at || new Date().toISOString(),
       })
@@ -103,6 +117,11 @@ router.post('/bulk', async (req, res, next) => {
 
         const userId = req.user.id
 
+        let resolvedSalespersonId = orderData.salesperson_id || null
+        if (!resolvedSalespersonId) {
+          try { resolvedSalespersonId = await resolveSalesperson(userId, req.user?.tenantId) } catch { /* keep null */ }
+        }
+
         const { data: order, error } = await supabase
           .from('orders')
           .insert({
@@ -116,6 +135,10 @@ router.post('/bulk', async (req, res, next) => {
             payment_status: orderData.payment_status || 'paid',
             user_id: userId,
             customer_id: orderData.customer_id || null,
+            promotion_id: orderData.promotion_id || null,
+            notes: orderData.notes || null,
+            shift_id: orderData.shift_id || null,
+            salesperson_id: resolvedSalespersonId || null,
             client_order_id,
             completed_at: orderData.created_at || new Date().toISOString(),
           })

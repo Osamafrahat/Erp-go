@@ -5,6 +5,7 @@ import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { useOfflineStore } from '../stores/offlineStore'
 import { productsApi, categoriesApi, ordersApi, customersApi, servicesApi, servicePlansApi, subscriptionsApi, cashShiftsApi, creditSalesApi } from '../lib/api'
+import { getSyncMeta, setSyncMeta } from '../lib/offlineDB'
 import { formatCurrency, generateOrderNumber } from '../lib/utils'
 import ProductGrid from '../components/pos/ProductGrid'
 import Cart from '../components/pos/Cart'
@@ -54,28 +55,50 @@ export default function POSPage() {
   useEffect(() => {
     fetchData()
     fetchActiveShift()
+    // Re-validate when connectivity returns: the offline fallback shift could
+    // be stale if it was closed elsewhere while we were disconnected.
+    const onOnline = () => fetchActiveShift()
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
   }, [])
 
   const fetchActiveShift = async () => {
     try {
       const res = await cashShiftsApi.getActive()
-      setActiveShift(res.data || null)
-      if (res.data) {
-        setTenantHasOpenShift(true)
+      const shift = res.data || null
+      let hasOpenInTenant = false
+      if (shift) {
+        hasOpenInTenant = true
         fetchShiftStats()
       } else {
         // Check if any shift is open in the tenant (by another user)
         try {
           const allRes = await cashShiftsApi.getAll({ status: 'open' })
-          setTenantHasOpenShift((allRes.data || []).length > 0)
+          hasOpenInTenant = (allRes.data || []).length > 0
         } catch {
-          setTenantHasOpenShift(false)
+          hasOpenInTenant = false
         }
       }
+      setActiveShift(shift)
+      setTenantHasOpenShift(hasOpenInTenant)
+      // Remember the open shift. Checkout is gated on activeShift and opening
+      // a cash box needs the network, so without this a reload while offline
+      // locked the operator out of selling entirely.
+      try {
+        await setSyncMeta('activeShift', { shift, hasOpenInTenant })
+      } catch { /* cache write is best-effort — never fail the fetch over it */ }
     } catch (err) {
-      setActiveShift(null)
+      // Network unreachable: fall back to the shift remembered on the last
+      // successful load instead of forcing the cash-box modal (which also
+      // needs the network) and dead-ending offline checkout.
+      let remembered = null
+      try {
+        remembered = await getSyncMeta('activeShift')
+      } catch { /* no local cache — behave exactly as before */ }
+      const shift = remembered?.shift || null
+      setActiveShift(shift)
       setShiftStats(null)
-      setTenantHasOpenShift(false)
+      setTenantHasOpenShift(Boolean(shift) || Boolean(remembered?.hasOpenInTenant))
     }
   }
 

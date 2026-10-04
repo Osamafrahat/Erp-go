@@ -6,7 +6,7 @@ import { checkTenantLimits } from '../middleware/limits.js'
 const router = Router()
 
 // Auto-resolve employee_id from user, with name-based auto-link
-async function resolveSalesperson(userId, tenantId) {
+export async function resolveSalesperson(userId, tenantId) {
   if (!userId || !tenantId) return null
   const { data: user } = await supabase
     .from('users')
