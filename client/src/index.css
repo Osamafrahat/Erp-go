@@ -1,6 +1,111 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind CSS v4 + HeroUI v3.
+   Import order matters: tailwindcss must come first. */
+@import "tailwindcss";
+@import "@heroui/styles";
+
+/* The app toggles .dark on <html>, so dark: must key off that class rather
+   than off prefers-color-scheme, which is v4's default. HeroUI's own theme
+   keys off the same .dark selector. */
+@custom-variant dark (&:is(.dark *));
+
+/* index.html lives above src/, so name it explicitly rather than trusting
+   auto-detection to reach out of this file's directory. */
+@source "../index.html";
+
+/* HeroUI's brand token. The app is already blue throughout -- primary-600
+   carries roughly 200 usages -- so keep the design system on that hue rather
+   than letting two competing blues coexist while the pages migrate.
+   Declared unlayered on purpose: HeroUI sets these inside @layer base, and
+   unlayered rules win the cascade, so this overrides without editing
+   node_modules. Hover/focus tokens derive from --accent automatically. */
+:root,
+.light,
+.default {
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+}
+
+.dark {
+  --accent: #3b82f6;
+}
+
+@theme {
+  /* Brand palette carried over from tailwind.config.js. Roughly 500
+     primary-* utilities across the pages depend on this scale, and HeroUI
+     does not ship a numbered palette of its own. */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  --animate-slide-in: slideIn 0.3s ease-out;
+  --animate-slide-out: slideOut 0.3s ease-in;
+
+  @keyframes slideIn {
+    0% { transform: translateX(100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOut {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(100%); opacity: 0; }
+  }
+}
+
+/* Bridge HeroUI's runtime CSS variables into Tailwind utilities, so app markup
+   can write bg-surface / text-foreground / border-border instead of hardcoding
+   gray-800 + dark:gray-900 pairs everywhere.
+
+   `inline` is load-bearing: HeroUI swaps these values per .dark / [data-theme]
+   selector at runtime, so the emitted utility must be var(--surface) -- not the
+   light value resolved at build time, which would freeze dark mode. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-background-secondary: var(--background-secondary);
+  --color-background-tertiary: var(--background-tertiary);
+
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-tertiary: var(--surface-tertiary);
+
+  --color-overlay: var(--overlay);
+  --color-overlay-foreground: var(--overlay-foreground);
+  --color-muted: var(--muted);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-foreground: var(--accent-soft-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-soft: var(--danger-soft);
+
+  --color-border: var(--border);
+  --color-border-secondary: var(--border-secondary);
+  --color-separator: var(--separator);
+  --color-link: var(--link);
+  --color-focus: var(--focus);
+
+  --color-field: var(--field-background);
+  --color-field-border: var(--field-border);
+  --color-field-placeholder: var(--field-placeholder);
+}
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;

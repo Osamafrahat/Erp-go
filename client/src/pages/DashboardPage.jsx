@@ -27,6 +27,7 @@ import {
   Calendar,
   Star,
 } from 'lucide-react'
+import { Card, Spinner } from '@heroui/react'
 
 export default function DashboardPage() {
   const { currentUser, hasPermission } = useUserStore()
@@ -166,7 +167,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <Spinner size="lg" />
       </div>
     )
   }
@@ -305,11 +306,11 @@ function ManagerDashboard({ stats, t }) {
       {stats.recentOrders.length > 0 && <RecentOrders orders={stats.recentOrders} t={t} />}
       {stats.lowStockProducts.length > 0 && <LowStockAlert products={stats.lowStockProducts} t={t} />}
       {stats.recentOrders.length === 0 && stats.lowStockProducts.length === 0 && (
-        <div className="col-span-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6 md:p-12 text-center">
-          <BarChart3 className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('dashboard.welcomeTitle')}</h3>
-          <p className="text-gray-500 dark:text-gray-400">{t('dashboard.welcomeMessage')}</p>
-        </div>
+        <Card className="col-span-2 gap-0 rounded-xl border border-border shadow-sm p-6 md:p-12 text-center">
+          <BarChart3 className="w-16 h-16 mx-auto text-muted mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">{t('dashboard.welcomeTitle')}</h3>
+          <p className="text-muted">{t('dashboard.welcomeMessage')}</p>
+        </Card>
       )}
     </div>
   )
@@ -322,11 +323,11 @@ function SalesDashboard({ stats, t }) {
       {stats.recentOrders.length > 0 && <RecentOrders orders={stats.recentOrders} t={t} />}
       {stats.lowStockProducts.length > 0 && <LowStockAlert products={stats.lowStockProducts} t={t} />}
       {stats.recentOrders.length === 0 && stats.lowStockProducts.length === 0 && (
-        <div className="col-span-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6 md:p-12 text-center">
-          <TrendingUp className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('dashboard.welcomeTitle')}</h3>
-          <p className="text-gray-500 dark:text-gray-400">{t('dashboard.welcomeMessage')}</p>
-        </div>
+        <Card className="col-span-2 gap-0 rounded-xl border border-border shadow-sm p-6 md:p-12 text-center">
+          <TrendingUp className="w-16 h-16 mx-auto text-muted mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">{t('dashboard.welcomeTitle')}</h3>
+          <p className="text-muted">{t('dashboard.welcomeMessage')}</p>
+        </Card>
       )}
     </div>
   )
@@ -338,11 +339,11 @@ function CashierDashboard({ stats, t }) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {stats.recentOrders.length > 0 && <RecentOrders orders={stats.recentOrders} t={t} />}
       {stats.recentOrders.length === 0 && (
-        <div className="col-span-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6 md:p-12 text-center">
-          <ShoppingCart className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('dashboard.startSelling')}</h3>
-          <p className="text-gray-500 dark:text-gray-400">{t('dashboard.startSellingDesc')}</p>
-        </div>
+        <Card className="col-span-2 gap-0 rounded-xl border border-border shadow-sm p-6 md:p-12 text-center">
+          <ShoppingCart className="w-16 h-16 mx-auto text-muted mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">{t('dashboard.startSelling')}</h3>
+          <p className="text-muted">{t('dashboard.startSellingDesc')}</p>
+        </Card>
       )}
     </div>
   )
@@ -354,11 +355,11 @@ function InventoryDashboard({ stats, t }) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {stats.lowStockProducts.length > 0 && <LowStockAlert products={stats.lowStockProducts} t={t} />}
       {stats.lowStockProducts.length === 0 && (
-        <div className="col-span-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6 md:p-12 text-center">
-          <Package className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('dashboard.manageInventory')}</h3>
-          <p className="text-gray-500 dark:text-gray-400">{t('dashboard.manageInventoryDesc')}</p>
-        </div>
+        <Card className="col-span-2 gap-0 rounded-xl border border-border shadow-sm p-6 md:p-12 text-center">
+          <Package className="w-16 h-16 mx-auto text-muted mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">{t('dashboard.manageInventory')}</h3>
+          <p className="text-muted">{t('dashboard.manageInventoryDesc')}</p>
+        </Card>
       )}
     </div>
   )
@@ -398,66 +399,66 @@ function AccountantDashboard({ stats, t }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {stats.recentPayments.length > 0 && (
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6">
+        <Card className="gap-0 rounded-xl border border-border shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base sm:text-lg font-semibold truncate mr-3">{t('dashboard.recentPayments')}</h3>
-            <Link to="/accounting/payments" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1 shrink-0">
+            <Link to="/accounting/payments" className="text-accent hover:text-accent/80 text-sm flex items-center gap-1 shrink-0">
               {t('dashboard.viewAll')} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
           <div className="space-y-3">
             {stats.recentPayments.map((payment) => (
-              <div key={payment.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <div key={payment.id} className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{payment.description || payment.reference || `Payment #${payment.id}`}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted">
                     {new Date(payment.created_at || payment.date).toLocaleDateString()}
                   </p>
                 </div>
                 <div className="text-right shrink-0 pl-3">
-                  <p className={`font-semibold whitespace-nowrap ${payment.type === 'inbound' ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`font-semibold whitespace-nowrap ${payment.type === 'inbound' ? 'text-success' : 'text-danger'}`}>
                     {payment.type === 'inbound' ? '+' : '-'}{formatCurrency(payment.amount)}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                  <p className="text-xs text-muted capitalize">
                     {payment.type}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {stats.recentExpenses.length > 0 && (
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6">
+        <Card className="gap-0 rounded-xl border border-border shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base sm:text-lg font-semibold truncate mr-3">{t('dashboard.recentExpenses')}</h3>
-            <Link to="/expenses" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1 shrink-0">
+            <Link to="/expenses" className="text-accent hover:text-accent/80 text-sm flex items-center gap-1 shrink-0">
               {t('dashboard.viewAll')} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
           <div className="space-y-3">
             {stats.recentExpenses.map((expense) => (
-              <div key={expense.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <div key={expense.id} className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{expense.description || expense.category}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                  <p className="text-sm text-muted truncate">
                     {expense.category} — {new Date(expense.created_at || expense.date).toLocaleDateString()}
                   </p>
                 </div>
-                <span className="font-semibold text-red-600 whitespace-nowrap shrink-0 pl-3">-{formatCurrency(expense.amount)}</span>
+                <span className="font-semibold text-danger whitespace-nowrap shrink-0 pl-3">-{formatCurrency(expense.amount)}</span>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {stats.recentPayments.length === 0 && stats.recentExpenses.length === 0 && (
-        <div className="col-span-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6 md:p-12 text-center">
-          <DollarSign className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('dashboard.welcomeTitle')}</h3>
-          <p className="text-gray-500 dark:text-gray-400">{t('dashboard.welcomeMessage')}</p>
-        </div>
+        <Card className="col-span-2 gap-0 rounded-xl border border-border shadow-sm p-6 md:p-12 text-center">
+          <DollarSign className="w-16 h-16 mx-auto text-muted mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">{t('dashboard.welcomeTitle')}</h3>
+          <p className="text-muted">{t('dashboard.welcomeMessage')}</p>
+        </Card>
       )}
     </div>
   )
@@ -465,27 +466,27 @@ function AccountantDashboard({ stats, t }) {
 
 function StatCard({ icon: Icon, label, value, color, href }) {
   const colorClasses = {
-    green: 'bg-green-100 dark:bg-green-900/30 text-green-600',
-    blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600',
+    green: 'bg-success-soft text-success',
+    blue: 'bg-accent-soft text-accent-soft-foreground',
     purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600',
-    red: 'bg-red-100 dark:bg-red-900/30 text-red-600',
-    amber: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600',
+    red: 'bg-danger-soft text-danger',
+    amber: 'bg-warning-soft text-warning',
     pink: 'bg-pink-100 dark:bg-pink-900/30 text-pink-600',
     indigo: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600',
-    gray: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
+    gray: 'bg-surface-tertiary text-muted',
   }
 
   return (
     <Link
       to={href}
-      className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-4 hover:shadow-md transition-shadow"
+      className="bg-surface rounded-xl border border-border shadow-sm p-4 hover:shadow-md transition-shadow"
     >
       <div className="flex items-center gap-3 min-w-0">
         <div className={`p-2 rounded-lg ${colorClasses[color]} shrink-0`}>
           <Icon className="w-5 h-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{label}</p>
+          <p className="text-xs sm:text-sm text-muted truncate">{label}</p>
           <p className="text-lg sm:text-xl font-bold truncate">{value}</p>
         </div>
       </div>
@@ -562,62 +563,62 @@ function QuickActions({ showAll, showPOS, showInventory, showSuppliers, showProm
 
 function RecentOrders({ orders, t }) {
   return (
-    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-4 sm:p-6">
+    <Card className="gap-0 rounded-xl border border-border shadow-sm p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base sm:text-lg font-semibold truncate mr-3">{t('dashboard.recentOrders')}</h3>
-        <Link to="/reports" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1 shrink-0">
+        <Link to="/reports" className="text-accent hover:text-accent/80 text-sm flex items-center gap-1 shrink-0">
           {t('dashboard.viewAll')} <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
       <div className="space-y-3">
         {orders.map((order) => (
-          <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <div key={order.id} className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
             <div className="min-w-0 flex-1">
               <p className="font-medium truncate">{order.order_number}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted">
                 {new Date(order.created_at).toLocaleString()}
               </p>
             </div>
             <div className="text-right">
               <p className="font-semibold">{formatCurrency(order.total)}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+              <p className="text-xs text-muted capitalize">
                 {order.payment_method}
               </p>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }
 
 function LowStockAlert({ products, t }) {
   return (
-    <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800/50 shadow-sm p-4 sm:p-6">
+    <Card className="gap-0 rounded-xl border border-border shadow-sm bg-warning-soft p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 text-amber-600 truncate mr-3">
+        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 text-warning-foreground truncate mr-3">
           <AlertTriangle className="w-5 h-5 shrink-0" />
           {t('dashboard.lowStockAlert')}
         </h3>
-        <Link to="/inventory" className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1 shrink-0">
+        <Link to="/inventory" className="text-accent hover:text-accent/80 text-sm flex items-center gap-1 shrink-0">
           {t('dashboard.viewAll')} <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
       <div className="space-y-3">
         {products.map((product) => (
-          <div key={product.id} className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+          <div key={product.id} className="flex items-center justify-between p-3 bg-warning-soft rounded-lg">
             <div className="min-w-0 flex-1">
               <p className="font-medium truncate">{product.name}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted">
                 {t('dashboard.threshold')}: {product.low_stock_threshold}
               </p>
             </div>
-            <span className="text-lg font-bold text-amber-600">
+            <span className="text-lg font-bold text-warning-foreground">
               {product.stock_quantity} {t('dashboard.left')}
             </span>
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }

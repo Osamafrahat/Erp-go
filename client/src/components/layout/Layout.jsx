@@ -5,6 +5,7 @@ import { useCartStore } from '../../stores/cartStore'
 import { useUserStore, PERMISSIONS } from '../../stores/userStore'
 import { useOfflineStore } from '../../stores/offlineStore'
 import { languageNames } from '../../lib/translations'
+import { Button } from '@heroui/react'
 import {
   ShoppingCart,
   Package,
@@ -259,45 +260,44 @@ export default function Layout({ children }) {
       <aside
         className={`
           ${sidebarOpen ? 'w-64' : 'w-[72px]'}
-          bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950
+          bg-surface-secondary border-e border-border
           transition-all duration-300 ease-in-out
           hidden md:flex flex-col
-          shadow-2xl shadow-gray-900/50
         `}
       >
         {/* Logo */}
-        <div className={`flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} p-4 border-b border-white/10`}>
+        <div className={`flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} p-4 border-b border-border`}>
           {sidebarOpen ? (
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30 flex-shrink-0 overflow-hidden">
+              <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center flex-shrink-0 overflow-hidden">
                 {settings.storeLogo ? (
                   <img src={settings.storeLogo} alt={settings.storeName} className="w-full h-full object-cover" />
                 ) : (
-                  <Store className="w-5 h-5 text-white" />
+                  <Store className="w-5 h-5 text-accent-foreground" />
                 )}
               </div>
               <div className="min-w-0">
-                <span className="font-bold text-white text-base block leading-tight truncate">{settings.storeName || t('layout.defaultStoreName')}</span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider">POS System</span>
+                <span className="font-bold text-foreground text-base block leading-tight truncate">{settings.storeName || t('layout.defaultStoreName')}</span>
+                <span className="text-[10px] text-muted uppercase tracking-wider">POS System</span>
               </div>
             </div>
           ) : (
             <button
               onClick={toggleSidebar}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition-all duration-200 hover:scale-105 overflow-hidden"
+              className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center hover:opacity-90 transition-all duration-200 overflow-hidden"
               title={t('layout.expandSidebar') || 'Expand sidebar'}
             >
               {settings.storeLogo ? (
                 <img src={settings.storeLogo} alt={settings.storeName} className="w-full h-full object-cover" />
               ) : (
-                <Store className="w-5 h-5 text-white" />
+                <Store className="w-5 h-5 text-accent-foreground" />
               )}
             </button>
           )}
           {sidebarOpen && (
             <button
               onClick={toggleSidebar}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all duration-200 flex-shrink-0"
+              className="p-1.5 rounded-lg hover:bg-surface-hover text-muted hover:text-foreground transition-all duration-200 flex-shrink-0"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
@@ -323,21 +323,21 @@ export default function Layout({ children }) {
                     group relative flex items-center gap-3 rounded-xl transition-all duration-200
                     ${sidebarOpen ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'}
                     ${isActive
-                      ? 'bg-gradient-to-r from-primary-500/20 to-primary-600/10 text-primary-400 shadow-lg shadow-primary-500/10'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      ? 'bg-accent-soft text-accent-soft-foreground'
+                      : 'text-muted hover:text-foreground hover:bg-surface-hover'
                     }
                   `}
                 >
                   {isActive && (
-                    <div className="absolute start-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-gradient-to-b from-primary-400 to-primary-600 rounded-e-full" />
+                    <div className="absolute start-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-accent rounded-e-full" />
                   )}
-                  <Icon className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-primary-400' : ''}`} />
+                  <Icon className="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
                   {sidebarOpen && (
-                    <span className={`font-medium text-sm ${isActive ? 'text-primary-300' : ''}`}>{item.name}</span>
+                    <span className="font-medium text-sm">{item.name}</span>
                   )}
                   {item.href === '/pos' && getItemCount() > 0 && (
                     <span className={`
-                      bg-gradient-to-r from-primary-500 to-primary-600 text-white text-[10px] font-bold rounded-full shadow-lg shadow-primary-500/30
+                      bg-accent text-accent-foreground text-[10px] font-bold rounded-full
                       ${sidebarOpen ? 'ml-auto px-2 py-0.5' : 'absolute -top-1 -right-1 px-1 py-0.5 min-w-[18px] text-center'}
                     `}>
                       {getItemCount()}
@@ -357,7 +357,7 @@ export default function Layout({ children }) {
                   <button
                     onClick={() => toggleGroup(group.key)}
                     className={`flex items-center justify-between w-full px-3 py-1.5 text-[11px] uppercase tracking-wider font-semibold transition-colors ${
-                      hasActive ? 'text-primary-400' : 'text-gray-500 hover:text-gray-300'
+                      hasActive ? 'text-accent' : 'text-muted hover:text-foreground'
                     }`}
                   >
                     <span>{group.label}</span>
@@ -376,17 +376,17 @@ export default function Layout({ children }) {
                         group relative flex items-center gap-3 rounded-xl transition-all duration-200
                         ${sidebarOpen ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'}
                         ${isActive
-                          ? 'bg-gradient-to-r from-primary-500/20 to-primary-600/10 text-primary-400 shadow-lg shadow-primary-500/10'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
+                          ? 'bg-accent-soft text-accent-soft-foreground'
+                          : 'text-muted hover:text-foreground hover:bg-surface-hover'
                         }
                       `}
                     >
                       {isActive && (
-                        <div className="absolute start-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-gradient-to-b from-primary-400 to-primary-600 rounded-e-full" />
+                        <div className="absolute start-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-accent rounded-e-full" />
                       )}
-                      <Icon className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-primary-400' : ''}`} />
+                      <Icon className="w-5 h-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
                       {sidebarOpen && (
-                        <span className={`font-medium text-sm ${isActive ? 'text-primary-300' : ''}`}>{item.name}</span>
+                        <span className="font-medium text-sm">{item.name}</span>
                       )}
                     </Link>
                   )
@@ -397,23 +397,23 @@ export default function Layout({ children }) {
         </nav>
 
         {/* Bottom Section */}
-        <div className="p-3 border-t border-white/10 space-y-2">
+        <div className="p-3 border-t border-border space-y-2">
           {/* Language Switcher */}
           <div className="relative">
             <button
               onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-              className={`flex items-center gap-3 w-full rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200 ${sidebarOpen ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'}`}
+              className={`flex items-center gap-3 w-full rounded-xl text-muted hover:text-foreground hover:bg-surface-hover transition-all duration-200 ${sidebarOpen ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'}`}
             >
               <Globe className="w-5 h-5 flex-shrink-0" />
               {sidebarOpen && (
                 <>
                   <span className="font-medium text-sm">{t('nav.language')}</span>
-                  <span className="ml-auto text-xs bg-white/10 px-2 py-0.5 rounded-md">{languageNames[language]}</span>
+                  <span className="ml-auto text-xs bg-surface-hover px-2 py-0.5 rounded-md">{languageNames[language]}</span>
                 </>
               )}
             </button>
             {showLanguageMenu && sidebarOpen && (
-              <div className="absolute bottom-full left-0 w-full mb-1 bg-gray-800 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+              <div className="absolute bottom-full left-0 w-full mb-1 bg-overlay border border-border rounded-xl shadow-xl overflow-hidden z-50">
                 {Object.entries(languageNames).map(([code, name]) => (
                   <button
                     key={code}
@@ -421,12 +421,12 @@ export default function Layout({ children }) {
                       setLanguage(code)
                       setShowLanguageMenu(false)
                     }}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-white/10 flex items-center justify-between transition-colors ${
-                      language === code ? 'text-primary-400 bg-primary-500/10' : 'text-gray-300'
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-surface-hover flex items-center justify-between transition-colors ${
+                      language === code ? 'text-accent bg-accent-soft' : 'text-foreground'
                     }`}
                   >
                     <span>{name}</span>
-                    {language === code && <span className="text-primary-400">✓</span>}
+                    {language === code && <span>✓</span>}
                   </button>
                 ))}
               </div>
@@ -436,7 +436,7 @@ export default function Layout({ children }) {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className={`flex items-center gap-3 w-full rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200 ${sidebarOpen ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'}`}
+            className={`flex items-center gap-3 w-full rounded-xl text-muted hover:text-foreground hover:bg-surface-hover transition-all duration-200 ${sidebarOpen ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'}`}
           >
             {theme === 'light' ? (
               <Moon className="w-5 h-5 flex-shrink-0" />
@@ -447,28 +447,28 @@ export default function Layout({ children }) {
           </button>
 
           {/* User Info & Logout */}
-          <div className="border-t border-white/10 pt-2">
+          <div className="border-t border-border pt-2">
             {sidebarOpen && currentUser && (
-              <Link to="/profile" className="flex items-center gap-2.5 px-3 py-2 mb-1 rounded-xl hover:bg-white/5 transition-all duration-200 group">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20 flex-shrink-0 group-hover:scale-105 transition-transform">
-                  <span className="text-white font-bold text-sm">{currentUser.fullName?.charAt(0)?.toUpperCase()}</span>
+              <Link to="/profile" className="flex items-center gap-2.5 px-3 py-2 mb-1 rounded-xl hover:bg-surface-hover transition-all duration-200 group">
+                <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center flex-shrink-0 transition-transform">
+                  <span className="text-accent-foreground font-bold text-sm">{currentUser.fullName?.charAt(0)?.toUpperCase()}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate group-hover:text-primary-300 transition-colors">{currentUser.fullName}</p>
-                  <p className="text-[11px] text-primary-400 capitalize">{currentUser.role?.toLowerCase()}</p>
+                  <p className="text-sm font-semibold text-foreground truncate group-hover:text-accent transition-colors">{currentUser.fullName}</p>
+                  <p className="text-[11px] text-accent capitalize">{currentUser.role?.toLowerCase()}</p>
                 </div>
               </Link>
             )}
             {!sidebarOpen && currentUser && (
               <Link to="/profile" className="flex justify-center py-1" title={currentUser.fullName}>
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20 hover:scale-105 transition-transform">
-                  <span className="text-white font-bold text-sm">{currentUser.fullName?.charAt(0)?.toUpperCase()}</span>
+                <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center transition-transform">
+                  <span className="text-accent-foreground font-bold text-sm">{currentUser.fullName?.charAt(0)?.toUpperCase()}</span>
                 </div>
               </Link>
             )}
             <button
               onClick={handleLogout}
-              className={`flex items-center gap-3 w-full rounded-xl text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 ${sidebarOpen ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'}`}
+              className={`flex items-center gap-3 w-full rounded-xl text-danger/80 hover:text-danger hover:bg-danger-soft transition-all duration-200 ${sidebarOpen ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'}`}
               title={!sidebarOpen ? t('users.signOut') : undefined}
             >
               <LogOut className="w-5 h-5 flex-shrink-0" />
@@ -485,25 +485,25 @@ export default function Layout({ children }) {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <aside className={`fixed top-0 h-full w-72 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 shadow-2xl flex flex-col overflow-hidden ${language === 'ar' ? 'right-0' : 'left-0'}`}>
+          <aside className={`fixed top-0 h-full w-72 bg-surface-secondary border-e border-border shadow-xl flex flex-col overflow-hidden ${language === 'ar' ? 'right-0' : 'left-0'}`}>
             {/* Mobile Logo */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30 overflow-hidden">
+                <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center overflow-hidden">
                   {settings.storeLogo ? (
                     <img src={settings.storeLogo} alt={settings.storeName} className="w-full h-full object-cover" />
                   ) : (
-                    <Store className="w-5 h-5 text-white" />
+                    <Store className="w-5 h-5 text-accent-foreground" />
                   )}
                 </div>
                 <div>
-                  <span className="font-bold text-white text-base block leading-tight">{settings.storeName || t('layout.defaultStoreName')}</span>
-                  <span className="text-[10px] text-gray-400 uppercase tracking-wider">POS System</span>
+                  <span className="font-bold text-foreground text-base block leading-tight">{settings.storeName || t('layout.defaultStoreName')}</span>
+                  <span className="text-[10px] text-muted uppercase tracking-wider">POS System</span>
                 </div>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all"
+                className="p-1.5 rounded-lg hover:bg-surface-hover text-muted hover:text-foreground transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -524,23 +524,23 @@ export default function Layout({ children }) {
                       className={`
                         group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
                         ${isActive
-                          ? 'bg-gradient-to-r from-primary-500/20 to-primary-600/10 text-primary-400 shadow-lg shadow-primary-500/10'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
+                          ? 'bg-accent-soft text-accent-soft-foreground'
+                          : 'text-muted hover:text-foreground hover:bg-surface-hover'
                         }
                       `}
                     >
                       {isActive && (
-                            <div className="absolute start-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-gradient-to-b from-primary-400 to-primary-600 rounded-e-full" />
+                        <div className="absolute start-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-accent rounded-e-full" />
                       )}
-                      <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-primary-400' : ''}`} />
-                      <span className={`font-medium text-sm ${isActive ? 'text-primary-300' : ''}`}>{item.name}</span>
+                      <Icon className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                      <span className="font-medium text-sm">{item.name}</span>
                     </Link>
                   )
                 }
 
                 return (
                   <div key={group.key} className="space-y-0.5">
-                    <div className="px-3 py-1.5 text-[11px] uppercase tracking-wider font-semibold text-gray-500">
+                    <div className="px-3 py-1.5 text-[11px] uppercase tracking-wider font-semibold text-muted">
                       {group.label}
                     </div>
                     {group.items.map((item) => {
@@ -554,16 +554,16 @@ export default function Layout({ children }) {
                           className={`
                             group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
                             ${isActive
-                              ? 'bg-gradient-to-r from-primary-500/20 to-primary-600/10 text-primary-400 shadow-lg shadow-primary-500/10'
-                              : 'text-gray-400 hover:text-white hover:bg-white/5'
+                              ? 'bg-accent-soft text-accent-soft-foreground'
+                              : 'text-muted hover:text-foreground hover:bg-surface-hover'
                             }
                           `}
                         >
                           {isActive && (
-                        <div className="absolute start-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-gradient-to-b from-primary-400 to-primary-600 rounded-e-full" />
+                            <div className="absolute start-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-accent rounded-e-full" />
                           )}
-                          <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-primary-400' : ''}`} />
-                          <span className={`font-medium text-sm ${isActive ? 'text-primary-300' : ''}`}>{item.name}</span>
+                          <Icon className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                          <span className="font-medium text-sm">{item.name}</span>
                         </Link>
                       )
                     })}
@@ -573,10 +573,10 @@ export default function Layout({ children }) {
             </nav>
 
             {/* Mobile Bottom */}
-            <div className="p-3 border-t border-white/10 space-y-2">
+            <div className="p-3 border-t border-border space-y-2">
               {/* Language Switcher */}
               <div className="flex items-center gap-2 px-2">
-                <Globe className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <Globe className="w-4 h-4 text-muted flex-shrink-0" />
                 {Object.entries(languageNames).map(([code, name]) => (
                   <button
                     key={code}
@@ -586,8 +586,8 @@ export default function Layout({ children }) {
                     }}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                       language === code
-                        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/20'
-                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                        ? 'bg-accent text-accent-foreground'
+                        : 'bg-surface-hover text-muted hover:text-foreground'
                     }`}
                   >
                     {name}
@@ -598,12 +598,12 @@ export default function Layout({ children }) {
               {/* Mobile User Info */}
               {currentUser && (
                 <div className="flex items-center gap-2.5 px-3 py-2">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20 flex-shrink-0">
-                    <span className="text-white font-bold text-sm">{currentUser.fullName?.charAt(0)?.toUpperCase()}</span>
+                  <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center flex-shrink-0">
+                    <span className="text-accent-foreground font-bold text-sm">{currentUser.fullName?.charAt(0)?.toUpperCase()}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">{currentUser.fullName}</p>
-                    <p className="text-[11px] text-primary-400 capitalize">{currentUser.role?.toLowerCase()}</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{currentUser.fullName}</p>
+                    <p className="text-[11px] text-accent capitalize">{currentUser.role?.toLowerCase()}</p>
                   </div>
                 </div>
               )}
@@ -611,9 +611,9 @@ export default function Layout({ children }) {
               {/* Mobile Logout */}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+                className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-danger/80 hover:text-danger hover:bg-danger-soft transition-all duration-200"
               >
-                <LogOut className="w-5 h-5 flex-shrink-0" />
+                <LogOut className="w-5 h-5" />
                 <span className="font-medium text-sm">{t('users.signOut')}</span>
               </button>
             </div>
@@ -622,20 +622,24 @@ export default function Layout({ children }) {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
         {/* Header */}
         {/* z-30: backdrop-blur forms a stacking context, so dropdowns here (z-50) are
             trapped below page content such as BannerCarousel's `relative z-10`.
             Must stay < 50 or the mobile drawer (z-50, earlier sibling) would be covered. */}
-        <header className="z-30 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700/50 px-3 sm:px-6 py-2 sm:py-3 shadow-sm">
+        <header className="z-30 bg-background/80 backdrop-blur-sm border-b border-border px-3 sm:px-6 py-2 sm:py-3">
           <div className="flex items-center justify-between gap-2 min-w-0">
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
+            <Button
+              variant="ghost"
+              size="sm"
+              isIconOnly
+              className="md:hidden"
+              aria-label="Open menu"
+              onPress={() => setMobileMenuOpen(true)}
             >
               <Menu className="w-5 h-5" />
-            </button>
-            <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent truncate min-w-0 flex-1">
+            </Button>
+            <h1 className="text-base sm:text-xl font-bold text-foreground truncate min-w-0 flex-1">
               {(() => {
                 for (const group of groups) {
                   const found = group.items.find(i => i.href === location.pathname)
@@ -652,13 +656,13 @@ export default function Layout({ children }) {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isOnline
                       ? pendingCount > 0
-                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200'
-                        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                      : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                        ? 'bg-warning-soft text-warning-foreground hover:bg-warning-soft/80'
+                        : 'bg-success-soft text-success-foreground'
+                      : 'bg-danger-soft text-danger-foreground'
                   }`}
                 >
                   {isOnline ? (
-                    pendingCount > 0 ? <RefreshCw className="w-4 h-4" /> : <div className="w-2 h-2 rounded-full bg-green-500" />
+                    pendingCount > 0 ? <RefreshCw className="w-4 h-4" /> : <div className="w-2 h-2 rounded-full bg-success" />
                   ) : (
                     <WifiOff className="w-4 h-4" />
                   )}
@@ -669,21 +673,21 @@ export default function Layout({ children }) {
 
                 {/* Sync Panel Dropdown */}
                 {showSyncPanel && (
-                  <div className="absolute end-0 top-full mt-2 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="absolute end-0 top-full mt-2 w-72 bg-overlay border border-border rounded-xl shadow-xl z-50 overflow-hidden">
                     <div className="p-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-sm">{t('offline.syncStatus')}</h3>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${isOnline ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        <h3 className="font-bold text-sm text-foreground">{t('offline.syncStatus')}</h3>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${isOnline ? 'bg-success-soft text-success-foreground' : 'bg-danger-soft text-danger-foreground'}`}>
                           {isOnline ? t('offline.online') : t('offline.offline')}
                         </span>
                       </div>
 
-                      <div className="text-xs text-gray-500 space-y-1">
+                      <div className="text-xs text-muted space-y-1">
                         {lastSyncTime && (
                           <p>{t('offline.lastSync')}: {new Date(lastSyncTime).toLocaleString()}</p>
                         )}
                         {pendingCount > 0 && (
-                          <p className="text-yellow-600 dark:text-yellow-400 font-medium">
+                          <p className="text-warning-foreground font-medium">
                             {pendingCount} {t('offline.ordersWaiting')}
                           </p>
                         )}
@@ -693,14 +697,14 @@ export default function Layout({ children }) {
                               <span>{t('offline.syncing')}</span>
                               <span>{syncProgress.done}/{syncProgress.total}</span>
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                            <div className="w-full bg-surface-tertiary rounded-full h-1.5">
                               <div
-                                className="bg-primary-500 h-1.5 rounded-full transition-all duration-300"
+                                className="bg-accent h-1.5 rounded-full transition-all duration-300"
                                 style={{ width: `${syncProgress.total > 0 ? (syncProgress.done / syncProgress.total) * 100 : 0}%` }}
                               />
                             </div>
                             {syncProgress.errors > 0 && (
-                              <p className="text-red-500 mt-1">{syncProgress.errors} {t('offline.errors')}</p>
+                              <p className="text-danger mt-1">{syncProgress.errors} {t('offline.errors')}</p>
                             )}
                           </div>
                         )}
@@ -708,16 +712,18 @@ export default function Layout({ children }) {
 
                       <div className="flex gap-2">
                         {isOnline && pendingCount > 0 && !isSyncing && (
-                          <button
-                            onClick={syncPendingOrders}
-                            className="flex-1 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1"
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            fullWidth
+                            onPress={syncPendingOrders}
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
                             {t('offline.syncNow')}
-                          </button>
+                          </Button>
                         )}
                         {!isOnline && (
-                          <div className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm text-center text-gray-500">
+                          <div className="flex-1 px-3 py-2 bg-surface-secondary rounded-lg text-sm text-center text-muted">
                             {t('offline.waitingConnection')}
                           </div>
                         )}
@@ -732,7 +738,7 @@ export default function Layout({ children }) {
                 const trialDaysLeft = isTrial() ? Math.ceil((new Date(trialEndsAt) - new Date()) / (1000 * 60 * 60 * 24)) : 0
                 if (isTrial()) {
                   return (
-                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-800/40 transition-all duration-200">
+                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-warning-soft text-warning-foreground hover:bg-warning-soft/80 transition-all duration-200">
                       <Sparkles className="w-4 h-4" />
                       <span className="hidden sm:inline">{t('layout.trialBadge') || 'Trial'} ({trialDaysLeft}d left)</span>
                     </Link>
@@ -740,7 +746,7 @@ export default function Layout({ children }) {
                 }
                 if (subscriptionTier === 'pro') {
                   return (
-                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800/40 transition-all duration-200">
+                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-success-soft text-success-foreground hover:bg-success-soft/80 transition-all duration-200">
                       <Crown className="w-4 h-4" />
                       <span className="hidden sm:inline">{t('layout.proBadge') || 'Pro'}</span>
                     </Link>
@@ -748,30 +754,33 @@ export default function Layout({ children }) {
                 }
                 if (subscriptionTier === 'enterprise') {
                   return (
-                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-all duration-200">
+                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent-soft text-accent-foreground hover:bg-accent-soft/80 transition-all duration-200">
                       <Crown className="w-4 h-4" />
                       <span className="hidden sm:inline">{t('layout.enterpriseBadge') || 'Enterprise'}</span>
                     </Link>
                   )
                 }
                 return (
-                  <Link to="/pricing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200">
+                  <Link to="/pricing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-surface-secondary text-muted hover:bg-surface-hover transition-all duration-200">
                     <span className="hidden sm:inline">{t('layout.freeBadge') || 'Free'}</span>
-                    <span className="hidden sm:inline text-primary-600 dark:text-primary-400 font-semibold">{t('layout.upgrade') || 'Upgrade'}</span>
+                    <span className="hidden sm:inline text-accent font-semibold">{t('layout.upgrade') || 'Upgrade'}</span>
                   </Link>
                 )
               })()}
 
               {/* Mobile Language Switcher */}
               <div className="relative md:hidden">
-                <button
-                  onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  isIconOnly
+                  aria-label="Change language"
+                  onPress={() => setShowLanguageMenu(!showLanguageMenu)}
                 >
                   <Globe className="w-5 h-5" />
-                </button>
+                </Button>
                 {showLanguageMenu && (
-                  <div className="absolute end-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
+                  <div className="absolute end-0 top-full mt-1 bg-overlay border border-border rounded-xl shadow-xl overflow-hidden z-50">
                     {Object.entries(languageNames).map(([code, name]) => (
                       <button
                         key={code}
@@ -779,8 +788,8 @@ export default function Layout({ children }) {
                           setLanguage(code)
                           setShowLanguageMenu(false)
                         }}
-                        className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between text-sm ${
-                          language === code ? 'text-primary-600 bg-primary-50 dark:bg-primary-900/30' : ''
+                        className={`w-full px-4 py-2.5 text-left hover:bg-surface-hover flex items-center justify-between text-sm ${
+                          language === code ? 'text-accent bg-accent-soft' : 'text-foreground'
                         }`}
                       >
                         <span>{name}</span>
@@ -790,12 +799,16 @@ export default function Layout({ children }) {
                   </div>
                 )}
               </div>
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors md:hidden"
+              <Button
+                variant="ghost"
+                size="sm"
+                isIconOnly
+                className="md:hidden"
+                aria-label="Toggle theme"
+                onPress={toggleTheme}
               >
                 {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-              </button>
+              </Button>
             </div>
           </div>
         </header>
