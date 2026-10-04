@@ -116,8 +116,11 @@ export default function CashShiftPage() {
     }
   }
 
+  // Straight from the server: opening_balance + cash takings − cash refunds.
+  // Recomputing it here from total_sales would count card/mobile money the
+  // drawer never received and omit the cash it handed back.
   const expectedCash = activeShift
-    ? parseFloat(activeShift.opening_balance || 0) + parseFloat(shiftStats?.total_sales || 0)
+    ? parseFloat(shiftStats?.expected_cash || 0)
     : 0
 
   const currentVariance = closeForm.actual_cash

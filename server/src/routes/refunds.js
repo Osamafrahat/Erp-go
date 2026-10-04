@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { body, param, validationResult } from 'express-validator'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requirePermission } from '../middleware/auth.js'
+import { getCashBoxBalance } from '../services/cashBox.js'
 
 const router = Router()
 
@@ -122,6 +123,38 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
           const names = nonRefundable.map(p => p.name).join(', ')
           return res.status(400).json({ error: `Cannot refund non-refundable items: ${names}` })
         }
+      }
+    }
+
+    // A cash refund hands notes back across the counter, so it needs an open
+    // cash box to hand them from and that box must be able to cover the
+    // amount. Checked before the insert so a rejected refund never leaves a
+    // row (or a restored unit of stock) behind. Non-cash orders never touched
+    // the drawer, so they are refunded without this check.
+    const refundAmount = parseFloat(amount)
+    let cashBox = null
+
+    if (order.payment_method === 'cash') {
+      cashBox = await getCashBoxBalance(req.user.tenantId)
+
+      if (!cashBox.shift) {
+        return res.status(400).json({
+          error: 'Cash refunds require an open cash box. Open the cash box before refunding a cash order.',
+        })
+      }
+
+      if (!cashBox.ok) {
+        // A source query failed, so the balance we would be checking against
+        // is unknown -- and guessing high is what overdraws the drawer.
+        return res.status(400).json({
+          error: 'Could not verify the cash box balance. Please try again.',
+        })
+      }
+
+      if (cashBox.balance < refundAmount) {
+        return res.status(400).json({
+          error: `Insufficient cash in the cash box: ${cashBox.balance.toFixed(2)} available, ${refundAmount.toFixed(2)} required.`,
+        })
       }
     }
 
@@ -278,7 +311,15 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
       entity_type: 'order',
       entity_id: order.id,
       entity_name: order.order_number,
-      details: { amount, reason, original_total: order.total, is_partial: is_partial || false, items_count: items?.length || 0 }
+      details: {
+        amount, reason, original_total: order.total, is_partial: is_partial || false, items_count: items?.length || 0,
+        payment_method: order.payment_method,
+        // What the drawer gave up for this refund, and what it now holds.
+        ...(cashBox && {
+          cash_box_deducted: refundAmount,
+          cash_box_balance_after: cashBox.balance - refundAmount,
+        }),
+      }
     })
 
     // Auto-post to accounting journal
