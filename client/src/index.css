@@ -89,12 +89,15 @@
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-success-soft: var(--success-soft);
+  --color-success-soft-foreground: var(--success-soft-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-foreground: var(--warning-soft-foreground);
   --color-danger: var(--danger);
   --color-danger-foreground: var(--danger-foreground);
   --color-danger-soft: var(--danger-soft);
+  --color-danger-soft-foreground: var(--danger-soft-foreground);
 
   --color-border: var(--border);
   --color-border-secondary: var(--border-secondary);

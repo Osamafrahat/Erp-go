@@ -596,7 +596,7 @@ function LowStockAlert({ products, t }) {
   return (
     <Card className="gap-0 rounded-xl border border-border shadow-sm bg-warning-soft p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 text-warning-foreground truncate mr-3">
+        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 text-warning-soft-foreground truncate mr-3">
           <AlertTriangle className="w-5 h-5 shrink-0" />
           {t('dashboard.lowStockAlert')}
         </h3>
@@ -613,7 +613,7 @@ function LowStockAlert({ products, t }) {
                 {t('dashboard.threshold')}: {product.low_stock_threshold}
               </p>
             </div>
-            <span className="text-lg font-bold text-warning-foreground">
+            <span className="text-lg font-bold text-warning-soft-foreground">
               {product.stock_quantity} {t('dashboard.left')}
             </span>
           </div>

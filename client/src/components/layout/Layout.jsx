@@ -656,9 +656,9 @@ export default function Layout({ children }) {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isOnline
                       ? pendingCount > 0
-                        ? 'bg-warning-soft text-warning-foreground hover:bg-warning-soft/80'
-                        : 'bg-success-soft text-success-foreground'
-                      : 'bg-danger-soft text-danger-foreground'
+                        ? 'bg-warning-soft text-warning-soft-foreground hover:bg-warning-soft/80'
+                        : 'bg-success-soft text-success-soft-foreground'
+                      : 'bg-danger-soft text-danger-soft-foreground'
                   }`}
                 >
                   {isOnline ? (
@@ -677,7 +677,7 @@ export default function Layout({ children }) {
                     <div className="p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <h3 className="font-bold text-sm text-foreground">{t('offline.syncStatus')}</h3>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${isOnline ? 'bg-success-soft text-success-foreground' : 'bg-danger-soft text-danger-foreground'}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${isOnline ? 'bg-success-soft text-success-soft-foreground' : 'bg-danger-soft text-danger-soft-foreground'}`}>
                           {isOnline ? t('offline.online') : t('offline.offline')}
                         </span>
                       </div>
@@ -687,7 +687,7 @@ export default function Layout({ children }) {
                           <p>{t('offline.lastSync')}: {new Date(lastSyncTime).toLocaleString()}</p>
                         )}
                         {pendingCount > 0 && (
-                          <p className="text-warning-foreground font-medium">
+                          <p className="text-warning font-medium">
                             {pendingCount} {t('offline.ordersWaiting')}
                           </p>
                         )}
@@ -738,7 +738,7 @@ export default function Layout({ children }) {
                 const trialDaysLeft = isTrial() ? Math.ceil((new Date(trialEndsAt) - new Date()) / (1000 * 60 * 60 * 24)) : 0
                 if (isTrial()) {
                   return (
-                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-warning-soft text-warning-foreground hover:bg-warning-soft/80 transition-all duration-200">
+                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-warning-soft text-warning-soft-foreground hover:bg-warning-soft/80 transition-all duration-200">
                       <Sparkles className="w-4 h-4" />
                       <span className="hidden sm:inline">{t('layout.trialBadge') || 'Trial'} ({trialDaysLeft}d left)</span>
                     </Link>
@@ -746,7 +746,7 @@ export default function Layout({ children }) {
                 }
                 if (subscriptionTier === 'pro') {
                   return (
-                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-success-soft text-success-foreground hover:bg-success-soft/80 transition-all duration-200">
+                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-success-soft text-success-soft-foreground hover:bg-success-soft/80 transition-all duration-200">
                       <Crown className="w-4 h-4" />
                       <span className="hidden sm:inline">{t('layout.proBadge') || 'Pro'}</span>
                     </Link>
@@ -754,7 +754,7 @@ export default function Layout({ children }) {
                 }
                 if (subscriptionTier === 'enterprise') {
                   return (
-                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent-soft text-accent-foreground hover:bg-accent-soft/80 transition-all duration-200">
+                    <Link to="/billing" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent-soft text-accent-soft-foreground hover:bg-accent-soft/80 transition-all duration-200">
                       <Crown className="w-4 h-4" />
                       <span className="hidden sm:inline">{t('layout.enterpriseBadge') || 'Enterprise'}</span>
                     </Link>
