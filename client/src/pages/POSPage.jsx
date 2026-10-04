@@ -659,6 +659,11 @@ export default function POSPage() {
             if (isSubmitting) return
             setIsSubmitting(true)
             try {
+              // Cash change is only knowable here: PaymentModal records it per
+              // payment and the receipt renders order.change, which nothing
+              // else was ever populating.
+              const changeDue = (paymentData.payments || []).reduce((s, p) => s + (p.change || 0), 0)
+
               const productItems = items.filter(i => i.product._type !== 'service' && i.product._type !== 'subscription')
               const serviceItems = items.filter(i => i.product._type === 'service')
               const subscriptionItems = items.filter(i => i.product._type === 'subscription')
@@ -798,10 +803,12 @@ export default function POSPage() {
                     completedOrder = {
                       ...fullOrderRes.data,
                       items: allOrderItems,
+                      change: changeDue,
                     }
                   } else {
                     completedOrder = {
                       ...orderData,
+                      change: changeDue,
                       users: currentUser ? { full_name: currentUser.fullName } : null,
                       customers: selectedCustomer ? { name: selectedCustomer.name } : null,
                     }
@@ -813,6 +820,9 @@ export default function POSPage() {
                   setLastOrder({
                     ...orderData,
                     client_order_id: clientOrderId,
+                    // change is receipt-only state; orderData itself goes to
+                    // /sync/order and has no change column to write to
+                    change: changeDue,
                     offline: true,
                     users: currentUser ? { full_name: currentUser.fullName } : null,
                     customers: selectedCustomer ? { name: selectedCustomer.name } : null,
@@ -838,6 +848,7 @@ export default function POSPage() {
                   tax_amount: 0,
                   total: subscriptionTotal,
                   payment_method: paymentData.method,
+                  change: changeDue,
                   customers: selectedCustomer ? { name: selectedCustomer.name } : null,
                   users: currentUser ? { full_name: currentUser.fullName } : null,
                   subscription_sale: true,

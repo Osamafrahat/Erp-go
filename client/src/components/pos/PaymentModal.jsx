@@ -54,7 +54,11 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
 
     if (selectedMethod === 'cash') {
       amount = parseFloat(cashTendered) || 0
-      if (amount <= 0) return
+      if (amount <= 0) {
+        // was a silent no-op: the button just appeared to do nothing
+        toastError(t('payment.enterAmount'))
+        return
+      }
     } else {
       amount = remaining
       if (selectedMethod === 'mobile') {
@@ -64,16 +68,15 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
       }
     }
 
-    // Allow small floating point tolerance (0.01)
-    if (amount > remaining + 0.01) {
-      toastError(t('payment.exceedsBalance'))
-      return
-    }
-
-    // Cap amount to remaining if slightly over due to floating point
+    // Cashing over the balance is a normal tender, not an error — the excess
+    // is change handed back, which is exactly why the UI above displays it.
+    // Only apply what the sale still owes; card/mobile already equal remaining.
+    const changeDue = calculateChange(amount, remaining)
     const finalAmount = Math.min(amount, remaining)
 
-    setPayments([...payments, { method: selectedMethod, amount: finalAmount, reference }])
+    // change rides along so the receipt can print it: nothing else computes it
+    // (ReceiptModal reads order.change, which was never populated).
+    setPayments([...payments, { method: selectedMethod, amount: finalAmount, reference, change: changeDue }])
     setCashTendered('')
     setMobileRef('')
     setCardRef('')
@@ -296,6 +299,11 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
                     )}
                   </div>
                   <div className="flex items-center gap-3">
+                    {payment.change > 0 && (
+                      <span className="text-sm font-medium text-green-600">
+                        {t('payment.change')}: {formatCurrency(payment.change)}
+                      </span>
+                    )}
                     <span className="font-semibold">{formatCurrency(payment.amount)}</span>
                     <button
                       onClick={() => handleRemovePayment(index)}
