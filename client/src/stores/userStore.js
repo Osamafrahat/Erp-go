@@ -193,6 +193,42 @@ export const useUserStore = create(
         }
       },
 
+      // Adopt a tenant session minted by the super-admin impersonation endpoint.
+      // This has to go through the store: axios reads `auth_token` straight from
+      // localStorage, but every role/permission/nav decision reads `currentUser`
+      // from the hydrated store -- so writing only localStorage left the UI as
+      // SUPER_ADMIN while the API calls were tenant-scoped.
+      impersonate: (token, user, tenant = {}) => {
+        localStorage.setItem('auth_token', token)
+
+        const mappedUser = {
+          ...user,
+          fullName: user.full_name ?? null,
+          phone: user.phone ?? null,
+          email: user.email ?? null,
+        }
+
+        const tenantData = {
+          tenantId: user.tenant_id ?? tenant.id ?? null,
+          tenantName: tenant.name ?? null,
+          subscriptionTier: tenant.subscription_tier ?? 'free',
+          subscriptionStatus: tenant.subscription_status ?? null,
+          trialEndsAt: tenant.trial_ends_at ?? null,
+        }
+
+        if (tenantData.tenantId) {
+          localStorage.setItem('tenant_id', String(tenantData.tenantId))
+        }
+
+        set({
+          currentUser: mappedUser,
+          isAuthenticated: true,
+          lastActivity: Date.now(),
+          token,
+          ...tenantData,
+        })
+      },
+
       // Logout
       logout: () => {
         authApi.logout().catch(() => {})

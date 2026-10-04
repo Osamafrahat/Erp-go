@@ -337,9 +337,10 @@ function TenantsTab({ t, showToast }) {
     setActionLoading(tenantId)
     try {
       const { data } = await superAdminApi.impersonate(tenantId)
-      localStorage.setItem('auth_token', data.token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      localStorage.setItem('tenant_id', String(data.user.tenant_id))
+      // Hydrate the store, not just localStorage: axios reads auth_token from
+      // localStorage but every role/permission/nav check reads currentUser from
+      // the store. The hard reload then rebuilds all consumers from that state.
+      useUserStore.getState().impersonate(data.token, data.user, data.tenant)
       window.location.href = '/dashboard'
     } catch (err) { showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error') } finally { setActionLoading(null) }
   }

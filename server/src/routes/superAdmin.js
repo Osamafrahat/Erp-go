@@ -403,14 +403,18 @@ router.post('/tenants/:id/impersonate', async (req, res) => {
 
     const { data: tenant, error: tenantErr } = await supabase
       .from('tenants')
-      .select('id, name')
+      .select('id, name, subscription_tier, subscription_status, trial_ends_at')
       .eq('id', tenantId)
       .single()
     if (tenantErr || !tenant) return res.status(404).json({ error: 'Tenant not found' })
 
+    // Projection mirrors /auth/login's user so the client can hydrate its store
+    // identically. must_change_password is deliberately omitted: the super admin
+    // is inspecting a tenant, not taking over an account that owes a password
+    // change, and a forced-change screen would make impersonation unusable.
     const { data: manager, error: userErr } = await supabase
       .from('users')
-      .select('id, username, role, is_active, tenant_id')
+      .select('id, username, full_name, email, phone, role, permissions, is_active, tenant_id')
       .eq('tenant_id', tenantId)
       .eq('role', 'MANAGER')
       .eq('is_active', true)
@@ -429,11 +433,7 @@ router.post('/tenants/:id/impersonate', async (req, res) => {
       .update({ session_token: sessionToken, last_login: new Date().toISOString() })
       .eq('id', manager.id)
 
-    res.json({
-      token,
-      user: { id: manager.id, username: manager.username, role: manager.role, tenant_id: manager.tenant_id },
-      tenant: { id: tenant.id, name: tenant.name },
-    })
+    res.json({ token, user: manager, tenant })
   } catch (err) {
     console.error(`[SuperAdmin] ${req.method} ${req.originalUrl} failed:`, err.message)
     res.status(500).json({ error: 'Internal server error' })
