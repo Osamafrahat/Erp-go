@@ -97,7 +97,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
 
   if (products.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+<div className="flex-1 flex flex-col items-center justify-center text-muted">
         <Package className="w-16 h-16 mb-4" />
         <p className="text-lg font-medium">{t('inventory.noProducts')}</p>
         <p className="text-sm">{t('inventory.addFirstProduct')}</p>
@@ -112,14 +112,14 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
           <button
             key={product.id}
             onClick={() => handleProductClick(product)}
-            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-2 sm:p-4 hover:border-primary-500 hover:shadow-lg transition-all text-left group"
+className="bg-surface rounded-xl border border-border p-2 sm:p-4 hover:border-primary-500 hover:shadow-lg transition-all text-left group"
           >
             {/* Product Image */}
-            <div className="aspect-square rounded-lg bg-gray-100 dark:bg-gray-700 mb-3 flex items-center justify-center overflow-hidden">
+<div className="aspect-square rounded-lg bg-surface-tertiary mb-3 flex items-center justify-center overflow-hidden">
               {product._type === 'service' ? (
-                <Wrench className="w-12 h-12 text-blue-500" />
+<Wrench className="w-12 h-12 text-accent"/>
               ) : product._type === 'subscription' ? (
-                <Repeat className="w-12 h-12 text-purple-500" />
+<Repeat className="w-12 h-12 text-purple-500"/>
               ) : product.image_url ? (
                 <img
                   src={product.image_url}
@@ -127,25 +127,25 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <Package className="w-12 h-12 text-gray-300 dark:text-gray-600" />
+<Package className="w-12 h-12 text-foreground"/>
               )}
             </div>
 
             {/* Product Info */}
             <div className="space-y-1">
-              <h3 className="font-medium text-gray-900 dark:text-white line-clamp-2 min-h-[2.5rem]">
+<h3 className="font-medium text-foreground line-clamp-2 min-h-[2.5rem]">
                 {product.name}
               </h3>
               {product.sku && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+<p className="text-xs text-muted">
                   SKU: {product.sku}
                 </p>
               )}
               <div className="flex items-center justify-between flex-wrap gap-1">
-                <p className="text-lg font-bold text-primary-600">
+<p className="text-lg font-bold text-accent">
                   {formatCurrency(product.price)}
                   {isSplittable(product) && (
-                    <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1">
+<span className="text-xs font-normal text-muted ml-1">
                       /{getUnitLabel(product)}
                     </span>
                   )}
@@ -153,14 +153,14 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
                 <span className={`
                   text-xs px-2 py-0.5 rounded-full
                   ${product._type === 'service'
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+?'bg-accent-soft text-accent-soft-foreground'
                     : product._type === 'subscription'
-                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
+?'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
                     : product.stock_quantity != null && product.stock_quantity > 0
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+?'bg-success-soft text-success-soft-foreground'
                     : product.stock_quantity === 0
-                    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+?'bg-danger-soft text-danger-soft-foreground'
+:'bg-surface-tertiary text-muted'
                   }
                 `}>
                   {product._type === 'service' 
@@ -178,7 +178,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
 
             {/* Add to Cart Button */}
             <div className="mt-2 sm:mt-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-              <div className="flex items-center justify-center gap-2 py-2 bg-primary-50 dark:bg-primary-900/30 text-primary-600 rounded-lg">
+<div className="flex items-center justify-center gap-2 py-2 bg-accent-soft text-accent-soft-foreground rounded-lg">
                 <Plus className="w-4 h-4" />
                 <span className="text-sm font-medium">
                   {isBoxProduct(product) || isSplittable(product) ? t('pos.enterWeight') || 'Enter Qty' : t('pos.addToCart')}
@@ -192,13 +192,13 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
       {/* Box Sell Modal */}
       {boxModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setBoxModal(null)}>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
+<div className="bg-surface rounded-2xl p-6 w-[calc(100%-2rem)] max-w-80 shadow-2xl"onClick={e=>e.stopPropagation()}>
             <h3 className="text-lg font-semibold mb-1">{boxModal.name}</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+<p className="text-sm text-muted mb-1">
               {formatCurrency(boxModal.price)} / box ({boxModal.pieces_per_box} pcs)
             </p>
             {boxModal.pieces_per_box > 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+<p className="text-sm text-muted mb-4">
                 {formatCurrency(boxModal.price / boxModal.pieces_per_box)} / piece
               </p>
             )}
@@ -207,13 +207,13 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
               <div className="space-y-2">
                 <button
                   onClick={() => setBoxSellMode('box')}
-                  className="w-full py-3 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
+className="w-full py-3 rounded-lg bg-accent text-white font-medium hover:bg-primary-700 transition-colors"
                 >
                   {t('pos.sellWholeBox') || 'Sell Whole Box'}
                 </button>
                 <button
                   onClick={() => setBoxSellMode('pieces')}
-                  className="w-full py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+className="w-full py-3 rounded-lg bg-surface-tertiary text-foreground font-medium bg-surface-hover transition-colors"
                 >
                   {t('pos.sellPieces') || 'Sell Pieces'}
                 </button>
@@ -222,19 +222,19 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
 
             {boxSellMode === 'box' && (
               <div className="space-y-3">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
+<p className="text-sm text-muted">
                   Deducts {boxModal.pieces_per_box} pieces from stock
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setBoxSellMode(null)}
-                    className="flex-1 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium"
+className="flex-1 py-2 rounded-lg bg-surface-tertiary text-foreground font-medium"
                   >
                     {t('common.back') || 'Back'}
                   </button>
                   <button
                     onClick={handleBoxSellWhole}
-                    className="flex-1 py-2 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700"
+className="flex-1 py-2 rounded-lg bg-accent text-white font-medium hover:bg-primary-700"
                   >
                     {t('cart.add') || 'Add'} (1 box)
                   </button>
@@ -244,7 +244,7 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
 
             {boxSellMode === 'pieces' && (
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+<label className="block text-sm font-medium text-foreground">
                   {t('pos.enterPieces') || 'Enter number of pieces'}
                 </label>
                 <input
@@ -256,19 +256,19 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
                   onChange={(e) => setBoxPieceQty(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleBoxSellPieces()}
                   placeholder="0"
-                  className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500"
+className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-border bg-surface ring-focus"
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={() => setBoxSellMode(null)}
-                    className="flex-1 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium"
+className="flex-1 py-2 rounded-lg bg-surface-tertiary text-foreground font-medium"
                   >
                     {t('common.back') || 'Back'}
                   </button>
                   <button
                     onClick={handleBoxSellPieces}
                     disabled={!boxPieceQty || parseInt(boxPieceQty) <= 0}
-                    className="flex-1 py-2 rounded-lg bg-primary-600 text-white font-medium disabled:opacity-50"
+className="flex-1 py-2 rounded-lg bg-accent text-white font-medium disabled:opacity-50"
                   >
                     {t('cart.add') || 'Add'} ({boxPieceQty || '0'} pcs)
                   </button>
@@ -282,12 +282,12 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
       {/* Quantity Input Modal for Kilo/Liter/Meter */}
       {qtyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setQtyModal(null)}>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
+<div className="bg-surface rounded-2xl p-6 w-[calc(100%-2rem)] max-w-80 shadow-2xl"onClick={e=>e.stopPropagation()}>
             <h3 className="text-lg font-semibold mb-1">{qtyModal.name}</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+<p className="text-sm text-muted mb-4">
               {formatCurrency(qtyModal.price)} / {getUnitLabel(qtyModal)}
             </p>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('pos.enterWeight') || 'Enter quantity'}
             </label>
             <input
@@ -299,19 +299,19 @@ export default memo(function ProductGrid({ products, onAddToCart }) {
               onChange={(e) => setQtyValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleConfirmQty()}
               placeholder="0.00"
-              className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 mb-4"
+className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-border bg-surface ring-focus mb-4"
             />
             <div className="flex gap-2">
               <button
                 onClick={() => setQtyModal(null)}
-                className="flex-1 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium"
+className="flex-1 py-2 rounded-lg bg-surface-tertiary text-foreground font-medium"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={handleConfirmQty}
                 disabled={!qtyValue || parseFloat(qtyValue) <= 0}
-                className="flex-1 py-2 rounded-lg bg-primary-600 text-white font-medium disabled:opacity-50"
+className="flex-1 py-2 rounded-lg bg-accent text-white font-medium disabled:opacity-50"
               >
                 {t('cart.add')} ({qtyValue || '0'} {getUnitLabel(qtyModal)})
               </button>

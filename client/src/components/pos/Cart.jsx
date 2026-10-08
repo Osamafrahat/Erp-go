@@ -73,9 +73,9 @@ export default memo(function Cart({ onCheckout }) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex-1 flex flex-col overflow-hidden min-h-0">
+<div className="bg-surface rounded-xl border border-border flex-1 flex flex-col overflow-hidden min-h-0">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <ShoppingBag className="w-5 h-5" />
@@ -84,7 +84,7 @@ export default memo(function Cart({ onCheckout }) {
           {items.length > 0 && (
             <button
               onClick={clearCart}
-              className="text-sm text-red-500 hover:text-red-600 flex items-center gap-1 p-2 -mr-2 min-w-[44px] min-h-[44px] justify-center"
+className="text-sm text-danger hover:text-red-600 flex items-center gap-1 p-2 -mr-2 min-w-[44px] min-h-[44px] justify-center"
             >
               <Trash2 className="w-4 h-4" />
               {t('cart.remove')}
@@ -96,7 +96,7 @@ export default memo(function Cart({ onCheckout }) {
       {/* Cart Items */}
       <div className="flex-1 overflow-auto p-4">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+<div className="flex flex-col items-center justify-center h-full text-muted">
             <ShoppingBag className="w-12 h-12 mb-3" />
             <p className="font-medium">{t('cart.empty')}</p>
             <p className="text-sm">{t('pos.addToCart')}</p>
@@ -106,12 +106,12 @@ export default memo(function Cart({ onCheckout }) {
             {items.map((item) => (
               <div
                 key={`${item.product.id}-${item.sellMode || 'default'}`}
-                className="flex gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+className="flex gap-3 p-3 bg-surface-secondary rounded-lg"
               >
                 {/* Product Image */}
-                <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
+<div className="w-12 h-12 rounded-lg bg-surface-tertiary flex items-center justify-center flex-shrink-0">
                   {item.product._type === 'service' ? (
-                    <Wrench className="w-6 h-6 text-blue-500" />
+<Wrench className="w-6 h-6 text-accent"/>
                   ) : item.product.image_url ? (
                     <img
                       src={item.product.image_url}
@@ -119,7 +119,7 @@ export default memo(function Cart({ onCheckout }) {
                       className="w-full h-full object-cover rounded-lg"
                     />
                   ) : (
-                    <ShoppingBag className="w-6 h-6 text-gray-400" />
+<ShoppingBag className="w-6 h-6 text-muted"/>
                   )}
                 </div>
 
@@ -128,17 +128,17 @@ export default memo(function Cart({ onCheckout }) {
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium text-sm truncate line-clamp-1 sm:line-clamp-none">{item.product.name}</h4>
                     {item.product._type === 'service' && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+<span className="text-xs px-1.5 py-0.5 rounded bg-accent-soft text-accent-soft-foreground">
                         {t('services.service') || 'Service'}
                       </span>
                     )}
                     {item.sellMode && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
+<span className="text-xs px-1.5 py-0.5 rounded bg-surface-tertiary text-muted">
                         {item.sellMode === 'box' ? 'box' : 'pcs'}
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+<p className="text-sm text-muted">
                     {item.sellMode === 'pieces' && item.product.pieces_per_box
                       ? formatCurrency(item.product.price / item.product.pieces_per_box) + ' / pcs'
                       : formatCurrency(item.product.price) + (item.product.unit_of_measure !== 'quantity' ? ' / ' + getUnitLabel(item.product, item.sellMode) : '')}
@@ -150,7 +150,7 @@ export default memo(function Cart({ onCheckout }) {
                       <>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.product._type, item.sellMode)}
-                          className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
+className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-surface-tertiary flex items-center justify-center bg-surface-hover"
                         >
                           <Minus className="w-4 h-4 md:w-3 md:h-3" />
                         </button>
@@ -162,11 +162,11 @@ export default memo(function Cart({ onCheckout }) {
                               toastError(`${t('pos.insufficientStock') || 'Insufficient stock'} (${t('inventory.inStock')}: ${item.product.stock_quantity})`)
                             }
                           }}
-                          className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
+className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-surface-tertiary flex items-center justify-center bg-surface-hover"
                         >
                           <Plus className="w-4 h-4 md:w-3 md:h-3" />
                         </button>
-                        <span className="text-xs text-gray-500">box</span>
+<span className="text-xs text-muted">box</span>
                       </>
                     ) : item.sellMode === 'pieces' || (item.product.unit_of_measure && item.product.unit_of_measure !== 'quantity') ? (
                       <>
@@ -184,15 +184,15 @@ export default memo(function Cart({ onCheckout }) {
                               }
                             }
                           }}
-                          className="w-20 px-2 py-1 text-sm text-center rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+className="w-20 px-2 py-1 text-sm text-center rounded border border-border bg-surface"
                         />
-                        <span className="text-xs text-gray-500">{getUnitLabel(item.product, item.sellMode)}</span>
+<span className="text-xs text-muted">{getUnitLabel(item.product,item.sellMode)}</span>
                       </>
                     ) : (
                       <>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.product._type, item.sellMode)}
-                          className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
+className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-surface-tertiary flex items-center justify-center bg-surface-hover"
                         >
                           <Minus className="w-4 h-4 md:w-3 md:h-3" />
                         </button>
@@ -204,7 +204,7 @@ export default memo(function Cart({ onCheckout }) {
                               toastError(`${t('pos.insufficientStock') || 'Insufficient stock'} (${t('inventory.inStock')}: ${item.product.stock_quantity})`)
                             }
                           }}
-                          className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500"
+className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-surface-tertiary flex items-center justify-center bg-surface-hover"
                         >
                           <Plus className="w-4 h-4 md:w-3 md:h-3" />
                         </button>
@@ -217,7 +217,7 @@ export default memo(function Cart({ onCheckout }) {
                 <div className="text-right flex flex-col justify-between">
                   <button
                     onClick={() => removeItem(item.product.id, item.product._type, item.sellMode)}
-                    className="text-gray-400 hover:text-red-500 p-1.5 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
+className="text-muted hover:text-red-500 p-1.5 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -231,16 +231,16 @@ export default memo(function Cart({ onCheckout }) {
 
       {/* Promo Code */}
       {items.length > 0 && (
-        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+<div className="px-4 py-3 border-t border-border">
           {promoCode ? (
-            <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/30 px-3 py-2 rounded-lg">
-              <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+<div className="flex items-center justify-between bg-success-soft px-3 py-2 rounded-lg">
+<div className="flex items-center gap-2 text-success">
                 <Tag className="w-4 h-4" />
                 <span className="text-sm font-medium">{promoCode} (-{promoDiscount}%)</span>
               </div>
               <button
                 onClick={handleRemovePromo}
-                className="text-green-600 hover:text-green-700 p-1.5 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
+className="text-success hover:text-green-700 p-1.5 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -253,57 +253,57 @@ export default memo(function Cart({ onCheckout }) {
                 value={promoInput}
                 onChange={(e) => { setPromoInput(e.target.value); setPromoError('') }}
                 onKeyDown={(e) => e.key === 'Enter' && handleApplyPromo()}
-                className="flex-1 px-3 py-2.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="flex-1 px-3 py-2.5 text-sm rounded-lg border border-border bg-surface"
               />
               <button
                 onClick={handleApplyPromo}
                 disabled={promoLoading}
-                className="px-3 py-2.5 text-sm font-medium bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 min-h-[44px]"
+className="px-3 py-2.5 text-sm font-medium bg-surface-tertiary rounded-lg bg-surface-hover disabled:opacity-50 min-h-[44px]"
               >
                 {promoLoading ? '...' : t('cart.apply')}
               </button>
             </div>
           )}
           {promoError && (
-            <p className="text-sm text-red-500 mt-1">{promoError}</p>
+<p className="text-sm text-danger mt-1">{promoError}</p>
           )}
         </div>
       )}
 
       {/* Totals */}
       {items.length > 0 && (
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+<div className="p-4 border-t border-border space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">{t('cart.subtotal')}</span>
+<span className="text-muted">{t('cart.subtotal')}</span>
             <span>{formatCurrency(getSubtotal())}</span>
           </div>
           {getNonProductSubtotal() > 0 && (
-            <div className="flex justify-between text-sm text-blue-600">
+<div className="flex justify-between text-sm text-accent">
               <span>{t('services.services') || 'Services'}</span>
               <span>{formatCurrency(getNonProductSubtotal())}</span>
             </div>
           )}
           {getNonProductSubtotal() > 0 && (
-            <div className="flex justify-between text-sm text-gray-500">
+<div className="flex justify-between text-sm text-muted">
               <span>{t('cart.taxExempt') || 'Tax exempt'}</span>
               <span>—</span>
             </div>
           )}
           {getDiscount() > 0 && (
-            <div className="flex justify-between text-sm text-green-600">
+<div className="flex justify-between text-sm text-success">
               <span>{t('cart.discount')}</span>
               <span>-{formatCurrency(getDiscount())}</span>
             </div>
           )}
           {getProductSubtotal() > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500 dark:text-gray-400">{t('cart.tax')} ({settings.taxRate}%)</span>
+<span className="text-muted">{t('cart.tax')}({settings.taxRate}%)</span>
               <span>{formatCurrency(getTax(settings.taxRate))}</span>
             </div>
           )}
-          <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200 dark:border-gray-700">
+<div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
             <span>{t('cart.total')}</span>
-            <span className="text-primary-600">{formatCurrency(getTotal(settings.taxRate))}</span>
+<span className="text-accent">{formatCurrency(getTotal(settings.taxRate))}</span>
           </div>
         </div>
       )}
@@ -313,7 +313,7 @@ export default memo(function Cart({ onCheckout }) {
         <div className="p-4">
           <button
             onClick={onCheckout}
-            className="w-full py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+className="w-full py-3 bg-accent text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
           >
             {t('cart.checkout')}
           </button>

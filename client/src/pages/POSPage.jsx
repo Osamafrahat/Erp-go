@@ -384,7 +384,7 @@ export default function POSPage() {
     <div className="flex flex-col md:flex-row h-auto md:h-[calc(100vh-8rem)] gap-3 md:gap-4 overflow-visible md:overflow-hidden">
       {/* Offline Banner */}
       {!isOnline && (
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white text-sm font-medium rounded-xl shrink-0">
+<div className="flex items-center gap-2 px-4 py-2.5 bg-warning text-white text-sm font-medium rounded-xl shrink-0">
           <WifiOff className="w-4 h-4" />
           {t('offline.offline') || 'You are offline'} — {t('offline.ordersWillBeQueued') || 'Orders will be saved and synced when connected'}
         </div>
@@ -397,9 +397,9 @@ export default function POSPage() {
           <div className="shrink-0">
             <button
               onClick={() => setShowCashBoxPanel(!showCashBoxPanel)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-sm font-medium rounded-xl hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors w-full"
+className="flex items-center gap-2 px-4 py-2 bg-success-soft border border-success text-success-soft-foreground text-sm font-medium rounded-xl hover:bg-green-100 transition-colors w-full"
             >
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+<span className="w-2 h-2 rounded-full bg-success animate-pulse"/>
               {t('pos.cashBoxOpen') || 'Cash Box Open'}
               {shiftStats && (
                 <span className="ml-auto text-xs opacity-75">
@@ -409,29 +409,29 @@ export default function POSPage() {
             </button>
 
             {showCashBoxPanel && shiftStats && (
-              <div className="mt-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-lg">
+<div className="mt-2 bg-surface rounded-xl border border-border p-4 shadow-lg">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">{t('openingBalance') || 'Opening'}</p>
-                    <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{formatCurrency(shiftStats.opening_balance)}</p>
+<div className="bg-accent-soft rounded-lg p-3">
+<p className="text-xs text-accent mb-1">{t('openingBalance')||'Opening'}</p>
+<p className="text-lg font-bold text-accent">{formatCurrency(shiftStats.opening_balance)}</p>
                   </div>
-                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
-                    <p className="text-xs text-green-600 dark:text-green-400 mb-1">{t('pos.totalCash') || 'Cash Received'}</p>
-                    <p className="text-lg font-bold text-green-700 dark:text-green-300">{formatCurrency(shiftStats.total_cash)}</p>
+<div className="bg-success-soft rounded-lg p-3">
+<p className="text-xs text-success mb-1">{t('pos.totalCash')||'Cash Received'}</p>
+<p className="text-lg font-bold text-success">{formatCurrency(shiftStats.total_cash)}</p>
                   </div>
-                  <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
-                    <p className="text-xs text-purple-600 dark:text-purple-400 mb-1">{t('pos.totalOrders') || 'Orders'}</p>
-                    <p className="text-lg font-bold text-purple-700 dark:text-purple-300">{shiftStats.total_orders}</p>
+<div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+<p className="text-xs text-purple-600 dark:text-purple-400 mb-1">{t('pos.totalOrders')||'Orders'}</p>
+<p className="text-lg font-bold text-purple-700 dark:text-purple-300">{shiftStats.total_orders}</p>
                   </div>
-                  <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">
-                    <p className="text-xs text-amber-600 dark:text-amber-400 mb-1">{t('expectedCash') || 'Expected Cash'}</p>
-                    <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{formatCurrency(shiftStats.expected_cash)}</p>
+<div className="bg-warning-soft rounded-lg p-3">
+<p className="text-xs text-warning mb-1">{t('expectedCash')||'Expected Cash'}</p>
+<p className="text-lg font-bold text-warning">{formatCurrency(shiftStats.expected_cash)}</p>
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+<div className="mt-3 pt-3 border-t border-border">
                   <button
                     onClick={() => setShowCloseShiftModal(true)}
-                    className="w-full py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+className="w-full py-2 rounded-lg bg-danger-soft border border-danger text-danger-soft-foreground text-sm font-medium hover:bg-red-100 transition-colors"
                   >
                     {t('closeShift') || 'Close Shift'}
                   </button>
@@ -444,19 +444,19 @@ export default function POSPage() {
         {/* Search and Filters */}
         <div className="flex gap-2 md:gap-3">
           <div className="flex-1 relative min-w-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted"/>
             <input
               ref={searchInputRef}
               type="text"
               placeholder={t('pos.search')}
               value={searchQuery}
               onChange={handleSearch}
-              className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-surface ring-focus focus:border-transparent"
             />
           </div>
           <button
             onClick={() => setShowScanner(true)}
-            className="px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2 shrink-0"
+className="px-4 py-3 bg-accent text-white rounded-lg hover:bg-primary-700 flex items-center gap-2 shrink-0"
           >
             <Zap className="w-5 h-5" />
             <span className="hidden sm:inline">{t('pos.scan')}</span>
@@ -464,7 +464,7 @@ export default function POSPage() {
           {items.length > 0 && (
             <button
               onClick={handleHold}
-              className="px-4 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 flex items-center gap-2 shrink-0"
+className="px-4 py-3 bg-warning text-white rounded-lg hover:bg-amber-600 flex items-center gap-2 shrink-0"
             >
               <Pause className="w-5 h-5" />
               <span className="hidden sm:inline">{t('pos.hold') || 'Hold'}</span>
@@ -474,52 +474,52 @@ export default function POSPage() {
             <div className="relative shrink-0">
               <button
                 onClick={() => setShowHeld(!showHeld)}
-                className="px-4 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 flex items-center gap-2"
+className="px-4 py-3 bg-success text-white rounded-lg hover:bg-emerald-600 flex items-center gap-2"
               >
                 <Play className="w-5 h-5" />
                 <span className="hidden sm:inline">{t('pos.recall') || 'Recall'}</span>
-                <span className="ms-1 bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{heldTransactions.length}</span>
+<span className="ms-1 bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{heldTransactions.length}</span>
               </button>
               {showHeld && (
-                <div className="absolute z-20 top-full end-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl max-h-72 overflow-y-auto">
-                  <div className="sticky top-0 z-10 flex items-center justify-between gap-2 px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 rounded-t-xl">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+<div className="absolute z-20 top-full end-0 mt-2 w-80 bg-surface border border-border rounded-xl shadow-xl max-h-72 overflow-y-auto">
+<div className="sticky top-0 z-10 flex items-center justify-between gap-2 px-3 py-2.5 bg-surface-secondary border-b border-border rounded-t-xl">
+<p className="text-xs font-semibold uppercase tracking-wide text-muted">
                       {t('pos.heldTransactions') || 'Held Transactions'}
                     </p>
-                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-2 py-0.5 rounded-full">
+<span className="text-xs font-bold text-success-soft-foreground bg-success-soft px-2 py-0.5 rounded-full">
                       {heldTransactions.length}
                     </span>
                   </div>
                   {heldTransactions.map(held => (
                     <div
                       key={held.id}
-                      className="flex items-stretch border-b border-gray-100 dark:border-gray-700/60 last:border-b-0"
+className="flex items-stretch border-b border-border last:border-b-0"
                     >
                       <button
                         onClick={() => handleRecall(held)}
-                        className="flex-1 min-w-0 px-3 py-2.5 text-start hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between gap-3"
+className="flex-1 min-w-0 px-3 py-2.5 text-start bg-surface-hover flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+<p className="text-sm font-medium text-foreground truncate">
                             {held.items.length} {held.items.length === 1 ? (t('pos.item') || 'item') : (t('pos.items') || 'items')}
                             {held.customer?.name && (
-                              <span className="font-normal text-gray-400 dark:text-gray-500"> · {held.customer.name}</span>
+<span className="font-normal text-muted">·{held.customer.name}</span>
                             )}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+<p className="text-xs text-muted">
                             {formatCurrency(held.total)}
                             {held.timestamp && (
-                              <span className="text-gray-400 dark:text-gray-500"> · {formatHeldTime(held.timestamp)}</span>
+<span className="text-muted">·{formatHeldTime(held.timestamp)}</span>
                             )}
                           </p>
                         </div>
-                        <Play className="w-4 h-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
+<Play className="w-4 h-4 shrink-0 text-success"/>
                       </button>
                       <button
                         onClick={() => handleDiscardHeld(held)}
                         aria-label={t('common.delete') || 'Delete'}
                         title={t('common.delete') || 'Delete'}
-                        className="px-2.5 shrink-0 text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 transition-colors"
+className="px-2.5 shrink-0 text-foreground hover:text-red-500 transition-colors"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -537,8 +537,8 @@ export default function POSPage() {
             onClick={() => setActiveTab('products')}
             className={`px-3 md:px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeTab === 'products'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+?'bg-accent text-white'
+:'bg-surface-tertiary text-foreground bg-surface-hover'
             }`}
           >
             {t('pos.allProducts')}
@@ -547,8 +547,8 @@ export default function POSPage() {
             onClick={() => setActiveTab('services')}
             className={`px-3 md:px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeTab === 'services'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+?'bg-accent text-white'
+:'bg-surface-tertiary text-foreground bg-surface-hover'
             }`}
           >
             <Wrench className="w-4 h-4" />
@@ -558,8 +558,8 @@ export default function POSPage() {
             onClick={() => setActiveTab('subscriptions')}
             className={`px-3 md:px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeTab === 'subscriptions'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+?'bg-accent text-white'
+:'bg-surface-tertiary text-foreground bg-surface-hover'
             }`}
           >
             <CreditCard className="w-4 h-4" />
@@ -574,8 +574,8 @@ export default function POSPage() {
               onClick={() => setSelectedCategory(null)}
                 className={`px-3 md:px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   !selectedCategory
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+?'bg-accent text-white'
+:'bg-surface-tertiary text-foreground bg-surface-hover'
               }`}
             >
               {t('pos.allProducts')}
@@ -586,8 +586,8 @@ export default function POSPage() {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-3 md:px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   selectedCategory === category.id
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+?'bg-accent text-white'
+:'bg-surface-tertiary text-foreground bg-surface-hover'
                 }`}
               >
                 {category.name}
@@ -606,20 +606,20 @@ export default function POSPage() {
       {/* Right side - Cart */}
       <div className="w-full md:w-80 xl:w-96 flex-shrink-0 flex flex-col gap-2 md:gap-3 min-w-0 overflow-y-auto md:overflow-y-auto border-t md:border-t-0 pt-3 md:pt-0">
         {/* Customer Selection */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+<div className="bg-surface rounded-xl border border-border p-3">
           <div className="flex items-center gap-2 mb-2">
-            <User className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('pos.selectCustomer')}</span>
+<User className="w-4 h-4 text-muted"/>
+<span className="text-sm font-medium text-muted">{t('pos.selectCustomer')}</span>
           </div>
           {selectedCustomer ? (
-            <div className="flex items-center justify-between bg-primary-50 dark:bg-primary-900/20 rounded-lg p-2">
+<div className="flex items-center justify-between bg-accent-soft rounded-lg p-2">
               <div>
                 <p className="font-medium text-sm">{selectedCustomer.name}</p>
-                <p className="text-xs text-gray-500">{selectedCustomer.phone || ''} | {selectedCustomer.loyalty_points || 0} pts</p>
+<p className="text-xs text-muted">{selectedCustomer.phone ||''}|{selectedCustomer.loyalty_points || 0}pts</p>
               </div>
               <button
                 onClick={() => setSelectedCustomer(null)}
-                className="text-gray-400 hover:text-red-500 text-sm"
+className="text-muted hover:text-red-500 text-sm"
               >
                 {t('pos.remove')}
               </button>
@@ -631,10 +631,10 @@ export default function POSPage() {
                 placeholder={t('pos.searchCustomer')}
                 value={customerSearch}
                 onChange={(e) => setCustomerSearch(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-surface"
               />
               {customerSearch && filteredCustomers.length > 0 && (
-                <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-auto">
+<div className="absolute z-10 top-full left-0 right-0 mt-1 bg-surface border border-border rounded-lg shadow-lg max-h-40 overflow-auto">
                   {filteredCustomers.slice(0, 5).map(customer => (
                     <button
                       key={customer.id}
@@ -642,10 +642,10 @@ export default function POSPage() {
                         setSelectedCustomer(customer)
                         setCustomerSearch('')
                       }}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700"
+className="w-full px-3 py-2 text-left text-sm bg-surface-hover"
                     >
                       <p className="font-medium">{customer.name}</p>
-                      <p className="text-xs text-gray-500">{customer.phone || ''}</p>
+<p className="text-xs text-muted">{customer.phone ||''}</p>
                     </button>
                   ))}
                 </div>
@@ -655,7 +655,7 @@ export default function POSPage() {
         </div>
 
         {/* Barcode Scanner Input */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+<div className="bg-surface rounded-xl border border-border p-3">
           <input
             ref={barcodeInputRef}
             type="text"
@@ -671,7 +671,7 @@ export default function POSPage() {
               }
             }}
             placeholder={t('pos.scanBarcode') || 'Scan barcode here...'}
-            className="w-full px-3 py-2 text-sm rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-900/20 focus:ring-2 focus:ring-primary-500 focus:border-solid"
+className="w-full px-3 py-2 text-sm rounded-lg border-2 border-dashed border-accent bg-accent-soft ring-focus focus:border-solid"
             autoComplete="off"
           />
         </div>
@@ -945,16 +945,16 @@ export default function POSPage() {
       {/* Cash Box Modal — forced before first sale */}
       {showCashBoxModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-md shadow-2xl">
-            <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
+<div className="bg-surface rounded-2xl p-6 w-[calc(100%-2rem)] max-w-md shadow-2xl">
+<h3 className="text-lg font-bold mb-1 text-foreground">
               {t('pos.openCashBox') || 'Open Cash Box'}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+<p className="text-sm text-muted mb-4">
               {t('pos.openCashBoxDesc') || 'Enter the opening balance in the cash drawer'}
             </p>
             <form onSubmit={handleOpenCashBox} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                   {t('cashDrawer.openingBalance') || 'Opening Balance'}
                 </label>
                 <input
@@ -964,19 +964,19 @@ export default function POSPage() {
                   autoFocus
                   value={cashBoxBalance}
                   onChange={(e) => setCashBoxBalance(e.target.value)}
-                  className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500"
+className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-border bg-surface ring-focus"
                   placeholder="0.00"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                   {t('cashDrawer.notes') || 'Notes'}
                 </label>
                 <textarea
                   value={cashBoxNotes}
                   onChange={(e) => setCashBoxNotes(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
                   rows={2}
                   placeholder={t('cashDrawer.optionalNotes') || 'Optional notes'}
                 />
@@ -984,7 +984,7 @@ export default function POSPage() {
               <button
                 type="submit"
                 disabled={cashBoxSubmitting || !cashBoxBalance}
-                className="w-full py-3 rounded-lg bg-primary-600 text-white font-bold text-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+className="w-full py-3 rounded-lg bg-accent text-white font-bold text-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
               >
                 {cashBoxSubmitting ? '...' : (t('pos.openCashBox') || 'Open Cash Box')}
               </button>
@@ -996,32 +996,32 @@ export default function POSPage() {
       {/* Close Shift Modal */}
       {showCloseShiftModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-[calc(100%-2rem)] max-w-md shadow-2xl">
-            <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
+<div className="bg-surface rounded-2xl p-6 w-[calc(100%-2rem)] max-w-md shadow-2xl">
+<h3 className="text-lg font-bold mb-1 text-foreground">
               {t('closeShift') || 'Close Shift'}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+<p className="text-sm text-muted mb-4">
               {t('pos.closeCashBoxDesc') || 'Count the cash in the drawer and enter the amount'}
             </p>
             {shiftStats && (
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 space-y-2">
+<div className="bg-surface-secondary rounded-lg p-4 mb-4 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">{t('openingBalance') || 'Opening'}</span>
+<span className="text-muted">{t('openingBalance')||'Opening'}</span>
                   <span className="font-medium">{formatCurrency(shiftStats.opening_balance)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">{t('pos.totalSales') || 'Total Sales'}</span>
+<span className="text-muted">{t('pos.totalSales')||'Total Sales'}</span>
                   <span className="font-medium">{formatCurrency(shiftStats.total_sales)}</span>
                 </div>
-                <div className="flex justify-between text-sm border-t border-gray-200 dark:border-gray-600 pt-2">
-                  <span className="text-gray-500 font-medium">{t('expectedCash') || 'Expected Cash'}</span>
-                  <span className="font-bold text-primary-600">{formatCurrency(shiftStats.expected_cash)}</span>
+<div className="flex justify-between text-sm border-t border-border pt-2">
+<span className="text-muted font-medium">{t('expectedCash')||'Expected Cash'}</span>
+<span className="font-bold text-accent">{formatCurrency(shiftStats.expected_cash)}</span>
                 </div>
               </div>
             )}
             <form onSubmit={(e) => { e.preventDefault(); handleCloseShift() }} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                   {t('actualCash') || 'Actual Cash (counted)'}
                 </label>
                 <input
@@ -1031,7 +1031,7 @@ export default function POSPage() {
                   autoFocus
                   value={closeShiftActual}
                   onChange={(e) => setCloseShiftActual(e.target.value)}
-                  className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500"
+className="w-full px-4 py-3 text-2xl font-bold text-center rounded-lg border border-border bg-surface ring-focus"
                   placeholder="0.00"
                   required
                 />
@@ -1040,14 +1040,14 @@ export default function POSPage() {
                 <button
                   type="button"
                   onClick={() => { setShowCloseShiftModal(false); setCloseShiftActual('') }}
-                  className="flex-1 py-3 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+className="flex-1 py-3 rounded-lg border border-border text-foreground font-medium bg-surface-hover transition-colors"
                 >
                   {t('cancel') || 'Cancel'}
                 </button>
                 <button
                   type="submit"
                   disabled={cashBoxSubmitting || !closeShiftActual}
-                  className="flex-1 py-3 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 disabled:opacity-50 transition-colors"
+className="flex-1 py-3 rounded-lg bg-danger text-white font-bold hover:bg-red-700 disabled:opacity-50 transition-colors"
                 >
                   {cashBoxSubmitting ? '...' : (t('closeShift') || 'Close Shift')}
                 </button>

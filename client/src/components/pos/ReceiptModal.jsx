@@ -175,13 +175,13 @@ export default function ReceiptModal({ order, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+<div className="bg-surface rounded-2xl w-full max-w-md mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">{t('payment.printReceipt')}</h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+className="p-2 rounded-lg bg-surface-hover"
           >
             <X className="w-5 h-5" />
           </button>
@@ -189,7 +189,7 @@ export default function ReceiptModal({ order, onClose }) {
 
         {/* Receipt Preview */}
         <div ref={receiptRef} className="p-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-6 font-mono text-sm text-gray-900">
+<div className="bg-surface border border-border rounded-lg p-6 font-mono text-sm text-foreground">
             {/* Store Header */}
             <div className="text-center mb-4">
               {settings.storeLogo && (
@@ -197,32 +197,32 @@ export default function ReceiptModal({ order, onClose }) {
               )}
               <h3 className="text-lg font-bold" style={{ fontFamily: "'Georgia', 'Times New Roman', serif", letterSpacing: '1px' }}>{settings.storeName}</h3>
               {settings.storeAddress && (
-                <p className="text-gray-500 text-xs">{settings.storeAddress}</p>
+<p className="text-muted text-xs">{settings.storeAddress}</p>
               )}
               {settings.storePhone && (
-                <p className="text-gray-500 text-xs">{settings.storePhone}</p>
+<p className="text-muted text-xs">{settings.storePhone}</p>
               )}
             </div>
 
-            <hr className="border-dashed border-gray-300 my-3" />
+<hr className="border-dashed border-border my-3"/>
 
             {/* Order Info */}
             <div className="flex justify-between mb-1">
-              <span className="text-gray-500">{t('receipt.orderNumber')}:</span>
+<span className="text-muted">{t('receipt.orderNumber')}:</span>
               <span className="font-semibold">{order.order_number}</span>
             </div>
             <div className="flex justify-between mb-1">
-              <span className="text-gray-500">{t('receipt.date')}:</span>
+<span className="text-muted">{t('receipt.date')}:</span>
               <span>{formatDateTime(order.created_at || new Date())}</span>
             </div>
             {order.users?.full_name && (
               <div className="flex justify-between mb-3">
-                <span className="text-gray-500">{t('receipt.cashier')}:</span>
+<span className="text-muted">{t('receipt.cashier')}:</span>
                 <span>{order.users.full_name}</span>
               </div>
             )}
 
-            <hr className="border-dashed border-gray-300 my-3" />
+<hr className="border-dashed border-border my-3"/>
 
             {/* Items */}
             <div className="font-semibold mb-2">{t('receipt.items')}:</div>
@@ -232,36 +232,36 @@ export default function ReceiptModal({ order, onClose }) {
                   <span className="font-medium">
                     {item.product_name || item.products?.name || item.name}
                     {item._type === 'service' && (
-                      <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-blue-100 text-blue-700">SVC</span>
+<span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-accent-soft text-accent-soft-foreground">SVC</span>
                     )}
                   </span>
                   <span>{formatCurrency(item.unit_price * item.quantity, settings.currencySymbol)}</span>
                 </div>
-                <div className="text-gray-500 text-xs">
+<div className="text-muted text-xs">
                   {item.quantity} x {formatCurrency(item.unit_price, settings.currencySymbol)}
                 </div>
               </div>
             ))}
 
-            <hr className="border-dashed border-gray-300 my-3" />
+<hr className="border-dashed border-border my-3"/>
 
             {/* Totals */}
             <div className="flex justify-between mb-1">
-              <span className="text-gray-500">{t('receipt.subtotal')}:</span>
+<span className="text-muted">{t('receipt.subtotal')}:</span>
               <span>{formatCurrency(order.subtotal ?? 0, settings.currencySymbol)}</span>
             </div>
             {order.discount_amount > 0 && (
-              <div className="flex justify-between mb-1 text-green-600">
+<div className="flex justify-between mb-1 text-success">
                 <span>{t('receipt.discount')}:</span>
                 <span>-{formatCurrency(order.discount_amount, settings.currencySymbol)}</span>
               </div>
             )}
             <div className="flex justify-between mb-1">
-              <span className="text-gray-500">{t('receipt.tax')} ({settings.taxRate}%):</span>
+<span className="text-muted">{t('receipt.tax')}({settings.taxRate}%):</span>
               <span>{formatCurrency(order.tax_amount ?? 0, settings.currencySymbol)}</span>
             </div>
 
-            <hr className="border-dashed border-gray-300 my-3" />
+<hr className="border-dashed border-border my-3"/>
 
             {/* Total */}
             <div className="flex justify-between text-lg font-bold">
@@ -269,26 +269,26 @@ export default function ReceiptModal({ order, onClose }) {
               <span>{formatCurrency(order.total ?? 0, settings.currencySymbol)}</span>
             </div>
 
-            <hr className="border-dashed border-gray-300 my-3" />
+<hr className="border-dashed border-border my-3"/>
 
             {/* Payment */}
             {paymentMethodLabel && (
               <div className="flex justify-between mb-1">
-                <span className="text-gray-500">{t('receipt.payment')}:</span>
+<span className="text-muted">{t('receipt.payment')}:</span>
                 <span>{paymentMethodLabel}</span>
               </div>
             )}
             {order.payment_method === 'cash' && order.change > 0 && (
               <div className="flex justify-between">
-                <span className="text-gray-500">{t('receipt.change')}:</span>
+<span className="text-muted">{t('receipt.change')}:</span>
                 <span>{formatCurrency(order.change, settings.currencySymbol)}</span>
               </div>
             )}
 
-            <hr className="border-dashed border-gray-300 my-3" />
+<hr className="border-dashed border-border my-3"/>
 
             {/* Footer */}
-            <div className="text-center text-xs text-gray-500">
+<div className="text-center text-xs text-muted">
               {settings.receiptFooter || t('receipt.thankYou')}
             </div>
 
@@ -302,23 +302,23 @@ export default function ReceiptModal({ order, onClose }) {
                   width={120}
                   height={120}
                 />
-                <p className="text-[10px] text-gray-400 mt-1">Scan for ETA receipt</p>
+<p className="text-[10px] text-muted mt-1">Scan for ETA receipt</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Actions */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+<div className="p-4 border-t border-border flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600"
+className="flex-1 py-3 bg-surface-tertiary text-foreground rounded-lg font-medium bg-surface-hover"
           >
             {t('common.close')}
           </button>
           <button
             onClick={handlePrint}
-            className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 flex items-center justify-center gap-2"
+className="flex-1 py-3 bg-accent text-white rounded-lg font-medium hover:bg-primary-700 flex items-center justify-center gap-2"
           >
             <Printer className="w-5 h-5" />
             {t('payment.printReceipt')}

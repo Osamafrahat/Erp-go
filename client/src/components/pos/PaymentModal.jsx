@@ -9,10 +9,10 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
   const { settings, t, toastError } = useAppStore()
 
   const paymentMethods = [
-    { id: 'cash', name: t('payment.cash'), icon: Banknote, color: 'text-green-600' },
-    { id: 'card', name: t('payment.card'), icon: CreditCard, color: 'text-blue-600' },
-    { id: 'mobile', name: t('payment.mobile'), icon: Smartphone, color: 'text-purple-600' },
-    { id: 'credit', name: t('pos.payLater') || 'Pay Later', icon: Clock, color: 'text-amber-600' },
+{id:'cash',name: t('payment.cash'),icon: Banknote,color:'text-success'},
+{id:'card',name: t('payment.card'),icon: CreditCard,color:'text-accent'},
+{id:'mobile',name: t('payment.mobile'),icon: Smartphone,color:'text-purple-600'},
+{id:'credit',name: t('pos.payLater')||'Pay Later',icon: Clock,color:'text-warning'},
   ]
 
   const [selectedMethod, setSelectedMethod] = useState('cash')
@@ -123,37 +123,37 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+<div className="bg-surface rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">{t('payment.title')}</h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+className="p-2 rounded-lg bg-surface-hover"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Order Summary */}
-        <div className="p-4 bg-gray-50 dark:bg-gray-700/50 space-y-2">
+<div className="p-4 bg-surface-secondary space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">{t('cart.subtotal')}</span>
+<span className="text-muted">{t('cart.subtotal')}</span>
             <span>{formatCurrency(getSubtotal())}</span>
           </div>
           {getDiscount() > 0 && (
-            <div className="flex justify-between text-sm text-green-600">
+<div className="flex justify-between text-sm text-success">
               <span>{t('cart.discount')} ({promoCode})</span>
               <span>-{formatCurrency(getDiscount())}</span>
             </div>
           )}
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">{t('cart.tax')} ({settings.taxRate}%)</span>
+<span className="text-muted">{t('cart.tax')}({settings.taxRate}%)</span>
             <span>{formatCurrency(getTax(settings.taxRate))}</span>
           </div>
-          <div className="flex justify-between text-2xl font-bold pt-2 border-t border-gray-200 dark:border-gray-600">
+<div className="flex justify-between text-2xl font-bold pt-2 border-t border-border">
             <span>{t('cart.total')}</span>
-            <span className="text-primary-600">{formatCurrency(total)}</span>
+<span className="text-accent">{formatCurrency(total)}</span>
           </div>
         </div>
 
@@ -169,8 +169,8 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
                   className={`
                     flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all
                     ${selectedMethod === method.id
-                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+?'border-accent bg-accent-soft'
+:'border-border border-secondary'
                     }
                   `}
                 >
@@ -184,7 +184,7 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
           {/* Payment Input */}
           {selectedMethod === 'cash' && (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+<label className="block text-sm font-medium text-foreground">
                 {t('payment.cashTendered')}
               </label>
               <input
@@ -194,11 +194,11 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
                 value={cashTendered}
                 onChange={(e) => setCashTendered(e.target.value)}
                 placeholder={t('payment.enterAmount')}
-                className="w-full px-4 py-3 text-lg rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-3 text-lg rounded-lg border border-border bg-surface"
                 autoFocus
               />
               {change > 0 && (
-                <p className="text-lg font-semibold text-green-600">
+<p className="text-lg font-semibold text-success">
                   {t('payment.change')}: {formatCurrency(change)}
                 </p>
               )}
@@ -207,7 +207,7 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
 
           {selectedMethod === 'mobile' && (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+<label className="block text-sm font-medium text-foreground">
                 {t('payment.referenceNumber')}
               </label>
               <input
@@ -215,10 +215,10 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
                 value={mobileRef}
                 onChange={(e) => setMobileRef(e.target.value)}
                 placeholder={t('payment.referenceNumber')}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-3 rounded-lg border border-border bg-surface"
                 autoFocus
               />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+<p className="text-sm text-muted">
                 {t('payment.fullAmount')}: {formatCurrency(remaining)}
               </p>
             </div>
@@ -226,7 +226,7 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
 
           {selectedMethod === 'card' && (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+<label className="block text-sm font-medium text-foreground">
                 {t('payment.cardReference')}
               </label>
               <input
@@ -234,10 +234,10 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
                 value={cardRef}
                 onChange={(e) => setCardRef(e.target.value)}
                 placeholder={t('payment.cardReference')}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-3 rounded-lg border border-border bg-surface"
                 autoFocus
               />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+<p className="text-sm text-muted">
                 {t('payment.fullAmount')}: {formatCurrency(remaining)}
               </p>
             </div>
@@ -246,13 +246,13 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
           {selectedMethod === 'credit' && (
             <div className="space-y-2">
               {!selectedCustomer && (
-                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                  <p className="text-sm text-amber-700 dark:text-amber-400">
+<div className="p-3 bg-warning-soft rounded-lg">
+<p className="text-sm text-warning">
                     {t('pos.customerRequiredForCredit') || 'Please select a customer before using Pay Later'}
                   </p>
                 </div>
               )}
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+<label className="block text-sm font-medium text-foreground">
                 {t('pos.selectDueDate') || 'Due Date'}
               </label>
               <input
@@ -260,9 +260,9 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-3 rounded-lg border border-border bg-surface"
               />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+<p className="text-sm text-muted">
                 {t('payment.fullAmount')}: {formatCurrency(total)}
               </p>
             </div>
@@ -272,7 +272,7 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
           {selectedMethod !== 'credit' && (
             <button
               onClick={handleAddPayment}
-              className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600"
+className="w-full py-3 bg-surface-tertiary text-foreground rounded-lg font-medium bg-surface-hover"
             >
               {selectedMethod === 'cash' ? t('payment.addPayment') : `Pay ${formatCurrency(remaining)} with ${paymentMethods.find(m => m.id === selectedMethod)?.name}`}
             </button>
@@ -282,32 +282,32 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
         {/* Payment Summary */}
         {payments.length > 0 && (
           <div className="px-4 pb-4 space-y-2">
-            <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('payment.paymentsAdded')}</h3>
+<h3 className="font-medium text-sm text-muted">{t('payment.paymentsAdded')}</h3>
             {payments.map((payment, index) => {
               const method = paymentMethods.find(m => m.id === payment.method)
               const Icon = method?.icon
               return (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg"
                 >
                   <div className="flex items-center gap-3">
                     {Icon && <Icon className={`w-5 h-5 ${method.color}`} />}
                     <span className="font-medium">{method?.name}</span>
                     {payment.reference && (
-                      <span className="text-sm text-gray-500">({payment.reference})</span>
+<span className="text-sm text-muted">({payment.reference})</span>
                     )}
                   </div>
                   <div className="flex items-center gap-3">
                     {payment.change > 0 && (
-                      <span className="text-sm font-medium text-green-600">
+<span className="text-sm font-medium text-success">
                         {t('payment.change')}: {formatCurrency(payment.change)}
                       </span>
                     )}
                     <span className="font-semibold">{formatCurrency(payment.amount)}</span>
                     <button
                       onClick={() => handleRemovePayment(index)}
-                      className="text-gray-400 hover:text-red-500"
+className="text-muted hover:text-red-500"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -319,19 +319,19 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
         )}
 
         {/* Remaining & Complete */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+<div className="p-4 border-t border-border">
           {selectedMethod !== 'credit' && (
             <div className="flex justify-between text-lg mb-4">
-              <span className="text-gray-500 dark:text-gray-400">{t('payment.remaining')}</span>
-              <span className={`font-bold ${remaining > 0 ? 'text-red-500' : 'text-green-500'}`}>
+<span className="text-muted">{t('payment.remaining')}</span>
+<span className={`font-bold ${remaining>0 ?'text-danger':'text-success'}`}>
                 {formatCurrency(remaining)}
               </span>
             </div>
           )}
           {selectedMethod === 'credit' && (
             <div className="flex justify-between text-lg mb-4">
-              <span className="text-gray-500 dark:text-gray-400">{t('payment.total')}</span>
-              <span className="font-bold text-amber-600">{formatCurrency(total)}</span>
+<span className="text-muted">{t('payment.total')}</span>
+<span className="font-bold text-warning">{formatCurrency(total)}</span>
             </div>
           )}
           <button
@@ -340,8 +340,8 @@ export default function PaymentModal({ onClose, onComplete, isSubmitting, select
             className={`
               w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2
               ${((selectedMethod === 'credit' && selectedCustomer && dueDate) || (selectedMethod !== 'credit' && remaining <= 0.01)) && !isSubmitting
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
+?'bg-success text-white hover:bg-green-700'
+:'bg-surface-tertiary text-muted cursor-not-allowed'
               }
             `}
           >
