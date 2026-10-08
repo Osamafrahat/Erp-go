@@ -12,7 +12,7 @@ import Cart from '../components/pos/Cart'
 import PaymentModal from '../components/pos/PaymentModal'
 import BarcodeScanner from '../components/pos/BarcodeScanner'
 import ReceiptModal from '../components/pos/ReceiptModal'
-import { Search, Zap, User, Wrench, CreditCard, WifiOff, Pause, Play } from 'lucide-react'
+import { Search, Zap, User, Wrench, CreditCard, WifiOff, Pause, Play, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 export default function POSPage() {
@@ -310,6 +310,21 @@ export default function POSPage() {
     setShowHeld(false)
   }
 
+  // Dropping a held order: there was previously no way to dismiss one, so they
+  // just accumulated in the recall list until the page was reloaded.
+  const handleDiscardHeld = (held) => {
+    setHeldTransactions(prev => prev.filter(h => h.id !== held.id))
+  }
+
+  // Held orders are same-day, so time alone is what tells two rows apart.
+  const formatHeldTime = (iso) => {
+    try {
+      return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    } catch {
+      return ''
+    }
+  }
+
   const handleQuickSale = async (product, quantity = 1) => {
     const added = addItem(product, quantity)
     if (!added) {
@@ -463,25 +478,52 @@ export default function POSPage() {
               >
                 <Play className="w-5 h-5" />
                 <span className="hidden sm:inline">{t('pos.recall') || 'Recall'}</span>
-                <span className="ml-1 bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{heldTransactions.length}</span>
+                <span className="ms-1 bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{heldTransactions.length}</span>
               </button>
               {showHeld && (
-                <div className="absolute z-20 top-full right-0 mt-1 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-64 overflow-auto">
-                  <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('pos.heldTransactions') || 'Held Transactions'}</p>
+                <div className="absolute z-20 top-full end-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl max-h-72 overflow-y-auto">
+                  <div className="sticky top-0 z-10 flex items-center justify-between gap-2 px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 rounded-t-xl">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      {t('pos.heldTransactions') || 'Held Transactions'}
+                    </p>
+                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-2 py-0.5 rounded-full">
+                      {heldTransactions.length}
+                    </span>
                   </div>
                   {heldTransactions.map(held => (
-                    <button
+                    <div
                       key={held.id}
-                      onClick={() => handleRecall(held)}
-                      className="w-full px-3 py-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between"
+                      className="flex items-stretch border-b border-gray-100 dark:border-gray-700/60 last:border-b-0"
                     >
-                      <div>
-                        <p className="text-sm font-medium">{held.items.length} {t('pos.items') || 'items'}</p>
-                        <p className="text-xs text-gray-500">{formatCurrency(held.total)}</p>
-                      </div>
-                      <Play className="w-4 h-4 text-emerald-500" />
-                    </button>
+                      <button
+                        onClick={() => handleRecall(held)}
+                        className="flex-1 min-w-0 px-3 py-2.5 text-start hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                            {held.items.length} {held.items.length === 1 ? (t('pos.item') || 'item') : (t('pos.items') || 'items')}
+                            {held.customer?.name && (
+                              <span className="font-normal text-gray-400 dark:text-gray-500"> · {held.customer.name}</span>
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatCurrency(held.total)}
+                            {held.timestamp && (
+                              <span className="text-gray-400 dark:text-gray-500"> · {formatHeldTime(held.timestamp)}</span>
+                            )}
+                          </p>
+                        </div>
+                        <Play className="w-4 h-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
+                      </button>
+                      <button
+                        onClick={() => handleDiscardHeld(held)}
+                        aria-label={t('common.delete') || 'Delete'}
+                        title={t('common.delete') || 'Delete'}
+                        className="px-2.5 shrink-0 text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}

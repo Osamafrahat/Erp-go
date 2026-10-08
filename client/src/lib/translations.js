@@ -195,6 +195,7 @@ export const translations = {
     'pos.heldTransactions': 'Held Transactions',
     'pos.transactionHeld': 'Transaction held',
     'pos.noHeld': 'No held transactions',
+    'pos.item': 'item',
     'pos.items': 'items',
 
     // Customer Statements
@@ -2553,9 +2554,10 @@ export const translations = {
     // POS Hold/Recall (Arabic)
     'pos.hold': 'إيقاف مؤقت',
     'pos.recall': 'استدعاء',
-    'pos.heldTransactions': 'ال Transactions المعلقة',
+    'pos.heldTransactions': 'الطلبات المعلقة',
     'pos.transactionHeld': 'تم تعليق العملية',
     'pos.noHeld': 'لا توجد معاملات معلقة',
+    'pos.item': 'منتج',
     'pos.items': 'منتجات',
 
     // Customer Statements (Arabic)
