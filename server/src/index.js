@@ -9,6 +9,7 @@ import fs from 'fs'
 import { fileURLToPath } from 'url'
 import { errorHandler } from './middleware/errorHandler.js'
 import { activityLogger } from './middleware/activityLogger.js'
+import { loginLimiter } from './middleware/loginLimiter.js'
 import { authRouter } from './routes/auth.js'
 import { authenticateToken, optionalAuthenticateToken, requireManager, setTenantContext } from './middleware/auth.js'
 
@@ -154,15 +155,8 @@ const limiter = rateLimit({
 })
 app.use('/api/', limiter)
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { error: 'Too many login attempts. Please try again in 15 minutes.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-})
-app.use('/api/auth/login', authLimiter)
-app.use('/api/auth/change-password', authLimiter)
+app.use('/api/auth/login', loginLimiter)
+app.use('/api/auth/change-password', loginLimiter)
 
 app.disable('x-powered-by')
 
