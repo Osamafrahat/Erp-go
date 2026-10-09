@@ -5,7 +5,7 @@ import { useUserStore } from '../stores/userStore'
 import {
   ShoppingCart, Package, Users, BarChart3, UserCheck, Layers,
   Check, ArrowRight, Zap, Shield, Globe, Star, Store,
-  CreditCard, Clock, Headphones, ArrowUpRight, Sparkles,
+  Headphones, ArrowUpRight,
   Database, MessageCircle, Timer
 } from 'lucide-react'
 
@@ -117,10 +117,6 @@ export default function LandingPage() {
             <div className="flex justify-center mb-6">
               <img src="/erpgologo.svg" alt="ERP-GO" className="h-16 sm:h-24 lg:h-32 w-auto" />
             </div>
-            <div className="inline-flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-primary-700 dark:text-primary-300 text-sm font-semibold px-5 py-2 rounded-full mb-8 border border-primary-200/50 dark:border-primary-700/50 shadow-sm">
-              <Sparkles className="w-4 h-4" />
-              {t('landing.badge') || 'All-in-one store management'}
-            </div>
             <h1 className="text-3xl sm:text-5xl lg:text-8xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-8">
               {t('landing.heroTitle') || 'Complete Store'}{' '}
               <span className="bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 bg-clip-text text-transparent">
@@ -147,10 +143,6 @@ export default function LandingPage() {
       <section id="features" className="py-24 sm:py-32 bg-gray-50/50 dark:bg-gray-800/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-bold px-4 py-1.5 rounded-full mb-4 uppercase tracking-wider">
-              <Zap className="w-3.5 h-3.5" />
-              {t('landing.features') || 'Features'}
-            </div>
             <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.featuresTitle') || 'Everything You Need to Run Your Store'}</h2>
             <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.featuresSubtitle') || 'One platform to manage sales, inventory, employees, finances, and customers.'}</p>
           </div>
@@ -164,10 +156,6 @@ export default function LandingPage() {
       <section id="how" className="py-24 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-4 py-1.5 rounded-full mb-4 uppercase tracking-wider">
-              <Clock className="w-3.5 h-3.5" />
-              {t('landing.howItWorks') || 'How It Works'}
-            </div>
             <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.howTitle') || 'Up and Running in Minutes'}</h2>
             <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.howSubtitle') || 'No complex setup. No training needed. Start managing your store today.'}</p>
           </div>
@@ -229,10 +217,6 @@ export default function LandingPage() {
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
               <div className="relative">
-                <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-6 border border-white/20">
-                  <CreditCard className="w-4 h-4" />
-                  {t('landing.ctaBadge') || 'Free to start'}
-                </div>
                 <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold mb-6 leading-tight">{t('landing.ctaTitle') || 'Ready to Manage Your Store?'}</h2>
                 <p className="text-base sm:text-lg text-white/80 mb-10 max-w-xl mx-auto leading-relaxed">{t('landing.ctaSubtitle') || 'Start your free trial today. No credit card required.'}</p>
                 <Link
