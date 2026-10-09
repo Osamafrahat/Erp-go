@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { body, validationResult } from 'express-validator'
 import supabase from '../db/supabase.js'
 import { getShiftSales } from '../services/cashBox.js'
+import { openBlocker, closeBlocker } from '../services/cashBoxPolicy.js'
 
 const router = Router()
 
@@ -143,18 +144,21 @@ router.post('/', [
   try {
     const { opening_balance, notes } = req.body
 
-    // Only one open shift allowed per tenant
+    // One open box per cashier, NOT per tenant: everyone on the floor runs
+    // their own drawer at the same time. Only this user's own open box counts,
+    // so a colleague being on the till is never their problem.
     const { data: active } = await supabase
       .from('cash_shifts')
-      .select('id, user_id, users(full_name)')
+      .select('id, user_id')
       .eq('tenant_id', req.user?.tenantId)
+      .eq('user_id', req.user.id)
       .eq('status', 'open')
       .limit(1)
       .maybeSingle()
 
-    if (active) {
-      const openerName = active.users?.full_name || 'another user'
-      return res.status(400).json({ error: `A cash box is already open by ${openerName}. Close it first.` })
+    const openError = openBlocker(active)
+    if (openError) {
+      return res.status(400).json({ error: openError })
     }
 
     const { data, error } = await supabase
@@ -270,6 +274,14 @@ router.patch('/:id/close', [
 
     if (shift.status !== 'open') {
       return res.status(400).json({ error: 'Shift is not open' })
+    }
+
+    // Only the cashier who opened this box may close it. req.user.id ===
+    // shift.user_id from here on, which is what makes the reconciliation
+    // below — scoped to this user — count the right person's orders.
+    const closeError = closeBlocker(shift, req.user.id)
+    if (closeError) {
+      return res.status(403).json({ error: closeError })
     }
 
     // Calculate expected cash from actual takings, not user input.

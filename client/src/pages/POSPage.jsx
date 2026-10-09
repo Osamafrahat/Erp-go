@@ -33,7 +33,6 @@ export default function POSPage() {
   const [showHeld, setShowHeld] = useState(false)
   const [activeShift, setActiveShift] = useState(null)
   const [shiftStats, setShiftStats] = useState(null)
-  const [tenantHasOpenShift, setTenantHasOpenShift] = useState(false)
   const [showCashBoxPanel, setShowCashBoxPanel] = useState(false)
   const [showCashBoxModal, setShowCashBoxModal] = useState(false)
   const [showCloseShiftModal, setShowCloseShiftModal] = useState(false)
@@ -66,26 +65,16 @@ export default function POSPage() {
     try {
       const res = await cashShiftsApi.getActive()
       const shift = res.data || null
-      let hasOpenInTenant = false
-      if (shift) {
-        hasOpenInTenant = true
-        fetchShiftStats()
-      } else {
-        // Check if any shift is open in the tenant (by another user)
-        try {
-          const allRes = await cashShiftsApi.getAll({ status: 'open' })
-          hasOpenInTenant = (allRes.data || []).length > 0
-        } catch {
-          hasOpenInTenant = false
-        }
-      }
+      // getActive() is already scoped to this user, so a colleague holding a
+      // box open never shows up here and never gates checkout. Only the
+      // cashier's own box decides whether they are selling from one.
+      if (shift) fetchShiftStats()
       setActiveShift(shift)
-      setTenantHasOpenShift(hasOpenInTenant)
       // Remember the open shift. Checkout is gated on activeShift and opening
       // a cash box needs the network, so without this a reload while offline
       // locked the operator out of selling entirely.
       try {
-        await setSyncMeta('activeShift', { shift, hasOpenInTenant })
+        await setSyncMeta('activeShift', { shift })
       } catch { /* cache write is best-effort — never fail the fetch over it */ }
     } catch (err) {
       // Network unreachable: fall back to the shift remembered on the last
@@ -95,10 +84,8 @@ export default function POSPage() {
       try {
         remembered = await getSyncMeta('activeShift')
       } catch { /* no local cache — behave exactly as before */ }
-      const shift = remembered?.shift || null
-      setActiveShift(shift)
+      setActiveShift(remembered?.shift || null)
       setShiftStats(null)
-      setTenantHasOpenShift(Boolean(shift) || Boolean(remembered?.hasOpenInTenant))
     }
   }
 
@@ -113,11 +100,12 @@ export default function POSPage() {
 
   const handleOpenCashBox = async (e) => {
     e.preventDefault()
-    // Re-check for any active shift in tenant before opening
+    // Re-check my own box before opening. Other cashiers holding one open is
+    // fine and must not stop this one; only mine can.
     try {
-      const allRes = await cashShiftsApi.getAll({ status: 'open' })
-      if ((allRes.data || []).length > 0) {
-        toastError(t('pos.shiftAlreadyOpen') || 'A cash box is already open. Close it first.')
+      const mine = await cashShiftsApi.getActive()
+      if (mine.data) {
+        toastError(t('pos.shiftAlreadyOpen') || 'You already have an open cash box. Close it first.')
         setShowCashBoxModal(false)
         await fetchActiveShift()
         return
@@ -678,11 +666,9 @@ className="w-full px-3 py-2 text-sm rounded-lg border-2 border-dashed border-acc
 
         <div className="flex-1">
           <Cart onCheckout={() => {
+            // No box of my own open -> offer to open one. Another cashier
+            // being on the floor is irrelevant to this decision.
             if (!activeShift) {
-              if (tenantHasOpenShift) {
-                toastError(t('pos.shiftAlreadyOpen') || 'A cash box is already open. Close it first.')
-                return
-              }
               setShowCashBoxModal(true)
               return
             }
