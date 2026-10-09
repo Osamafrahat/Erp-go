@@ -313,7 +313,7 @@ export default function LandingPage() {
                 {!hasVideo && (
                   <div className="absolute bottom-4 start-4 flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-3.5 py-1.5 text-xs font-semibold text-white/90 backdrop-blur">
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                    {t('landing.videoSoon') || 'Product tour — coming soon'}
+                    {t('landing.videoSoon') || 'Inside system tour — coming soon'}
                   </div>
                 )}
               </>
