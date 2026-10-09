@@ -227,3 +227,110 @@ body {
     border-color: #d1d5db !important;
   }
 }
+
+/* ---------- Landing page motion (zero JS dependencies) ----------
+   Inside @layer utilities on purpose: these rules must lose to Tailwind's
+   hover: transform utilities on the same elements (cascade layers), while
+   still overriding plain transition-all on revealed cards. */
+@layer utilities {
+  /* Reveal-on-scroll. Hidden only when the visitor allows motion — under
+     prefers-reduced-motion these rules never apply and content just shows.
+     Entrance delays live on the hidden state and reset the moment
+     .is-visible lands, so a staggered card's hover is never slowed by the
+     delay it needed to enter. */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease, border-color 0.5s ease;
+      transition-delay: var(--reveal-delay, 0ms);
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none;
+      transition-delay: 0ms;
+    }
+
+    /* Grid stagger: the container itself stays neutral, only the children
+       cascade in — no per-card classes needed. */
+    .reveal.lp-stagger {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .reveal.lp-stagger > * {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease, border-color 0.5s ease;
+    }
+    .reveal.lp-stagger > *:nth-child(1) { transition-delay: 0ms; }
+    .reveal.lp-stagger > *:nth-child(2) { transition-delay: 70ms; }
+    .reveal.lp-stagger > *:nth-child(3) { transition-delay: 140ms; }
+    .reveal.lp-stagger > *:nth-child(4) { transition-delay: 210ms; }
+    .reveal.lp-stagger > *:nth-child(5) { transition-delay: 280ms; }
+    .reveal.lp-stagger > *:nth-child(6) { transition-delay: 350ms; }
+    .reveal.lp-stagger > *:nth-child(7) { transition-delay: 420ms; }
+    .reveal.lp-stagger > *:nth-child(8) { transition-delay: 490ms; }
+    .reveal.lp-stagger > *:nth-child(9) { transition-delay: 560ms; }
+    .reveal.lp-stagger > *:nth-child(10) { transition-delay: 630ms; }
+    /* Reset AFTER the nth rules (equal specificity, later wins) so hover
+       transitions get a zero delay once the entrance has played. */
+    .reveal.lp-stagger.is-visible > * {
+      opacity: 1;
+      transform: none;
+      transition-delay: 0ms;
+    }
+  }
+
+  /* Hero entrance: logo, title, subtitle, CTA drift up in sequence. */
+  @keyframes lp-hero-in {
+    from { opacity: 0; transform: translateY(26px); }
+    to { opacity: 1; transform: none; }
+  }
+  .lp-hero-in { animation: lp-hero-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+  /* Gentle logo float once the entrance has settled. */
+  @keyframes lp-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .lp-float { animation: lp-float 6s ease-in-out infinite; }
+
+  /* Shimmering gradient across the hero headline. */
+  @keyframes lp-pan {
+    from { background-position: 0% 50%; }
+    to { background-position: 200% 50%; }
+  }
+  .lp-gradient-text { background-size: 200% auto; animation: lp-pan 4s linear infinite alternate; }
+
+  /* Pulsing ring behind the video play button. */
+  @keyframes lp-ring {
+    0% { box-shadow: 0 0 0 0 rgb(37 99 235 / 0.45); }
+    70% { box-shadow: 0 0 0 22px rgb(37 99 235 / 0); }
+    100% { box-shadow: 0 0 0 0 rgb(37 99 235 / 0); }
+  }
+  .lp-play-ring { animation: lp-ring 2.2s cubic-bezier(0.66, 0, 0, 1) infinite; }
+
+  /* Animated product-tile glow + cart sweep inside the video slot mock. */
+  @keyframes lp-tile-glow {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.03); }
+  }
+  .lp-tile { animation: lp-tile-glow 2.4s ease-in-out infinite; }
+  @keyframes lp-sweep {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+  .lp-sweep {
+    background-image: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+    background-size: 200% 100%;
+    animation: lp-sweep 2s linear infinite;
+  }
+
+  /* Nothing moves for visitors who asked for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .lp-hero-in, .lp-float, .lp-gradient-text, .lp-play-ring, .lp-tile, .lp-sweep {
+      animation: none !important;
+    }
+  }
+}

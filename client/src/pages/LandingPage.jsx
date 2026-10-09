@@ -40,10 +40,53 @@ function StepCard({ num, icon: Icon, title, desc }) {
   )
 }
 
+// Drop a demo file at client/public/videos/demo.mp4 and the play button
+// appears automatically — until then the section shows the animated mock.
+const DEMO_VIDEO_SRC = '/videos/demo.mp4'
+
 export default function LandingPage() {
   const { t, language, setLanguage } = useAppStore()
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const [openModal, setOpenModal] = useState(null)
+  const [hasVideo, setHasVideo] = useState(false)
+  const [playing, setPlaying] = useState(false)
+
+  // Reveal-on-scroll: every .reveal element fades/slides in once it enters
+  // the viewport. Falls back to "everything visible" without IntersectionObserver.
+  useEffect(() => {
+    const els = document.querySelectorAll('.reveal')
+    if (!('IntersectionObserver' in window)) {
+      els.forEach((el) => el.classList.add('is-visible'))
+      return undefined
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-visible')
+            io.unobserve(e.target)
+          }
+        })
+      },
+      { rootMargin: '0px 0px -8% 0px' }
+    )
+    els.forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [])
+
+  // Probe for a demo video. A missing file is rewritten to index.html by the
+  // SPA fallback, so the content type is what tells us the real state.
+  useEffect(() => {
+    let cancelled = false
+    fetch(DEMO_VIDEO_SRC, { method: 'HEAD' })
+      .then((r) => {
+        if (cancelled) return
+        const ct = r.headers.get('content-type') || ''
+        setHasVideo(r.ok && !ct.includes('text/html'))
+      })
+      .catch(() => { if (!cancelled) setHasVideo(false) })
+    return () => { cancelled = true }
+  }, [])
 
   const features = [
     { icon: ShoppingCart, title: t('landing.pos') || 'Point of Sale', desc: t('landing.posDesc') || 'Fast checkout with receipt printing, multiple payment methods, and real-time inventory updates.', color: 'bg-primary-600', gradient: 'bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/10 dark:to-transparent' },
@@ -114,19 +157,19 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary-400/10 to-emerald-400/10 rounded-full blur-3xl" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-28 lg:py-44">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="flex justify-center mb-6">
-              <img src="/erpgologo.svg" alt="ERP-GO" className="h-16 sm:h-24 lg:h-32 w-auto" />
+            <div className="flex justify-center mb-6 lp-hero-in">
+              <img src="/erpgologo.svg" alt="ERP-GO" className="h-16 sm:h-24 lg:h-32 w-auto lp-float" />
             </div>
-            <h1 className="text-3xl sm:text-5xl lg:text-8xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-8">
+            <h1 className="lp-hero-in text-3xl sm:text-5xl lg:text-8xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-8" style={{ animationDelay: '120ms' }}>
               {t('landing.heroTitle') || 'Complete Store'}{' '}
-              <span className="bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 bg-clip-text text-transparent">
+              <span className="lp-gradient-text bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 bg-clip-text text-transparent">
                 {t('landing.heroTitle2') || 'Management System'}
               </span>
             </h1>
-            <p className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
+            <p className="lp-hero-in text-lg sm:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed" style={{ animationDelay: '240ms' }}>
               {t('landing.heroSubtitle') || 'Professional POS, inventory, HR, and accounting — all in one platform. Manage your store from anywhere.'}
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <div className="lp-hero-in flex flex-col sm:flex-row items-center justify-center gap-4 mb-12" style={{ animationDelay: '360ms' }}>
               <Link
                 to="/signup"
                 className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-10 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-lg font-bold rounded-2xl hover:from-primary-700 hover:to-primary-800 shadow-xl shadow-primary-500/25 transition-all duration-300 hover:shadow-2xl hover:shadow-primary-500/30 hover:-translate-y-0.5"
@@ -142,11 +185,11 @@ export default function LandingPage() {
       {/* Features */}
       <section id="features" className="py-24 sm:py-32 bg-gray-50/50 dark:bg-gray-800/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="reveal text-center mb-16">
             <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.featuresTitle') || 'Everything You Need to Run Your Store'}</h2>
             <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.featuresSubtitle') || 'One platform to manage sales, inventory, employees, finances, and customers.'}</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="reveal lp-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f, i) => <FeatureCard key={i} {...f} />)}
           </div>
         </div>
@@ -155,11 +198,11 @@ export default function LandingPage() {
       {/* How It Works */}
       <section id="how" className="py-24 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="reveal text-center mb-16">
             <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.howTitle') || 'Up and Running in Minutes'}</h2>
             <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.howSubtitle') || 'No complex setup. No training needed. Start managing your store today.'}</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="reveal lp-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {steps.map((s, i) => <StepCard key={i} num={`0${i + 1}`} {...s} />)}
           </div>
         </div>
@@ -169,14 +212,10 @@ export default function LandingPage() {
       <section className="py-24 sm:py-32 bg-gray-50/50 dark:bg-gray-800/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-bold px-4 py-1.5 rounded-full mb-6 uppercase tracking-wider">
-                <Star className="w-3.5 h-3.5" />
-                {t('landing.whyUs') || 'Why ERP-GO'}
-              </div>
+            <div className="reveal">
               <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">{t('landing.whyTitle') || 'Built for Successful Store Owners'}</h2>
               <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">{t('landing.whySubtitle') || "We understand the challenges of running a store. That's why we built a system that handles the complexity so you can focus on growth."}</p>
-              <div className="space-y-5">
+              <div className="reveal lp-stagger space-y-5">
                 {[
                   { icon: Zap, text: t('landing.why1') || 'Lightning-fast POS — process a sale in seconds', color: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' },
                   { icon: Shield, text: t('landing.why2') || 'Secure multi-users architecture with role-based access', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
@@ -192,7 +231,7 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-            <div className="relative">
+            <div className="reveal relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-primary-500/20 to-emerald-500/20 rounded-3xl blur-2xl" />
               <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-primary-500/20">
                 <img
@@ -207,12 +246,88 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Product demo video — plays /videos/demo.mp4 once that file exists;
+          until then it shows the animated mock and hides the play affordance */}
+      <section id="demo" className="py-24 sm:py-32">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="reveal">
+            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{t('landing.videoTitle') || 'See ERP-GO in Action'}</h2>
+            <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">{t('landing.videoSubtitle') || 'A quick tour of the POS, inventory, and reports your team uses every day.'}</p>
+          </div>
+          <div
+            className="reveal relative mt-10 mx-auto w-full max-w-4xl aspect-video rounded-3xl overflow-hidden shadow-2xl shadow-primary-500/20 border border-gray-200 dark:border-gray-700/60 bg-gradient-to-br from-primary-900 via-gray-900 to-gray-950"
+            style={{ '--reveal-delay': '120ms' }}
+          >
+            {playing && hasVideo ? (
+              <video
+                className="absolute inset-0 h-full w-full bg-black"
+                src={DEMO_VIDEO_SRC}
+                controls
+                autoPlay
+                playsInline
+                onError={() => { setPlaying(false); setHasVideo(false) }}
+              />
+            ) : (
+              <>
+                {/* Animated POS mock — stands in until a real demo.mp4 lands in /videos */}
+                <div className="absolute inset-0 flex flex-col gap-3 p-4 sm:gap-5 sm:p-8" aria-hidden="true">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-rose-400/80" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
+                    <span className="lp-sweep h-5 flex-1 rounded-md bg-white/10" />
+                  </div>
+                  <div className="grid flex-1 grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="lp-tile flex flex-col justify-end rounded-xl border border-white/10 bg-white/10 p-2 sm:p-4"
+                        style={{ animationDelay: `${i * 0.3}s` }}
+                      >
+                        <div className="h-2 w-3/4 rounded bg-white/25 sm:h-3" />
+                        <div className="mt-2 h-2 w-1/2 rounded bg-primary-400/60 sm:h-3" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/10 px-3 py-2 sm:px-5 sm:py-3">
+                    <div className="h-2.5 w-1/4 rounded bg-white/25 sm:h-3" />
+                    <div className="h-3 w-20 rounded bg-emerald-400/70 sm:h-4 sm:w-28" />
+                  </div>
+                </div>
+
+                {hasVideo && !playing && (
+                  <button
+                    type="button"
+                    onClick={() => setPlaying(true)}
+                    aria-label={t('landing.videoTitle') || 'Play demo video'}
+                    className="group absolute inset-0 flex items-center justify-center"
+                  >
+                    <span className="lp-play-ring flex h-16 w-16 items-center justify-center rounded-full bg-white/95 text-primary-700 shadow-xl transition-transform duration-300 group-hover:scale-110 sm:h-20 sm:w-20">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7 sm:h-8 sm:w-8" aria-hidden="true">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </span>
+                  </button>
+                )}
+
+                {!hasVideo && (
+                  <div className="absolute bottom-4 start-4 flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-3.5 py-1.5 text-xs font-semibold text-white/90 backdrop-blur">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                    {t('landing.videoSoon') || 'Product tour — coming soon'}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-24 sm:py-32">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-primary-500/20 via-emerald-500/20 to-primary-500/20 rounded-3xl blur-3xl" />
-            <div className="relative bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 rounded-3xl p-8 sm:p-12 lg:p-20 text-white overflow-hidden shadow-2xl shadow-primary-500/20">
+            <div className="reveal relative bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 rounded-3xl p-8 sm:p-12 lg:p-20 text-white overflow-hidden shadow-2xl shadow-primary-500/20" style={{ '--reveal-delay': '100ms' }}>
               <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
