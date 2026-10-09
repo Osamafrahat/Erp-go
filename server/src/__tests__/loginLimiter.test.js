@@ -6,6 +6,8 @@ import { loginLimiter, resetLoginLimiter } from '../middleware/loginLimiter.js'
 const BASE = 1_700_000_000_000
 const WINDOW_MS = 15 * 60 * 1000
 const HOUR_MS = 60 * 60 * 1000
+const IP = '203.0.113.7'
+const OTHER_IP = '198.51.100.4'
 
 describe('loginLimiter', () => {
   let clock
@@ -21,153 +23,232 @@ describe('loginLimiter', () => {
     nowSpy.mockRestore()
   })
 
-  function attempt(ip = '203.0.113.7') {
+  /** One pass through the middleware. respond() plays the handler's verdict. */
+  function invoke(ip) {
+    const finishers = []
     const res = {
+      statusCode: 200,
       headers: {},
       set(name, value) {
         res.headers[name] = value
         return res
       },
-      status: jest.fn().mockReturnThis(),
+      status: jest.fn((code) => {
+        res.statusCode = code
+        return res
+      }),
       json: jest.fn().mockReturnThis(),
+      on(event, cb) {
+        if (event === 'finish') finishers.push(cb)
+        return res
+      },
     }
     const next = jest.fn()
     loginLimiter({ ip }, res, next)
-    return { res, next }
-  }
-
-  /** Burn `count` attempts, stepping the clock so timestamps stay distinct. */
-  function fire(count, ip) {
-    const results = []
-    for (let i = 0; i < count; i += 1) {
-      results.push(attempt(ip))
-      clock += 5
+    return {
+      res,
+      next,
+      respond(statusCode) {
+        res.statusCode = statusCode
+        finishers.forEach((cb) => cb())
+      },
     }
-    return results
   }
 
-  const allowed = ({ next, res }) =>
-    next.mock.calls.length === 1 && res.status.mock.calls.length === 0
+  const passed = (r) => r.next.mock.calls.length === 1
+  const messageOf = (r) => r.res.json.mock.calls[0][0].error
 
-  const messageOf = ({ res }) => res.json.mock.calls[0][0].error
+  /** A wrong password: the handler runs and rejects it with 401. */
+  function wrongPassword(ip = IP) {
+    const r = invoke(ip)
+    if (passed(r)) r.respond(401)
+    clock += 5
+    return r
+  }
 
-  it('lets the first 10 attempts through untouched', () => {
-    const results = fire(10)
-    expect(results.every(allowed)).toBe(true)
-  })
+  /** A correct password: the handler runs and admits them with 200. */
+  function correctPassword(ip = IP) {
+    const r = invoke(ip)
+    if (passed(r)) r.respond(200)
+    clock += 5
+    return r
+  }
 
-  it('locks on the 11th attempt with a 2-minute message', () => {
-    fire(10)
-    const eleventh = attempt()
+  const latch = () => {
+    const r = invoke(IP)
+    expect(passed(r)).toBe(false)
+    expect(r.res.status).toHaveBeenCalledWith(429)
+    return r
+  }
 
-    expect(eleventh.next).not.toHaveBeenCalled()
-    expect(eleventh.res.status).toHaveBeenCalledWith(429)
-    expect(messageOf(eleventh)).toBe(
+  it('latches the door after three wrong passwords', () => {
+    expect(passed(wrongPassword())).toBe(true) // 1st, let through
+    expect(passed(wrongPassword())).toBe(true) // 2nd, let through
+    expect(passed(wrongPassword())).toBe(true) // 3rd, answered then latched
+
+    expect(messageOf(latch())).toBe(
       'Too many login attempts. Please try again in 2 minutes.'
     )
   })
 
+  it('never counts a correct sign-in', () => {
+    for (let i = 0; i < 20; i += 1) correctPassword()
+
+    expect(passed(invoke(IP))).toBe(true)
+  })
+
+  it('a correct sign-in wipes the failures already recorded', () => {
+    wrongPassword()
+    wrongPassword()
+    correctPassword() // slate back to empty
+
+    wrongPassword()
+    wrongPassword()
+    expect(passed(invoke(IP))).toBe(true) // only two since the reset
+
+    wrongPassword() // the third one latches
+    expect(passed(invoke(IP))).toBe(false)
+  })
+
   it('advertises Retry-After in seconds', () => {
-    fire(10)
-    const eleventh = attempt()
-    expect(eleventh.res.headers['Retry-After']).toBe('120')
+    wrongPassword()
+    wrongPassword()
+    wrongPassword()
+
+    expect(latch().res.headers['Retry-After']).toBe('120')
   })
 
-  it('keeps rejecting for the whole lockout', () => {
-    fire(10)
-    attempt() // lock for 2 minutes
+  it('keeps rejecting while the lock runs, counting down', () => {
+    wrongPassword()
+    wrongPassword()
+    wrongPassword() // latched
 
-    clock += 30 * 1000
-    expect(allowed(attempt())).toBe(false)
+    clock += 30 * 1000 // 90s of the 120s left
+    expect(messageOf(invoke(IP))).toBe(
+      'Too many login attempts. Please try again in 2 minutes.'
+    )
 
-    clock += 60 * 1000
-    expect(allowed(attempt())).toBe(false)
-  })
-
-  it('counts down and switches to singular below a minute', () => {
-    fire(10)
-    attempt() // the lock is now armed for 2 minutes
-
-    clock += 119 * 1000 // one minute of the two left, minus a second
-    expect(messageOf(attempt())).toBe(
+    clock += 60 * 1000 // 30s left -> singular
+    expect(messageOf(invoke(IP))).toBe(
       'Too many login attempts. Please try again in 1 minute.'
     )
   })
 
   it('escalates the next lockout to 5 minutes', () => {
-    fire(10)
-    attempt()
+    wrongPassword()
+    wrongPassword()
+    wrongPassword()
     clock += 2 * 60 * 1000 + 1 // serve the first sentence
 
-    fire(10)
-    const second = attempt()
-    expect(messageOf(second)).toBe(
+    wrongPassword()
+    wrongPassword()
+    wrongPassword()
+
+    const r = latch()
+    expect(messageOf(r)).toBe(
       'Too many login attempts. Please try again in 5 minutes.'
     )
-    expect(second.res.headers['Retry-After']).toBe('300')
+    expect(r.res.headers['Retry-After']).toBe('300')
   })
 
   it('escalates the third lockout to 15 minutes', () => {
-    fire(10)
-    attempt()
+    wrongPassword()
+    wrongPassword()
+    wrongPassword() // 1st lock: 2 minutes
     clock += 2 * 60 * 1000 + 1
-    fire(10)
-    attempt()
+
+    wrongPassword()
+    wrongPassword()
+    wrongPassword() // 2nd lock: 5 minutes
     clock += 5 * 60 * 1000 + 1
 
-    fire(10)
-    expect(messageOf(attempt())).toBe(
+    wrongPassword()
+    wrongPassword()
+    wrongPassword() // 3rd lock: 15 minutes — deliberately still in force here
+
+    expect(messageOf(latch())).toBe(
       'Too many login attempts. Please try again in 15 minutes.'
     )
   })
 
   it('caps the ladder at 15 minutes', () => {
-    fire(10)
-    attempt()
+    wrongPassword()
+    wrongPassword()
+    wrongPassword()
     clock += 2 * 60 * 1000 + 1
-    fire(10)
-    attempt()
-    clock += 5 * 60 * 1000 + 1
-    fire(10)
-    attempt()
-    clock += 15 * 60 * 1000 + 1
 
-    fire(10)
-    expect(messageOf(attempt())).toBe(
+    wrongPassword()
+    wrongPassword()
+    wrongPassword()
+    clock += 5 * 60 * 1000 + 1
+
+    wrongPassword()
+    wrongPassword()
+    wrongPassword()
+    clock += 15 * 60 * 1000 + 1 // three rungs climbed, lock served
+
+    wrongPassword()
+    wrongPassword()
+    wrongPassword() // fourth lock must not run past the cap
+
+    expect(messageOf(latch())).toBe(
       'Too many login attempts. Please try again in 15 minutes.'
     )
   })
 
-  it('decays the ladder back to 2 minutes after a quiet hour', () => {
-    fire(10)
-    attempt()
+  it('decays back to 2 minutes after a quiet hour', () => {
+    wrongPassword()
+    wrongPassword()
+    wrongPassword()
     clock += 2 * 60 * 1000 + 1
-    fire(10)
-    attempt()
+
+    wrongPassword()
+    wrongPassword()
+    wrongPassword()
     clock += 5 * 60 * 1000 + 1
-    fire(10)
-    attempt() // now at the 15-minute rung
 
-    clock += HOUR_MS + 60 * 1000 // nobody tries anything for an hour
+    wrongPassword()
+    wrongPassword()
+    wrongPassword()
+    clock += 15 * 60 * 1000 + 1 // sitting on the top rung, lock expired
 
-    fire(10)
-    expect(messageOf(attempt())).toBe(
+    clock += HOUR_MS + 60 * 1000 // then an hour with nobody trying anything
+
+    wrongPassword()
+    wrongPassword()
+    wrongPassword()
+    expect(messageOf(latch())).toBe(
       'Too many login attempts. Please try again in 2 minutes.'
     )
   })
 
-  it('forgets attempts once they fall outside the window', () => {
-    fire(10) // ten inside the window, none of them locking
-    clock += WINDOW_MS + 1000
+  it('does not count a throttled response as a wrong password', () => {
+    for (let i = 0; i < 3; i += 1) {
+      const r = invoke(IP)
+      if (passed(r)) r.respond(429) // some other limiter said no
+      clock += 5
+    }
 
-    expect(allowed(attempt())).toBe(true)
+    expect(passed(invoke(IP))).toBe(true)
+  })
+
+  it('forgets failures older than the window', () => {
+    wrongPassword()
+    wrongPassword()
+    clock += WINDOW_MS + 1000 // both age out
+
+    wrongPassword()
+    wrongPassword()
+    expect(passed(invoke(IP))).toBe(true) // would have latched had they counted
   })
 
   it('does not lock other clients out', () => {
-    fire(10, '203.0.113.7')
-    expect(allowed(attempt('203.0.113.7'))).toBe(false) // 11th, now locked
+    wrongPassword(IP)
+    wrongPassword(IP)
+    wrongPassword(IP)
+    expect(passed(invoke(IP))).toBe(false)
 
-    expect(allowed(attempt('198.51.100.4'))).toBe(true)
-    expect(allowed(attempt('198.51.100.4'))).toBe(true)
+    expect(passed(invoke(OTHER_IP))).toBe(true)
+    expect(passed(invoke(OTHER_IP))).toBe(true)
   })
 })
