@@ -1,5 +1,4 @@
-import { Router } from 'express'
-import Stripe from 'stripe'
+﻿import { Router } from 'express'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requireManager } from '../middleware/auth.js'
 import { logActivity } from '../middleware/activityLogger.js'
@@ -10,20 +9,6 @@ import {
 } from '../services/planLimits.js'
 
 const router = Router()
-
-let _stripe = null
-function getStripe() {
-  if (!_stripe && process.env.STRIPE_SECRET_KEY) {
-    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-  }
-  return _stripe
-}
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost'
-
-const PLAN_SLUG_MAP = {
-  pro: process.env.STRIPE_PRO_PRICE_ID,
-  enterprise: process.env.STRIPE_ENTERPRISE_PRICE_ID,
-}
 
 // GET /api/billing/plans - List all subscription plans (public)
 router.get('/plans', async (req, res) => {
@@ -44,7 +29,7 @@ router.get('/current', authenticateToken, requireManager, async (req, res) => {
   try {
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('id, name, subscription_status, subscription_tier, stripe_customer_id, stripe_subscription_id, max_products, max_users, max_orders_monthly, subscription_expires_at, renewal_note')
+      .select('id, name, subscription_status, subscription_tier, max_products, max_users, max_orders_monthly, subscription_expires_at, renewal_note')
       .eq('id', req.user.tenantId)
       .single()
     if (tenantError || !tenant) return res.status(404).json({ error: 'Tenant not found' })
@@ -65,23 +50,6 @@ router.get('/current', authenticateToken, requireManager, async (req, res) => {
       .eq('tenant_id', tenant.id)
       .gte('created_at', currentMonthStartIso())
 
-    let subscription = null
-    if (tenant.stripe_subscription_id) {
-      try {
-        subscription = await getStripe().subscriptions.retrieve(tenant.stripe_subscription_id)
-      } catch {
-        subscription = null
-      }
-    }
-
-    let upcomingInvoice = null
-    if (subscription?.current_period_end) {
-      upcomingInvoice = {
-        amount_due: subscription.items.data[0]?.price?.unit_amount || 0,
-        period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      }
-    }
-
     const { data: paymentHistory } = await supabase
       .from('tenant_payments')
       .select('id, amount, currency, status, description, created_at')
@@ -100,8 +68,8 @@ router.get('/current', authenticateToken, requireManager, async (req, res) => {
         subscription_status: tenant.subscription_status || 'active',
         // Effective caps rather than raw columns. Every tenant is created
         // with NULL max_* columns, and that null reached the client as -1
-        // (rendered as an unlimited "∞" bar) while the middleware was still
-        // enforcing the plan default — so a free tenant saw "5 / ∞" and then
+        // (rendered as an unlimited "âˆž" bar) while the middleware was still
+        // enforcing the plan default â€” so a free tenant saw "5 / âˆž" and then
         // got blocked at 100.
         max_products: resolveLimit('products', tenantPlan, tenant.max_products),
         max_users: resolveLimit('users', tenantPlan, tenant.max_users),
@@ -122,15 +90,6 @@ router.get('/current', authenticateToken, requireManager, async (req, res) => {
         description: p.description,
         date: p.created_at,
       })),
-      subscription: subscription
-        ? {
-            id: subscription.id,
-            status: subscription.status,
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-            cancel_at_period_end: subscription.cancel_at_period_end,
-          }
-        : null,
-      upcoming_invoice: upcomingInvoice,
     })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -197,286 +156,5 @@ router.post('/downgrade', authenticateToken, requireManager, async (req, res) =>
   }
 })
 
-// POST /api/billing/checkout - Create Stripe checkout session (auth required)
-router.post('/checkout', authenticateToken, requireManager, async (req, res) => {
-  try {
-    if (!getStripe()) return res.status(503).json({ error: 'Stripe not configured' })
-    const { planSlug } = req.body
-    if (!planSlug || !PLAN_SLUG_MAP[planSlug]) {
-      return res.status(400).json({ error: 'Invalid plan. Must be "pro" or "enterprise".' })
-    }
-
-    const priceId = PLAN_SLUG_MAP[planSlug]
-    if (!priceId) {
-      return res.status(400).json({ error: `Price ID not configured for plan "${planSlug}". Set STRIPE_${planSlug.toUpperCase()}_PRICE_ID in environment.` })
-    }
-
-    const { data: tenant, error: tenantError } = await supabase
-      .from('tenants')
-      .select('id, name, stripe_customer_id')
-      .eq('id', req.user.tenantId)
-      .single()
-    if (tenantError || !tenant) return res.status(404).json({ error: 'Tenant not found' })
-
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('email')
-      .eq('id', req.user.id)
-      .single()
-    if (userError || !user) return res.status(404).json({ error: 'User not found' })
-
-    let customerId = tenant.stripe_customer_id
-
-    if (!customerId) {
-      const customer = await getStripe().customers.create({
-        name: tenant.name,
-        email: user.email,
-        metadata: {
-          tenant_id: tenant.id,
-        },
-      })
-      customerId = customer.id
-
-      await supabase
-        .from('tenants')
-        .update({ stripe_customer_id: customerId })
-        .eq('id', tenant.id)
-    }
-
-    const session = await getStripe().checkout.sessions.create({
-      customer: customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
-      mode: 'subscription',
-      success_url: `${FRONTEND_URL}/billing?success=true`,
-      cancel_url: `${FRONTEND_URL}/pricing`,
-      metadata: {
-        tenant_id: tenant.id,
-        plan_slug: planSlug,
-      },
-    })
-
-    res.json({ url: session.url })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-})
-
-// POST /api/billing/portal - Create Stripe customer portal session (auth required)
-router.post('/portal', authenticateToken, requireManager, async (req, res) => {
-  try {
-    if (!getStripe()) return res.status(503).json({ error: 'Stripe not configured' })
-    const { data: tenant, error: tenantError } = await supabase
-      .from('tenants')
-      .select('stripe_customer_id')
-      .eq('id', req.user.tenantId)
-      .single()
-    if (tenantError || !tenant) return res.status(404).json({ error: 'Tenant not found' })
-    if (!tenant.stripe_customer_id) {
-      return res.status(400).json({ error: 'No billing account found. Subscribe to a plan first.' })
-    }
-
-    const session = await getStripe().billingPortal.sessions.create({
-      customer: tenant.stripe_customer_id,
-      return_url: `${FRONTEND_URL}/billing`,
-    })
-
-    res.json({ url: session.url })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-})
-
-// Stripe webhook handler - exported separately for mounting before express.json()
-export async function stripeWebhookHandler(req, res) {
-  const sig = req.headers['stripe-signature']
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
-
-  if (!getStripe()) {
-    console.error('[Stripe] STRIPE_SECRET_KEY not configured')
-    return res.status(500).json({ error: 'Stripe not configured' })
-  }
-
-  if (!webhookSecret) {
-    console.error('[Stripe] STRIPE_WEBHOOK_SECRET not configured')
-    return res.status(500).json({ error: 'Webhook secret not configured' })
-  }
-
-  let event
-  try {
-    event = getStripe().webhooks.constructEvent(req.body, sig, webhookSecret)
-  } catch (err) {
-    console.error('[Stripe] Webhook signature verification failed:', err.message)
-    return res.status(400).json({ error: `Webhook Error: ${err.message}` })
-  }
-
-  try {
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object
-        const tenantId = session.metadata?.tenant_id
-        const subscriptionId = session.subscription
-        if (!tenantId || !subscriptionId) break
-
-        const subscription = await getStripe().subscriptions.retrieve(subscriptionId)
-        const priceId = subscription.items.data[0]?.price?.id
-
-        let tier = 'pro'
-        if (priceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) tier = 'enterprise'
-
-        const tierLimits = planEntitlements(tier)
-
-        await supabase
-          .from('tenants')
-          .update({
-            stripe_subscription_id: subscriptionId,
-            subscription_status: 'active',
-            subscription_tier: tier,
-            ...tierLimits[tier],
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', tenantId)
-
-        console.log(`[Stripe] Subscription activated for tenant ${tenantId}: ${tier}`)
-        break
-      }
-
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object
-        const subscriptionId = subscription.id
-
-        const { data: tenant } = await supabase
-          .from('tenants')
-          .select('id')
-          .eq('stripe_subscription_id', subscriptionId)
-          .single()
-        if (!tenant) break
-
-        const statusMap = {
-          active: 'active',
-          past_due: 'past_due',
-          unpaid: 'past_due',
-          canceled: 'cancelled',
-          incomplete: 'incomplete',
-          trialing: 'trialing',
-          paused: 'paused',
-        }
-
-        const updateData = {
-          subscription_status: statusMap[subscription.status] || subscription.status,
-          updated_at: new Date().toISOString(),
-        }
-
-        if (subscription.status === 'active') {
-          const newPriceId = subscription.items.data[0]?.price?.id
-          if (newPriceId === process.env.STRIPE_ENTERPRISE_PRICE_ID) {
-            updateData.subscription_tier = 'enterprise'
-          } else {
-            updateData.subscription_tier = 'pro'
-          }
-        }
-
-        await supabase
-          .from('tenants')
-          .update(updateData)
-          .eq('id', tenant.id)
-
-        console.log(`[Stripe] Subscription ${subscriptionId} updated for tenant ${tenant.id}: ${subscription.status}`)
-        break
-      }
-
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object
-
-        const { data: tenant } = await supabase
-          .from('tenants')
-          .select('id')
-          .eq('stripe_subscription_id', subscription.id)
-          .single()
-        if (!tenant) break
-
-        await supabase
-          .from('tenants')
-          .update({
-            subscription_status: 'cancelled',
-            subscription_tier: 'free',
-            stripe_subscription_id: null,
-            ...planEntitlements('free'),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', tenant.id)
-
-        console.log(`[Stripe] Subscription cancelled for tenant ${tenant.id}`)
-        break
-      }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object
-        const customerId = invoice.customer
-
-        const { data: tenant } = await supabase
-          .from('tenants')
-          .select('id')
-          .eq('stripe_customer_id', customerId)
-          .single()
-        if (!tenant) break
-
-        await supabase
-          .from('tenants')
-          .update({
-            subscription_status: 'past_due',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', tenant.id)
-
-        console.log(`[Stripe] Payment failed for tenant ${tenant.id}`)
-        break
-      }
-
-      case 'invoice.paid': {
-        const invoice = event.data.object
-        const customerId = invoice.customer
-
-        const { data: tenant } = await supabase
-          .from('tenants')
-          .select('id')
-          .eq('stripe_customer_id', customerId)
-          .single()
-        if (!tenant) break
-
-        await supabase
-          .from('tenant_payments')
-          .insert({
-            tenant_id: tenant.id,
-            stripe_invoice_id: invoice.id,
-            amount: invoice.amount_paid,
-            currency: invoice.currency,
-            status: 'paid',
-            payment_date: new Date(invoice.created * 1000).toISOString(),
-          })
-
-        if (invoice.subscription) {
-          await supabase
-            .from('tenants')
-            .update({
-              subscription_status: 'active',
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', tenant.id)
-        }
-
-        console.log(`[Stripe] Payment recorded for tenant ${tenant.id}: ${invoice.amount_paid / 100} ${invoice.currency}`)
-        break
-      }
-
-      default:
-        console.log(`[Stripe] Unhandled event type: ${event.type}`)
-    }
-
-    res.json({ received: true })
-  } catch (err) {
-    console.error(`[Stripe] Error processing ${event.type}:`, err.message)
-    res.status(500).json({ error: 'Webhook handler failed' })
-  }
-}
 
 export default router

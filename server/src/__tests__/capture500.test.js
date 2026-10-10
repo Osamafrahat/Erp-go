@@ -59,7 +59,7 @@ describe('capture500Responses', () => {
   it('captures 503 responses too', () => {
     mount()
     res.statusCode = 503
-    res.json({ error: 'Stripe not configured' })
+    res.json({ error: 'Payment gateway not configured' })
     expect(captureException).toHaveBeenCalledTimes(1)
   })
 

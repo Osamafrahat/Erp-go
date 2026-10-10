@@ -49,7 +49,7 @@ import performanceRouter from './routes/performance.js'
 import servicesRouter from './routes/services.js'
 import servicePlansRouter from './routes/servicePlans.js'
 import subscriptionsRouter from './routes/subscriptions.js'
-import billingRouter, { stripeWebhookHandler } from './routes/billing.js'
+import billingRouter from './routes/billing.js'
 import paymobRouter from './routes/paymob.js'
 import tenantRouter from './routes/tenant.js'
 import superAdminRouter from './routes/superAdmin.js'
@@ -70,10 +70,9 @@ initSentry()
 
 app.set('trust proxy', 1)
 
-// Must precede every route — including the Stripe webhook mounted below,
-// which is deliberately registered ahead of the body parsers and answers
-// 500s itself. Catches 5xx responses that routes handle without calling
-// next(err); without this, most server failures never reach Sentry.
+// Must precede every route so no self-handled 5xx can slip past it. Catches
+// 5xx responses that routes answer without calling next(err); without this,
+// most server failures never reach Sentry.
 app.use(capture500Responses)
 
 const __filename = fileURLToPath(import.meta.url)
@@ -100,8 +99,6 @@ app.use(helmet({
 if (clientDistExists) {
   app.use(express.static(clientDist))
 }
-
-app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), stripeWebhookHandler)
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean)
 const corsOptions = {
@@ -138,9 +135,6 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 // Express's default 404 having passed no limiter at all — those paths were
 // completely unthrottled. Runs before the per-path limiters below, so it is
 // a ceiling; /api/ keeps its own tighter one underneath.
-//
-// The Stripe webhook is mounted further up and is deliberately not covered:
-// throttling payment callbacks would make Stripe drop retries.
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,

@@ -377,9 +377,7 @@ export const superAdminApi = {
 export const billingApi = {
   getPlans: () => api.get('/billing/plans'),
   getCurrent: () => api.get('/billing/current'),
-  checkout: (data) => api.post('/billing/checkout', data),
   downgrade: (data) => api.post('/billing/downgrade', data),
-  portal: () => api.post('/billing/portal'),
 }
 
 // Paymob API

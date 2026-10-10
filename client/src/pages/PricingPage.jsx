@@ -216,20 +216,6 @@ export default function PricingPage() {
     }
   }
 
-  const handleStripe = async () => {
-    if (!showPayment) return
-    setProcessing(true)
-    try {
-      const { data } = await billingApi.checkout({ planSlug: showPayment.id })
-      if (data.url) {
-        window.location.href = data.url
-      }
-    } catch (err) {
-      alert(err.response?.data?.error || (t('pricing.paymentFailed') || 'Payment failed'))
-      setProcessing(false)
-    }
-  }
-
   const upgraded = searchParams.get('upgraded') === 'true'
 
   return (
@@ -434,19 +420,10 @@ className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-accent hov
                 {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
                 {t('pricing.payWithCard') || 'Pay with Card / Wallet / Fawry'}
               </button>
-
-              <button
-                onClick={handleStripe}
-                disabled={processing}
-className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-[#635bff] hover:bg-[#5046e4] text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-              >
-                {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-                {t('pricing.payWithStripe') || 'Pay with Stripe (International)'}
-              </button>
             </div>
 
 <p className="text-xs text-muted text-center mt-4">
-              {t('pricing.securePayment') || 'Secure payment processed by Paymob & Stripe'}
+              {t('pricing.securePayment') || 'Secure payment processed by Paymob'}
             </p>
           </div>
         </div>
