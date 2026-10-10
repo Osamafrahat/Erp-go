@@ -67,10 +67,10 @@ export default function SearchableSelect({ options = [], value, onChange, placeh
         role="combobox"
         aria-expanded={open}
         onClick={() => { if (!disabled) setOpen(!open) }}
-        className={`w-full flex items-center justify-between px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-left transition
-          ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-400 dark:hover:border-gray-500'}
-          ${open ? 'border-primary-500 ring-1 ring-primary-500' : ''}
-          ${selected ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}`}
+className={`w-full flex items-center justify-between px-3 py-2 border border-border rounded-lg bg-surface text-sm text-left transition
+${disabled ?'opacity-50 cursor-not-allowed':'cursor-pointer border-secondary'}
+${open ?'border-accent ring-1 ring-primary-500':''}
+${selected ?'text-foreground':'text-muted'}`}
       >
         <span className="truncate">
           {selected ? (renderOption ? renderOption(selected) : selected[labelKey]) : placeholder}
@@ -79,10 +79,10 @@ export default function SearchableSelect({ options = [], value, onChange, placeh
       </div>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden">
-          <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+<div className="absolute z-50 mt-1 w-full bg-surface border border-border rounded-lg shadow-lg overflow-hidden">
+<div className="p-2 border-b border-border">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted"/>
               <input
                 ref={inputRef}
                 type="text"
@@ -90,10 +90,10 @@ export default function SearchableSelect({ options = [], value, onChange, placeh
                 onChange={e => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
-                className="w-full pl-8 pr-7 py-1.5 border border-gray-200 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
+className="w-full pl-8 pr-7 py-1.5 border border-border rounded-md bg-surface-secondary text-foreground text-sm focus:outline-none ring-focus"
               />
               {search && (
-                <button type="button" onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+<button type="button"onClick={()=>setSearch('')}className="absolute right-2 top-1/2 -translate-y-1/2 text-muted text-foreground">
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -101,7 +101,7 @@ export default function SearchableSelect({ options = [], value, onChange, placeh
           </div>
           <div className="max-h-48 overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-gray-400 dark:text-gray-500">{t('common.noResults') || 'No results found'}</div>
+<div className="px-3 py-2 text-sm text-muted">{t('common.noResults')||'No results found'}</div>
             ) : (
               filtered.map((option, i) => (
                 <button
@@ -110,10 +110,10 @@ export default function SearchableSelect({ options = [], value, onChange, placeh
                   onClick={() => handleSelect(option)}
                   className={`w-full text-start px-3 py-2 text-sm transition
                     ${String(option[valueKey]) === String(value)
-                      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+?'bg-accent-soft text-accent-soft-foreground'
                       : i === highlightIndex
-                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+?'bg-surface-tertiary text-foreground'
+:'text-foreground bg-surface-hover'}`}
                 >
                   {renderOption ? renderOption(option) : option[labelKey]}
                 </button>

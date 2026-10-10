@@ -7,8 +7,8 @@ import ConfirmModal from '../components/ConfirmModal'
 import SearchableSelect from '../components/SearchableSelect'
 
 const STATUS_COLORS = {
-  draft: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
-  completed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+draft:'bg-surface-tertiary text-foreground',
+completed:'bg-success-soft text-success-soft-foreground',
 }
 
 const DEFAULT_CRITERIA_KEYS = [
@@ -30,7 +30,7 @@ function StarRating({ value, onChange, readonly }) {
           onMouseEnter={() => !readonly && setHover(star)}
           onMouseLeave={() => !readonly && setHover(0)}
           onClick={() => onChange?.(star)}>
-          <Star className={`w-5 h-5 ${(hover || value) >= star ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} />
+<Star className={`w-5 h-5 ${(hover || value)>=star ?'fill-yellow-400 text-warning':'text-foreground'}`}/>
         </button>
       ))}
     </div>
@@ -184,7 +184,7 @@ export default function PerformanceReviewsPage() {
     return (
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map(star => (
-          <Star key={star} className={`w-4 h-4 ${star <= (rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} />
+<Star key={star}className={`w-4 h-4 ${star<=(rating || 0)?'fill-yellow-400 text-warning':'text-foreground'}`}/>
         ))}
       </div>
     )
@@ -194,12 +194,12 @@ export default function PerformanceReviewsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('hr.performance.title') || 'Performance Reviews'}</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{t('hr.performance.subtitle') || 'Track employee performance and evaluations'}</p>
+<h1 className="text-2xl font-bold text-foreground">{t('hr.performance.title')||'Performance Reviews'}</h1>
+<p className="text-muted text-sm">{t('hr.performance.subtitle')||'Track employee performance and evaluations'}</p>
         </div>
         {isManager && (
           <button onClick={() => { resetForm(); setEditingReview(null); setShowForm(true) }}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm">
+className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700 transition text-sm">
             <Plus className="w-4 h-4" /> {t('hr.performance.newReview') || 'New Review'}
           </button>
         )}
@@ -207,27 +207,27 @@ export default function PerformanceReviewsPage() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
         </div>
       ) : reviews.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">{t('hr.performance.noReviews') || 'No performance reviews yet'}</div>
+<div className="text-center py-12 text-muted">{t('hr.performance.noReviews')||'No performance reviews yet'}</div>
       ) : (
         <div className="space-y-3">
           {reviews.map(review => (
-            <div key={review.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div key={review.id}className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                    <User className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+<div className="w-10 h-10 rounded-full bg-accent-soft flex items-center justify-center">
+<User className="w-5 h-5 text-accent"/>
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900 dark:text-white">
+<div className="font-medium text-foreground">
                       {review.employees?.name || getEmployeeName(review.employee_id)}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+<div className="text-xs text-muted">
                       {review.review_period_start} → {review.review_period_end}
                     </div>
-                    <div className="text-xs text-gray-400 dark:text-gray-500">
+<div className="text-xs text-muted">
                       {t('hr.performance.reviewer') || 'Reviewer'}: {review.users?.full_name || t('common.notAvailable') || 'N/A'}
                     </div>
                   </div>
@@ -241,21 +241,21 @@ export default function PerformanceReviewsPage() {
               </div>
               <div className="mt-3 flex gap-2">
                 <button onClick={() => setShowDetail(review)}
-                  className="p-2 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition" title={t('common.view') || 'View'}>
+className="p-2 text-muted hover:text-primary-600 transition"title={t('common.view')||'View'}>
                   <Eye className="w-4 h-4" />
                 </button>
                 {isManager && review.status === 'draft' && (
                   <>
                     <button onClick={() => handleEdit(review)}
-                      className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition" title={t('common.edit') || 'Edit'}>
+className="p-2 text-muted hover:text-blue-600 transition"title={t('common.edit')||'Edit'}>
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleComplete(review)}
-                      className="px-3 py-1 text-xs text-green-600 hover:text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-lg" title={t('hr.performance.markComplete') || 'Mark Complete'}>
+className="px-3 py-1 text-xs text-success hover:text-green-700 border border-success rounded-lg"title={t('hr.performance.markComplete')||'Mark Complete'}>
                       {t('hr.performance.complete') || 'Complete'}
                     </button>
                     <button onClick={() => setDeleteTarget(review)}
-                      className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition" title={t('common.delete') || 'Delete'}>
+className="p-2 text-muted hover:text-red-600 transition"title={t('common.delete')||'Delete'}>
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </>
@@ -269,18 +269,18 @@ export default function PerformanceReviewsPage() {
       {/* Detail Modal */}
       {showDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[80vh] overflow-y-auto">
+<div className="bg-surface rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+<h3 className="text-lg font-semibold text-foreground">
                 {t('hr.performance.reviewDetails') || 'Review Details'}
               </h3>
-              <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+<button onClick={()=>setShowDetail(null)}className="text-muted text-foreground"><X className="w-5 h-5"/></button>
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">{showDetail.employees?.name || getEmployeeName(showDetail.employee_id)}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{showDetail.review_period_start} → {showDetail.review_period_end}</div>
+<div className="font-medium text-foreground">{showDetail.employees?.name || getEmployeeName(showDetail.employee_id)}</div>
+<div className="text-sm text-muted">{showDetail.review_period_start}→{showDetail.review_period_end}</div>
                 </div>
                 <div className="text-right">
                   {renderStars(showDetail.overall_rating)}
@@ -289,11 +289,11 @@ export default function PerformanceReviewsPage() {
               </div>
               {showDetail.criteria && showDetail.criteria.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">{t('hr.performance.criteria') || 'Criteria'}</h4>
+<h4 className="font-medium text-foreground mb-2">{t('hr.performance.criteria')||'Criteria'}</h4>
                   <div className="space-y-2">
                     {showDetail.criteria.map((c, i) => (
-                      <div key={i} className="flex items-center justify-between bg-gray-50 dark:bg-gray-750 rounded-lg p-2">
-                        <span className="text-sm text-gray-700 dark:text-gray-300">{c.criterion}</span>
+<div key={i}className="flex items-center justify-between bg-surface-secondary rounded-lg p-2">
+<span className="text-sm text-foreground">{c.criterion}</span>
                         {renderStars(c.rating)}
                       </div>
                     ))}
@@ -302,26 +302,26 @@ export default function PerformanceReviewsPage() {
               )}
               {showDetail.strengths && (
                 <div>
-                  <h4 className="font-medium text-green-700 dark:text-green-400 text-sm">{t('hr.performance.strengths') || 'Strengths'}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{showDetail.strengths}</p>
+<h4 className="font-medium text-success text-sm">{t('hr.performance.strengths')||'Strengths'}</h4>
+<p className="text-sm text-muted mt-1">{showDetail.strengths}</p>
                 </div>
               )}
               {showDetail.improvements && (
                 <div>
-                  <h4 className="font-medium text-orange-700 dark:text-orange-400 text-sm">{t('hr.performance.improvements') || 'Areas for Improvement'}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{showDetail.improvements}</p>
+<h4 className="font-medium text-warning text-sm">{t('hr.performance.improvements')||'Areas for Improvement'}</h4>
+<p className="text-sm text-muted mt-1">{showDetail.improvements}</p>
                 </div>
               )}
               {showDetail.goals && (
                 <div>
-                  <h4 className="font-medium text-blue-700 dark:text-blue-400 text-sm">{t('hr.performance.goals') || 'Goals'}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{showDetail.goals}</p>
+<h4 className="font-medium text-accent text-sm">{t('hr.performance.goals')||'Goals'}</h4>
+<p className="text-sm text-muted mt-1">{showDetail.goals}</p>
                 </div>
               )}
               {showDetail.comments && (
                 <div>
-                  <h4 className="font-medium text-gray-700 dark:text-gray-300 text-sm">{t('hr.performance.comments') || 'Comments'}</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{showDetail.comments}</p>
+<h4 className="font-medium text-foreground text-sm">{t('hr.performance.comments')||'Comments'}</h4>
+<p className="text-sm text-muted mt-1">{showDetail.comments}</p>
                 </div>
               )}
             </div>
@@ -332,16 +332,16 @@ export default function PerformanceReviewsPage() {
       {/* Create/Edit Form Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
+<div className="bg-surface rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+<h3 className="text-lg font-semibold text-foreground">
                 {editingReview ? (t('hr.performance.editReview') || 'Edit Review') : (t('hr.performance.newReview') || 'New Review')}
               </h3>
-              <button onClick={() => { setShowForm(false); setEditingReview(null); resetForm() }} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+<button onClick={()=>{setShowForm(false);setEditingReview(null);resetForm()}}className="text-muted text-foreground"><X className="w-5 h-5"/></button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.performance.employee') || 'Employee'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('hr.performance.employee')||'Employee'}</label>
                 <SearchableSelect
                   options={employees.filter(e => e.is_active).map(e => ({ value: e.id, label: e.name }))}
                   value={formEmployeeId}
@@ -351,31 +351,31 @@ export default function PerformanceReviewsPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.performance.periodStart') || 'Period Start'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('hr.performance.periodStart')||'Period Start'}</label>
                   <input type="date" value={formPeriodStart} onChange={e => setFormPeriodStart(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.performance.periodEnd') || 'Period End'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('hr.performance.periodEnd')||'Period End'}</label>
                   <input type="date" value={formPeriodEnd} onChange={e => setFormPeriodEnd(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.performance.overallRating') || 'Overall Rating'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('hr.performance.overallRating')||'Overall Rating'}</label>
                 <StarRating value={formRating} onChange={setFormRating} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('hr.performance.criteria') || 'Criteria'}</label>
+<label className="block text-sm font-medium text-foreground mb-2">{t('hr.performance.criteria')||'Criteria'}</label>
                 <div className="space-y-2">
                   {formCriteria.map((c, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-gray-50 dark:bg-gray-750 rounded-lg p-2">
+<div key={i}className="flex items-center gap-3 bg-surface-secondary rounded-lg p-2">
                       <input type="text" value={c.criterion} onChange={e => {
                         const updated = [...formCriteria]
                         updated[i].criterion = e.target.value
                         setFormCriteria(updated)
                       }}
-                        className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+className="flex-1 px-2 py-1 border border-border rounded bg-surface text-foreground text-sm"/>
                       <StarRating value={c.rating} onChange={val => {
                         const updated = [...formCriteria]
                         updated[i].rating = val
@@ -384,35 +384,35 @@ export default function PerformanceReviewsPage() {
                     </div>
                   ))}
                   <button type="button" onClick={() => setFormCriteria([...formCriteria, { criterion: '', rating: 0, comments: '' }])}
-                    className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400">
+className="text-xs text-accent hover:text-primary-700">
                     + {t('hr.performance.addCriterion') || 'Add Criterion'}
                   </button>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.performance.strengths') || 'Strengths'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('hr.performance.strengths')||'Strengths'}</label>
                 <textarea value={formStrengths} onChange={e => setFormStrengths(e.target.value)} rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.performance.improvements') || 'Areas for Improvement'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('hr.performance.improvements')||'Areas for Improvement'}</label>
                 <textarea value={formImprovements} onChange={e => setFormImprovements(e.target.value)} rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.performance.goals') || 'Goals'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('hr.performance.goals')||'Goals'}</label>
                 <textarea value={formGoals} onChange={e => setFormGoals(e.target.value)} rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.performance.comments') || 'Comments'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('hr.performance.comments')||'Comments'}</label>
                 <textarea value={formComments} onChange={e => setFormComments(e.target.value)} rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={() => { setShowForm(false); setEditingReview(null); resetForm() }} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm">{t('common.cancel') || 'Cancel'}</button>
+<button onClick={()=>{setShowForm(false);setEditingReview(null);resetForm()}}className="flex-1 px-4 py-2 border border-border rounded-lg text-foreground bg-surface-hover text-sm">{t('common.cancel')||'Cancel'}</button>
                 <button onClick={handleCreate} disabled={!formEmployeeId || !formPeriodStart || !formPeriodEnd || isSubmitting}
-                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 text-sm font-medium">
+className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 text-sm font-medium">
                   {isSubmitting ? t('common.saving') || 'Saving...' : t('common.save') || 'Save'}
                 </button>
               </div>

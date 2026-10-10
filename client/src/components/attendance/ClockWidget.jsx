@@ -131,8 +131,8 @@ export default function ClockWidget() {
 
   if (!loading && !linked) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-6">
-        <div className="text-center text-gray-500 dark:text-gray-400">
+<div className="bg-surface-secondary rounded-2xl border border-border shadow-sm p-6">
+<div className="text-center text-muted">
           <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">{t('hr.attendance.noEmployeeProfile') || 'No employee profile linked to your account. Contact your manager.'}</p>
         </div>
@@ -141,30 +141,30 @@ export default function ClockWidget() {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm overflow-hidden">
+<div className="bg-surface-secondary rounded-2xl border border-border shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-6 text-white">
+<div className="bg-gradient-to-r from-primary-600 to-primary-700 p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-bold">{myEmployee?.name || currentUser?.fullName || currentUser?.username}</h3>
-            <p className="text-primary-100 text-sm">{myEmployee?.role || currentUser?.role}</p>
+<p className="text-accent text-sm">{myEmployee?.role || currentUser?.role}</p>
           </div>
           <div className="text-end">
             <div className="text-3xl font-mono font-bold">{formatTime(currentTime)}</div>
-            <div className="text-primary-100 text-sm">{today}</div>
+<div className="text-accent text-sm">{today}</div>
           </div>
         </div>
       </div>
 
       {/* Shift info */}
       {todayShift && (
-        <div className="px-6 py-3 bg-primary-50 dark:bg-primary-900/10 border-b border-primary-100 dark:border-primary-900/20">
+<div className="px-6 py-3 bg-accent-soft border-b border-accent">
           <div className="flex items-center gap-2 text-sm">
-            <Clock className="w-4 h-4 text-primary-600 dark:text-primary-400" />
-            <span className="text-primary-700 dark:text-primary-300 font-medium">
+<Clock className="w-4 h-4 text-accent"/>
+<span className="text-accent font-medium">
               {todayShift.shifts?.name}
             </span>
-            <span className="text-primary-500 dark:text-primary-400">
+<span className="text-accent">
               ({todayShift.shifts?.start_time?.slice(0, 5)} - {todayShift.shifts?.end_time?.slice(0, 5)})
             </span>
           </div>
@@ -175,14 +175,14 @@ export default function ClockWidget() {
       <div className="p-6">
         {loading ? (
           <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
           </div>
         ) : (
           <>
             {/* Current status */}
             <div className="flex items-center gap-3 mb-6">
-              <div className={`w-3 h-3 rounded-full ${isClockedIn && !isClockedOut ? 'bg-green-500 animate-pulse' : isOnBreak ? 'bg-yellow-500 animate-pulse' : 'bg-gray-300'}`}></div>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+<div className={`w-3 h-3 rounded-full ${isClockedIn && !isClockedOut ?'bg-success animate-pulse': isOnBreak ?'bg-warning animate-pulse':'bg-surface-tertiary'}`}></div>
+<span className="text-sm font-medium text-foreground">
                 {isClockedOut
                   ? (t('hr.attendance.statusClockedOut') || 'Clocked Out')
                   : isOnBreak
@@ -193,7 +193,7 @@ export default function ClockWidget() {
                 }
               </span>
               {todayRecord?.clock_in && (
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+<span className="text-xs text-muted">
                   {formatTime(todayRecord.clock_in)}
                   {todayRecord?.clock_out ? ` → ${formatTime(todayRecord.clock_out)}` : ''}
                 </span>
@@ -202,17 +202,17 @@ export default function ClockWidget() {
 
             {/* Stats row */}
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-3 bg-white/80 dark:bg-gray-700/80 rounded-xl border border-gray-100 dark:border-gray-600">
-                <div className="text-lg font-bold text-gray-900 dark:text-white">{totalHoursWorked}h</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">{t('hr.attendance.totalHours') || 'Hours'}</div>
+<div className="text-center p-3 bg-white/80 bg-surface-secondary rounded-xl border border-border">
+<div className="text-lg font-bold text-foreground">{totalHoursWorked}h</div>
+<div className="text-xs text-muted">{t('hr.attendance.totalHours')||'Hours'}</div>
               </div>
-              <div className="text-center p-3 bg-white/80 dark:bg-gray-700/80 rounded-xl border border-gray-100 dark:border-gray-600">
-                <div className="text-lg font-bold text-amber-600 dark:text-amber-400">{todayRecord?.overtime_hours || 0}h</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">{t('hr.attendance.overtime') || 'Overtime'}</div>
+<div className="text-center p-3 bg-white/80 bg-surface-secondary rounded-xl border border-border">
+<div className="text-lg font-bold text-warning">{todayRecord?.overtime_hours || 0}h</div>
+<div className="text-xs text-muted">{t('hr.attendance.overtime')||'Overtime'}</div>
               </div>
-              <div className="text-center p-3 bg-white/80 dark:bg-gray-700/80 rounded-xl border border-gray-100 dark:border-gray-600">
-                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{todayRecord?.break_minutes || 0}m</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">{t('hr.attendance.break') || 'Break'}</div>
+<div className="text-center p-3 bg-white/80 bg-surface-secondary rounded-xl border border-border">
+<div className="text-lg font-bold text-accent">{todayRecord?.break_minutes || 0}m</div>
+<div className="text-xs text-muted">{t('hr.attendance.break')||'Break'}</div>
               </div>
             </div>
 
@@ -222,7 +222,7 @@ export default function ClockWidget() {
                 <button
                   onClick={handleClockIn}
                   disabled={actionLoading || isClockedOut}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all active:scale-95"
+className="flex items-center justify-center gap-2 px-4 py-3 bg-success hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all active:scale-95"
                 >
                   <LogIn className="w-5 h-5" />
                   {t('hr.attendance.clockIn') || 'Clock In'}
@@ -231,7 +231,7 @@ export default function ClockWidget() {
                 <button
                   onClick={handleClockOut}
                   disabled={actionLoading || isOnBreak}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all active:scale-95"
+className="flex items-center justify-center gap-2 px-4 py-3 bg-danger hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all active:scale-95"
                 >
                   <LogOut className="w-5 h-5" />
                   {t('hr.attendance.clockOut') || 'Clock Out'}
@@ -243,7 +243,7 @@ export default function ClockWidget() {
                   <button
                     onClick={handleBreakStart}
                     disabled={actionLoading}
-                    className="flex items-center justify-center gap-2 px-4 py-3 bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-white rounded-xl font-medium transition-all active:scale-95"
+className="flex items-center justify-center gap-2 px-4 py-3 bg-warning hover:bg-yellow-600 disabled:opacity-50 text-white rounded-xl font-medium transition-all active:scale-95"
                   >
                     <Coffee className="w-5 h-5" />
                     {t('hr.attendance.startBreak') || 'Break'}
@@ -252,7 +252,7 @@ export default function ClockWidget() {
                   <button
                     onClick={handleBreakEnd}
                     disabled={actionLoading}
-                    className="flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl font-medium transition-all active:scale-95"
+className="flex items-center justify-center gap-2 px-4 py-3 bg-warning hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl font-medium transition-all active:scale-95"
                   >
                     <Pause className="w-5 h-5" />
                     {t('hr.attendance.endBreak') || 'End Break'}
@@ -263,8 +263,8 @@ export default function ClockWidget() {
 
             {/* Break details */}
             {todayRecord?.break_start && (
-              <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl">
-                <div className="flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-400">
+<div className="mt-4 p-3 bg-warning-soft rounded-xl">
+<div className="flex items-center gap-2 text-sm text-warning">
                   <Coffee className="w-4 h-4" />
                   <span>
                     {t('hr.attendance.breakPeriod') || 'Break'}: {formatTime(todayRecord.break_start)}

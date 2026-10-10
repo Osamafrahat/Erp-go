@@ -120,12 +120,12 @@ export default function AttendancePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('hr.attendance.title') || 'Attendance'}</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{t('hr.attendance.subtitle') || 'Track employee attendance and hours'}</p>
+<h1 className="text-2xl font-bold text-foreground">{t('hr.attendance.title')||'Attendance'}</h1>
+<p className="text-muted text-sm">{t('hr.attendance.subtitle')||'Track employee attendance and hours'}</p>
         </div>
         <div className="flex gap-2">
           {isManager && (
-            <button onClick={() => setShowAddForm(true)} className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm">
+<button onClick={()=>setShowAddForm(true)}className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700 transition text-sm">
               <Plus className="w-4 h-4" /> {t('hr.attendance.addRecord') || 'Add Record'}
             </button>
           )}
@@ -138,52 +138,52 @@ export default function AttendancePage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
         {[
-          { label: t('hr.attendance.total') || 'Total', value: summary.total, bg: 'bg-gray-50 dark:bg-gray-800', border: 'border-l-gray-400', text: 'text-gray-900 dark:text-white', icon: '📊' },
-          { label: t('hr.attendance.present') || 'Present', value: summary.present, bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-l-green-500', text: 'text-green-700 dark:text-green-400', icon: '✓' },
-          { label: t('hr.attendance.absent') || 'Absent', value: summary.absent, bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-l-red-500', text: 'text-red-700 dark:text-red-400', icon: '✗' },
-          { label: t('hr.attendance.late') || 'Late', value: summary.late, bg: 'bg-yellow-50 dark:bg-yellow-900/20', border: 'border-l-yellow-500', text: 'text-yellow-700 dark:text-yellow-400', icon: '⏰' },
-          { label: t('hr.attendance.halfDay') || 'Half Day', value: summary.half_day, bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-l-orange-500', text: 'text-orange-700 dark:text-orange-400', icon: '🕐' },
-          { label: t('hr.attendance.onLeave') || 'On Leave', value: summary.on_leave, bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-l-blue-500', text: 'text-blue-700 dark:text-blue-400', icon: '🏖' },
+{label: t('hr.attendance.total')||'Total',value: summary.total,bg:'bg-surface-secondary',border:'border-l-gray-400',text:'text-foreground',icon:'📊'},
+{label: t('hr.attendance.present')||'Present',value: summary.present,bg:'bg-success-soft',border:'border-l-green-500',text:'text-success',icon:'✓'},
+{label: t('hr.attendance.absent')||'Absent',value: summary.absent,bg:'bg-danger-soft',border:'border-l-red-500',text:'text-danger',icon:'✗'},
+{label: t('hr.attendance.late')||'Late',value: summary.late,bg:'bg-warning-soft',border:'border-l-yellow-500',text:'text-warning',icon:'⏰'},
+{label: t('hr.attendance.halfDay')||'Half Day',value: summary.half_day,bg:'bg-warning-soft',border:'border-l-orange-500',text:'text-warning',icon:'🕐'},
+{label: t('hr.attendance.onLeave')||'On Leave',value: summary.on_leave,bg:'bg-accent-soft',border:'border-l-blue-500',text:'text-accent',icon:'🏖'},
         ].map(item => (
-          <div key={item.label} className={`${item.bg} rounded-xl border border-gray-200 dark:border-gray-700 border-l-4 ${item.border} p-3 text-center`}>
+<div key={item.label}className={`${item.bg}rounded-xl border border-border border-l-4 ${item.border}p-3 text-center`}>
             <div className={`text-2xl font-bold ${item.text}`}>{item.value}</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">{item.label}</div>
+<div className="text-xs text-muted mt-1 font-medium">{item.label}</div>
           </div>
         ))}
       </div>
 
       {/* Month Navigation + Search */}
-      <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-3">
+<div className="flex items-center justify-between bg-surface-secondary rounded-xl border border-border shadow-sm p-3">
         <div className="flex items-center gap-2">
           <button onClick={() => {
             if (selectedMonth === 1) { setSelectedMonth(12); setSelectedYear(y => y - 1) }
             else setSelectedMonth(m => m - 1)
-          }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
-            <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+}}className="p-2 bg-surface-hover rounded-lg transition">
+<ChevronLeft className="w-5 h-5 text-muted"/>
           </button>
           <select
             value={selectedMonth}
             onChange={e => setSelectedMonth(parseInt(e.target.value))}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+className="px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-foreground"
           >
             {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
           <select
             value={selectedYear}
             onChange={e => setSelectedYear(parseInt(e.target.value))}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+className="px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-foreground"
           >
             {[2024, 2025, 2026, 2027, 2028].map(y => <option key={y} value={y}>{y}</option>)}
           </select>
           <button onClick={() => {
             if (selectedMonth === 12) { setSelectedMonth(1); setSelectedYear(y => y + 1) }
             else setSelectedMonth(m => m + 1)
-          }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
-            <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+}}className="p-2 bg-surface-hover rounded-lg transition">
+<ChevronRight className="w-5 h-5 text-muted"/>
           </button>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
+<div className="text-sm text-muted">
             {summary.totalHours}h {t('hr.attendance.totalHours') || 'total'}
           </div>
           <input
@@ -191,7 +191,7 @@ export default function AttendancePage() {
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder={t('hr.attendance.search') || 'Search employees...'}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-48"
+className="px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-foreground w-48"
           />
         </div>
       </div>
@@ -199,10 +199,10 @@ export default function AttendancePage() {
       {/* Calendar Grid */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
         </div>
       ) : activeEmployees.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+<div className="text-center py-12 text-muted">
           {t('hr.attendance.noEmployees') || 'No employees found'}
         </div>
       ) : (
@@ -216,10 +216,10 @@ export default function AttendancePage() {
       )}
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+<div className="flex flex-wrap items-center gap-4 text-xs text-muted">
         {['present', 'absent', 'late', 'half_day', 'on_leave'].map(status => (
           <div key={status} className="flex items-center gap-1.5">
-            <div className={`w-2.5 h-2.5 rounded-full ${status === 'present' ? 'bg-green-500' : status === 'absent' ? 'bg-red-500' : status === 'late' ? 'bg-yellow-500' : status === 'half_day' ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
+<div className={`w-2.5 h-2.5 rounded-full ${status==='present'?'bg-success': status==='absent'?'bg-danger': status==='late'?'bg-warning': status==='half_day'?'bg-warning':'bg-accent'}`}></div>
             <span>{t(`hr.attendance.status.${status}`) || status}</span>
           </div>
         ))}
@@ -228,14 +228,14 @@ export default function AttendancePage() {
       {/* Add Record Modal */}
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+<div className="bg-surface rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('hr.attendance.addRecord') || 'Add Record'}</h3>
-              <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+<h3 className="text-lg font-semibold text-foreground">{t('hr.attendance.addRecord')||'Add Record'}</h3>
+<button onClick={()=>setShowAddForm(false)}className="text-muted text-foreground"><X className="w-5 h-5"/></button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.attendance.employee') || 'Employee'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('hr.attendance.employee')||'Employee'}</label>
                 <SearchableSelect
                   options={activeEmployees.map(e => ({ value: e.id, label: e.name }))}
                   value={addEmployee}
@@ -244,9 +244,9 @@ export default function AttendancePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('hr.attendance.status') || 'Status'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('hr.attendance.status')||'Status'}</label>
                 <select value={addStatus} onChange={e => setAddStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm">
                   <option value="present">{t('hr.attendance.status.present') || 'Present'}</option>
                   <option value="absent">{t('hr.attendance.status.absent') || 'Absent'}</option>
                   <option value="late">{t('hr.attendance.status.late') || 'Late'}</option>
@@ -255,14 +255,14 @@ export default function AttendancePage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('common.notes') || 'Notes'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('common.notes')||'Notes'}</label>
                 <textarea value={addNotes} onChange={e => setAddNotes(e.target.value)} rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setShowAddForm(false)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm">{t('common.cancel') || 'Cancel'}</button>
+<button onClick={()=>setShowAddForm(false)}className="flex-1 px-4 py-2 border border-border rounded-lg text-foreground bg-surface-hover text-sm">{t('common.cancel')||'Cancel'}</button>
                 <button onClick={handleCreate} disabled={!addEmployee || isSubmitting}
-                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 text-sm font-medium">
+className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 text-sm font-medium">
                   {isSubmitting ? t('common.saving') || 'Saving...' : t('common.save') || 'Save'}
                 </button>
               </div>
@@ -274,66 +274,66 @@ export default function AttendancePage() {
       {/* Detail Modal */}
       {detailRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+<div className="bg-surface rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('hr.attendance.details') || 'Attendance Details'}</h3>
-              <button onClick={() => setDetailRecord(null)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+<h3 className="text-lg font-semibold text-foreground">{t('hr.attendance.details')||'Attendance Details'}</h3>
+<button onClick={()=>setDetailRecord(null)}className="text-muted text-foreground"><X className="w-5 h-5"/></button>
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">{t('hr.attendance.employee') || 'Employee'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{detailRecord.employees?.name}</span>
+<span className="text-muted">{t('hr.attendance.employee')||'Employee'}</span>
+<span className="font-medium text-foreground">{detailRecord.employees?.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">{t('hr.attendance.date') || 'Date'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{detailRecord.date}</span>
+<span className="text-muted">{t('hr.attendance.date')||'Date'}</span>
+<span className="font-medium text-foreground">{detailRecord.date}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-500 dark:text-gray-400">{t('hr.attendance.status') || 'Status'}</span>
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${detailRecord.status === 'present' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : detailRecord.status === 'absent' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' : detailRecord.status === 'late' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' : detailRecord.status === 'half_day' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${detailRecord.status === 'present' ? 'bg-green-500' : detailRecord.status === 'absent' ? 'bg-red-500' : detailRecord.status === 'late' ? 'bg-yellow-500' : detailRecord.status === 'half_day' ? 'bg-orange-500' : 'bg-blue-500'}`}></span>
+<span className="text-muted">{t('hr.attendance.status')||'Status'}</span>
+<span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${detailRecord.status==='present'?'bg-success-soft text-success-soft-foreground': detailRecord.status==='absent'?'bg-danger-soft text-danger-soft-foreground': detailRecord.status==='late'?'bg-warning-soft text-warning-soft-foreground': detailRecord.status==='half_day'?'bg-warning-soft text-warning-soft-foreground':'bg-accent-soft text-accent-soft-foreground'}`}>
+<span className={`w-1.5 h-1.5 rounded-full ${detailRecord.status==='present'?'bg-success': detailRecord.status==='absent'?'bg-danger': detailRecord.status==='late'?'bg-warning': detailRecord.status==='half_day'?'bg-warning':'bg-accent'}`}></span>
                   {t(`hr.attendance.status.${detailRecord.status}`) || detailRecord.status}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">{t('hr.attendance.clockIn') || 'Clock In'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{detailRecord.clock_in ? new Date(detailRecord.clock_in).toLocaleTimeString() : '—'}</span>
+<span className="text-muted">{t('hr.attendance.clockIn')||'Clock In'}</span>
+<span className="font-medium text-foreground">{detailRecord.clock_in ? new Date(detailRecord.clock_in).toLocaleTimeString():'—'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">{t('hr.attendance.clockOut') || 'Clock Out'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{detailRecord.clock_out ? new Date(detailRecord.clock_out).toLocaleTimeString() : '—'}</span>
+<span className="text-muted">{t('hr.attendance.clockOut')||'Clock Out'}</span>
+<span className="font-medium text-foreground">{detailRecord.clock_out ? new Date(detailRecord.clock_out).toLocaleTimeString():'—'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">{t('hr.attendance.totalHours') || 'Total Hours'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{detailRecord.total_hours || 0}h</span>
+<span className="text-muted">{t('hr.attendance.totalHours')||'Total Hours'}</span>
+<span className="font-medium text-foreground">{detailRecord.total_hours || 0}h</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">{t('hr.attendance.overtime') || 'Overtime'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{detailRecord.overtime_hours || 0}h</span>
+<span className="text-muted">{t('hr.attendance.overtime')||'Overtime'}</span>
+<span className="font-medium text-foreground">{detailRecord.overtime_hours || 0}h</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">{t('hr.attendance.break') || 'Break'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{detailRecord.break_minutes || 0} min</span>
+<span className="text-muted">{t('hr.attendance.break')||'Break'}</span>
+<span className="font-medium text-foreground">{detailRecord.break_minutes || 0}min</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">{t('hr.attendance.source') || 'Source'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{detailRecord.source || 'manager'}</span>
+<span className="text-muted">{t('hr.attendance.source')||'Source'}</span>
+<span className="font-medium text-foreground">{detailRecord.source ||'manager'}</span>
               </div>
               {detailRecord.notes && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">{t('common.notes') || 'Notes'}</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{detailRecord.notes}</span>
+<span className="text-muted">{t('common.notes')||'Notes'}</span>
+<span className="font-medium text-foreground">{detailRecord.notes}</span>
                 </div>
               )}
             </div>
             <div className="flex gap-3 mt-6">
               {isManager && (
                 <button onClick={() => { setDeleteTarget(detailRecord); setDetailRecord(null) }}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">
+className="flex items-center gap-2 px-4 py-2 bg-danger text-white rounded-lg hover:bg-red-700 text-sm">
                   <Trash2 className="w-4 h-4" /> {t('common.delete') || 'Delete'}
                 </button>
               )}
-              <button onClick={() => setDetailRecord(null)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm">
+<button onClick={()=>setDetailRecord(null)}className="flex-1 px-4 py-2 border border-border rounded-lg text-foreground bg-surface-hover text-sm">
                 {t('common.close') || 'Close'}
               </button>
             </div>

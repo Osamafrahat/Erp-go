@@ -3,11 +3,11 @@ import { useAppStore } from '../../stores/appStore'
 import { CheckCircle, XCircle, AlertCircle, MinusCircle, Calendar } from 'lucide-react'
 
 const STATUS_COLORS = {
-  present: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  absent: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-  late: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  half_day: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-  on_leave: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+present:'bg-success-soft text-success-soft-foreground',
+absent:'bg-danger-soft text-danger-soft-foreground',
+late:'bg-warning-soft text-warning-soft-foreground',
+half_day:'bg-warning-soft text-warning-soft-foreground',
+on_leave:'bg-accent-soft text-accent-soft-foreground',
 }
 
 const STATUS_ICONS = {
@@ -58,18 +58,18 @@ export default function AttendanceCalendar({ records, employees, year, month, on
   const dayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 shadow-sm overflow-x-auto">
+<div className="bg-surface-secondary rounded-xl border border-border shadow-sm overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-700/50">
-            <th className="text-start px-4 py-3 font-medium text-gray-600 dark:text-gray-300 min-w-[150px] sticky left-0 bg-gray-50 dark:bg-gray-800/80 backdrop-blur-sm z-10">
+<tr className="border-b border-border">
+<th className="text-start px-4 py-3 font-medium text-muted min-w-[150px] sticky left-0 bg-surface-secondary backdrop-blur-sm z-10">
               {t('hr.shifts.employee') || 'Employee'}
             </th>
             {days.map(d => {
               const isWeekend = d.dayOfWeek === 0 || d.dayOfWeek === 6
               const isToday = d.dateStr === todayStr
               return (
-                <th key={d.day} className={`text-center px-2 py-3 font-medium text-xs min-w-[44px] ${isToday ? 'text-primary-600 dark:text-primary-400 bg-primary-50/80 dark:bg-primary-900/15' : isWeekend ? 'text-gray-400 dark:text-gray-500 bg-gray-50/50 dark:bg-gray-800/30' : 'text-gray-600 dark:text-gray-300'}`}>
+<th key={d.day}className={`text-center px-2 py-3 font-medium text-xs min-w-[44px] ${isToday ?'text-accent-soft-foreground bg-accent-soft': isWeekend ?'text-muted bg-surface-secondary':'text-muted'}`}>
                   <div>{d.day}</div>
                   <div className="text-[10px] font-normal opacity-70">{t(`days.${dayKeys[d.dayOfWeek]}`) || dayHeaders[d.dayOfWeek]}</div>
                 </th>
@@ -79,10 +79,10 @@ export default function AttendanceCalendar({ records, employees, year, month, on
         </thead>
         <tbody>
           {activeEmployees.map((emp, idx) => (
-            <tr key={emp.id} className={`border-b border-gray-100 dark:border-gray-700/30 hover:bg-white/50 dark:hover:bg-gray-700/30 transition-colors ${idx % 2 === 0 ? '' : 'bg-gray-50/30 dark:bg-gray-800/20'}`}>
-              <td className="px-4 py-2.5 sticky left-0 bg-gray-50 dark:bg-gray-800/80 backdrop-blur-sm z-10 border-r border-gray-100 dark:border-gray-700/30">
-                <div className="font-medium text-gray-900 dark:text-white text-sm">{emp.name}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">{emp.role}</div>
+<tr key={emp.id}className={`border-b border-border hover:bg-white/50 dark:hover:bg-gray-700/30 transition-colors ${idx % 2===0 ?'':'bg-surface-secondary'}`}>
+<td className="px-4 py-2.5 sticky left-0 bg-surface-secondary backdrop-blur-sm z-10 border-r border-border">
+<div className="font-medium text-foreground text-sm">{emp.name}</div>
+<div className="text-xs text-muted">{emp.role}</div>
               </td>
               {days.map(d => {
                 const record = recordsByEmployeeDate[`${emp.id}-${d.dateStr}`]
@@ -93,7 +93,7 @@ export default function AttendanceCalendar({ records, employees, year, month, on
                   <td
                     key={d.day}
                     onClick={() => record && onCellClick?.(record)}
-                    className={`text-center px-1 py-1.5 ${record ? 'cursor-pointer hover:bg-white dark:hover:bg-gray-700/50' : ''} ${isToday ? 'bg-primary-50/30 dark:bg-primary-900/10' : isWeekend ? 'bg-gray-50/50 dark:bg-gray-800/20' : ''}`}
+className={`text-center px-1 py-1.5 ${record ?'cursor-pointer bg-surface-hover':''}${isToday ?'bg-accent-soft': isWeekend ?'bg-surface-secondary':''}`}
                   >
                     {record ? (
                       <div
@@ -103,9 +103,9 @@ export default function AttendanceCalendar({ records, employees, year, month, on
                         {StatusIcon && <StatusIcon className="w-3.5 h-3.5" />}
                       </div>
                     ) : isWeekend ? (
-                      <span className="text-gray-200 dark:text-gray-600 text-xs">—</span>
+<span className="text-foreground text-xs">—</span>
                     ) : (
-                      <span className="text-gray-300 dark:text-gray-600 text-xs">—</span>
+<span className="text-foreground text-xs">—</span>
                     )}
                   </td>
                 )
