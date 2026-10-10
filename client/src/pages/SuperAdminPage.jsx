@@ -6,16 +6,16 @@ import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, C
 import ConfirmModal from '../components/ConfirmModal'
 
 const tierColors = {
-  free: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-  pro: 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300',
-  enterprise: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+free:'bg-surface-tertiary text-foreground',
+pro:'bg-accent-soft text-accent-soft-foreground',
+enterprise:'bg-warning-soft text-warning-soft-foreground',
 }
 
 const statusColors = {
-  active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  trialing: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  past_due: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+active:'bg-success-soft text-success-soft-foreground',
+trialing:'bg-accent-soft text-accent-soft-foreground',
+past_due:'bg-warning-soft text-warning-soft-foreground',
+cancelled:'bg-danger-soft text-danger-soft-foreground',
 }
 
 function MiniBarChart({ data, height = 60 }) {
@@ -26,7 +26,7 @@ function MiniBarChart({ data, height = 60 }) {
       {Object.entries(data).map(([day, val]) => (
         <div
           key={day}
-          className="flex-1 bg-primary-400 dark:bg-primary-600 rounded-t min-w-[4px] transition-all"
+className="flex-1 bg-accent rounded-t min-w-[4px] transition-all"
           style={{ height: `${(val / max) * 100}%` }}
           title={`${day}: ${val.toLocaleString()} EGP`}
         />
@@ -43,7 +43,7 @@ export default function SuperAdminPage() {
 
   if (currentUser?.role !== 'SUPER_ADMIN') {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+<div className="flex flex-col items-center justify-center h-64 text-muted">
         <Shield className="w-12 h-12 mb-3 opacity-50" />
         <p className="text-lg font-medium">{t('admin.accessDenied') || 'Access Denied'}</p>
         <p className="text-sm">{t('admin.roleRequired') || 'Super Admin role required'}</p>
@@ -69,31 +69,31 @@ export default function SuperAdminPage() {
     <div className="space-y-6">
       {toast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg text-sm font-medium ${
-          toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+toast.type==='error'?'bg-danger text-white':'bg-success text-white'
         }`}>
           {toast.msg}
         </div>
       )}
 
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+<h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Shield className="w-6 h-6" />
           {t('admin.title') || 'Super Admin Panel'}
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+<p className="text-muted mt-1">
           {t('admin.subtitle') || 'Manage all tenants, payments, and subscriptions'}
         </p>
       </div>
 
-      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+<div className="flex gap-1 border-b border-border overflow-x-auto">
         {tabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               tab === key
-                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+?'border-accent text-accent'
+:'border-transparent text-muted text-foreground'
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -125,7 +125,7 @@ function DashboardTab({ t }) {
     }).catch(() => setLoading(false))
   }, [period])
 
-  if (loading) return <div className="flex items-center justify-center h-40"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+if(loading)return<div className="flex items-center justify-center h-40"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"/></div>
   if (!analytics) return null
 
   const fmt = (v) => `${(v || 0).toLocaleString()} ج.م`
@@ -133,7 +133,7 @@ function DashboardTab({ t }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <select value={period} onChange={(e) => setPeriod(e.target.value)} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5">
+<select value={period}onChange={(e)=>setPeriod(e.target.value)}className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-1.5">
           <option value="7d">{t('admin.period7d') || '7 Days'}</option>
           <option value="30d">{t('admin.period30d') || '30 Days'}</option>
           <option value="90d">{t('admin.period90d') || '90 Days'}</option>
@@ -142,17 +142,17 @@ function DashboardTab({ t }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: t('admin.totalTenants') || 'Total Tenants', value: analytics.total_tenants, icon: Building2, color: 'text-gray-600 dark:text-gray-400' },
-          { label: t('admin.estimatedMRR') || 'Est. MRR', value: fmt(analytics.estimated_mrr), icon: TrendingUp, color: 'text-green-600 dark:text-green-400' },
-          { label: t('admin.totalRevenue') || 'Total Revenue', value: fmt(analytics.total_revenue), icon: DollarSign, color: 'text-primary-600 dark:text-primary-400' },
-          { label: t('admin.periodRevenue') || 'Period Revenue', value: fmt(analytics.period_revenue), icon: BarChart3, color: 'text-blue-600 dark:text-blue-400' },
+{label: t('admin.totalTenants')||'Total Tenants',value: analytics.total_tenants,icon: Building2,color:'text-muted'},
+{label: t('admin.estimatedMRR')||'Est. MRR',value: fmt(analytics.estimated_mrr),icon: TrendingUp,color:'text-success'},
+{label: t('admin.totalRevenue')||'Total Revenue',value: fmt(analytics.total_revenue),icon: DollarSign,color:'text-accent'},
+{label: t('admin.periodRevenue')||'Period Revenue',value: fmt(analytics.period_revenue),icon: BarChart3,color:'text-accent'},
         ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+<div key={label}className="bg-surface rounded-xl p-4 border border-border">
             <div className="flex items-center gap-3">
               <Icon className={`w-5 h-5 ${color}`} />
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
+<p className="text-xs text-muted">{label}</p>
+<p className="text-xl font-bold text-foreground">{value}</p>
               </div>
             </div>
           </div>
@@ -160,23 +160,23 @@ function DashboardTab({ t }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('admin.revenueChart') || 'Revenue Chart'}</h3>
+<div className="lg:col-span-2 bg-surface rounded-xl p-5 border border-border">
+<h3 className="text-sm font-medium text-foreground mb-3">{t('admin.revenueChart')||'Revenue Chart'}</h3>
           {Object.keys(analytics.daily_revenue || {}).length > 0 ? (
             <>
               <MiniBarChart data={analytics.daily_revenue} height={80} />
-              <div className="flex justify-between mt-2 text-xs text-gray-400">
+<div className="flex justify-between mt-2 text-xs text-muted">
                 <span>{Object.keys(analytics.daily_revenue)[0]}</span>
                 <span>{Object.keys(analytics.daily_revenue).pop()}</span>
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-400 dark:text-gray-500 py-8 text-center">{t('admin.noPayments') || 'No revenue data yet'}</p>
+<p className="text-sm text-muted py-8 text-center">{t('admin.noPayments')||'No revenue data yet'}</p>
           )}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('admin.tierDistribution') || 'Tier Distribution'}</h3>
+<div className="bg-surface rounded-xl p-5 border border-border">
+<h3 className="text-sm font-medium text-foreground mb-3">{t('admin.tierDistribution')||'Tier Distribution'}</h3>
           <div className="space-y-3">
             {Object.entries(analytics.tier_distribution || {}).map(([tier, count]) => {
               const total = analytics.total_tenants || 1
@@ -185,10 +185,10 @@ function DashboardTab({ t }) {
                 <div key={tier}>
                   <div className="flex justify-between text-sm mb-1">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${tierColors[tier] || tierColors.free}`}>{tier}</span>
-                    <span className="text-gray-500 dark:text-gray-400">{count} ({pct}%)</span>
+<span className="text-muted">{count}({pct}%)</span>
                   </div>
-                  <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-                    <div className={`h-2 rounded-full ${tier === 'pro' ? 'bg-primary-500' : tier === 'enterprise' ? 'bg-yellow-500' : 'bg-gray-400'}`} style={{ width: `${pct}%` }} />
+<div className="w-full bg-surface-tertiary rounded-full h-2">
+<div className={`h-2 rounded-full ${tier==='pro'?'bg-accent': tier==='enterprise'?'bg-warning':'bg-surface-tertiary'}`}style={{width:`${pct}%`}}/>
                   </div>
                 </div>
               )
@@ -198,14 +198,14 @@ function DashboardTab({ t }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('admin.recentTenants') || 'Recent Tenants'}</h3>
+<div className="bg-surface rounded-xl p-5 border border-border">
+<h3 className="text-sm font-medium text-foreground mb-3">{t('admin.recentTenants')||'Recent Tenants'}</h3>
           <div className="space-y-2">
             {(analytics.recent_tenants || []).map((tenant) => (
-              <div key={tenant.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+<div key={tenant.id}className="flex items-center justify-between py-2 px-3 bg-surface-secondary rounded-lg">
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{tenant.name}</p>
-                  <p className="text-xs text-gray-400">{new Date(tenant.created_at).toLocaleDateString()}</p>
+<p className="text-sm font-medium text-foreground">{tenant.name}</p>
+<p className="text-xs text-muted">{new Date(tenant.created_at).toLocaleDateString()}</p>
                 </div>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${tierColors[tenant.subscription_tier] || tierColors.free}`}>{tenant.subscription_tier}</span>
               </div>
@@ -213,20 +213,20 @@ function DashboardTab({ t }) {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('admin.successfulPayments') || 'Payments Summary'}</h3>
+<div className="bg-surface rounded-xl p-5 border border-border">
+<h3 className="text-sm font-medium text-foreground mb-3">{t('admin.successfulPayments')||'Payments Summary'}</h3>
           <div className="space-y-4">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-              <span className="text-sm text-gray-500 dark:text-gray-400">{t('admin.totalOrders') || 'Total Payments'}</span>
-              <span className="text-lg font-bold text-gray-900 dark:text-white">{analytics.total_payments}</span>
+<div className="flex justify-between items-center py-2 border-b border-border">
+<span className="text-sm text-muted">{t('admin.totalOrders')||'Total Payments'}</span>
+<span className="text-lg font-bold text-foreground">{analytics.total_payments}</span>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-              <span className="text-sm text-gray-500 dark:text-gray-400">{t('admin.successfulPayments') || 'Successful'}</span>
-              <span className="text-lg font-bold text-green-600 dark:text-green-400">{analytics.successful_payments}</span>
+<div className="flex justify-between items-center py-2 border-b border-border">
+<span className="text-sm text-muted">{t('admin.successfulPayments')||'Successful'}</span>
+<span className="text-lg font-bold text-success">{analytics.successful_payments}</span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">{t('admin.successRate') || 'Success Rate'}</span>
-              <span className="text-lg font-bold text-gray-900 dark:text-white">
+<span className="text-sm text-muted">{t('admin.successRate')||'Success Rate'}</span>
+<span className="text-lg font-bold text-foreground">
                 {analytics.total_payments > 0 ? Math.round((analytics.successful_payments / analytics.total_payments) * 100) : 0}%
               </span>
             </div>
@@ -234,13 +234,13 @@ function DashboardTab({ t }) {
         </div>
       </div>
 
-      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-5">
+<div className="bg-warning-soft border border-warning rounded-xl p-5">
         <div className="flex items-start gap-3">
-          <Database className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
+<Database className="w-5 h-5 text-warning mt-0.5 shrink-0"/>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">{t('admin.migrationRequired') || 'Database Migration Required'}</h3>
-            <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-3">{t('admin.migrationHint') || 'Run this SQL in Supabase SQL Editor (Dashboard → SQL Editor → New Query):'}</p>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 font-mono text-xs text-gray-800 dark:text-gray-200 overflow-x-auto">
+<h3 className="text-sm font-medium text-warning mb-2">{t('admin.migrationRequired')||'Database Migration Required'}</h3>
+<p className="text-xs text-warning mb-3">{t('admin.migrationHint')||'Run this SQL in Supabase SQL Editor(Dashboard → SQL Editor → New Query):'}</p>
+<div className="bg-surface rounded-lg p-3 font-mono text-xs text-foreground overflow-x-auto">
               <pre>{`ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz;
 ALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;
 
@@ -265,7 +265,7 @@ UPDATE tenant_payments SET amount = amount / 100 WHERE amount > 1000;`}</pre>
                 const sql = `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz;\nALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;\n\nCREATE TABLE IF NOT EXISTS saved_payment_methods (\n  id SERIAL PRIMARY KEY,\n  tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,\n  provider TEXT NOT NULL DEFAULT 'paymob',\n  card_last_four TEXT,\n  card_brand TEXT,\n  token TEXT NOT NULL,\n  paymob_token_id TEXT,\n  is_default BOOLEAN DEFAULT true,\n  created_at TIMESTAMPTZ DEFAULT now(),\n  updated_at TIMESTAMPTZ DEFAULT now()\n);\n\n-- Fix old payment amounts stored as cents\nUPDATE tenant_payments SET amount = amount / 100 WHERE amount > 1000;`
                 navigator.clipboard.writeText(sql)
               }}
-              className="mt-2 text-xs bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300 px-3 py-1.5 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-700 font-medium"
+className="mt-2 text-xs bg-warning-soft text-warning-soft-foreground px-3 py-1.5 rounded-lg hover:bg-yellow-200 font-medium"
             >
               {t('admin.copySql') || 'Copy SQL'}
             </button>
@@ -363,38 +363,38 @@ function TenantsTab({ t, showToast }) {
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+<div className="bg-surface rounded-xl border border-border">
+<div className="p-4 border-b border-border flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" value={search} onChange={handleSearch} placeholder={t('admin.searchPlaceholder') || 'Search...'} className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"/>
+<input type="text"value={search}onChange={handleSearch}placeholder={t('admin.searchPlaceholder')||'Search...'}className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-surface text-foreground text-sm ring-focus outline-none"/>
           </div>
           <div className="flex gap-2">
-            <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1) }} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2">
+<select value={filterStatus}onChange={(e)=>{setFilterStatus(e.target.value);setPage(1)}}className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-2">
               <option value="">{t('admin.allStatuses') || 'All Statuses'}</option>
               <option value="active">{t('billing.active') || 'Active'}</option>
               <option value="trialing">{t('billing.trial') || 'Trial'}</option>
               <option value="cancelled">{t('billing.cancelled') || 'Cancelled'}</option>
             </select>
-            <select value={filterTier} onChange={(e) => { setFilterTier(e.target.value); setPage(1) }} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2">
+<select value={filterTier}onChange={(e)=>{setFilterTier(e.target.value);setPage(1)}}className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-2">
               <option value="">{t('admin.allTiers') || 'All Tiers'}</option>
               <option value="free">{t('pricing.free') || 'Free'}</option>
               <option value="pro">{t('pricing.pro') || 'Pro'}</option>
               <option value="enterprise">{t('pricing.enterprise') || 'Enterprise'}</option>
             </select>
-            <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
+<button onClick={()=>setShowCreate(true)}className="flex items-center gap-1.5 px-3 py-2 bg-accent hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
               <Plus className="w-4 h-4" /> {t('admin.createNew') || 'Create'}
             </button>
           </div>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+<div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"/></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+<tr className="text-left text-muted border-b border-border">
                   <th className="px-4 py-3 font-medium">{t('common.name') || 'Name'}</th>
                   <th className="px-4 py-3 font-medium">{t('admin.tier') || 'Tier'}</th>
                   <th className="px-4 py-3 font-medium">{t('common.status') || 'Status'}</th>
@@ -408,52 +408,52 @@ function TenantsTab({ t, showToast }) {
               </thead>
               <tbody>
                 {tenants.map((tenant) => (
-                  <tr key={tenant.id} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                    <td className="px-4 py-3"><p className="font-medium text-gray-900 dark:text-white">{tenant.name}</p><p className="text-xs text-gray-400">{tenant.slug}</p></td>
+<tr key={tenant.id}className="border-b border-border bg-surface-hover">
+<td className="px-4 py-3"><p className="font-medium text-foreground">{tenant.name}</p><p className="text-xs text-muted">{tenant.slug}</p></td>
                     <td className="px-4 py-3">
                       <select value={tenant.subscription_tier} onChange={(e) => handleChangeTier(tenant.id, e.target.value)} disabled={actionLoading === tenant.id} className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${tierColors[tenant.subscription_tier] || tierColors.free}`}>
                         <option value="free">{t('pricing.free') || 'Free'}</option><option value="pro">{t('pricing.pro') || 'Pro'}</option><option value="enterprise">{t('pricing.enterprise') || 'Enterprise'}</option>
                       </select>
                     </td>
                     <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[tenant.subscription_status] || statusColors.cancelled}`}>{statusLabels[tenant.subscription_status] || tenant.subscription_status}</span></td>
-                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300"><Users className="w-3.5 h-3.5 inline mr-1" />{tenant.user_count ?? 0}</td>
-                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300"><Package className="w-3.5 h-3.5 inline mr-1" />{tenant.product_count ?? 0}</td>
-                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{tenant.order_count ?? 0}</td>
-                    <td className="px-4 py-3 text-gray-500">{tenant.created_at ? new Date(tenant.created_at).toLocaleDateString() : '—'}</td>
+<td className="px-4 py-3 text-foreground"><Users className="w-3.5 h-3.5 inline mr-1"/>{tenant.user_count ?? 0}</td>
+<td className="px-4 py-3 text-foreground"><Package className="w-3.5 h-3.5 inline mr-1"/>{tenant.product_count ?? 0}</td>
+<td className="px-4 py-3 text-foreground">{tenant.order_count ?? 0}</td>
+<td className="px-4 py-3 text-muted">{tenant.created_at ? new Date(tenant.created_at).toLocaleDateString():'—'}</td>
                     <td className="px-4 py-3">
                       {tenant.subscription_expires_at ? (
-                        <span className={`text-xs font-medium ${new Date(tenant.subscription_expires_at) < new Date() ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
+<span className={`text-xs font-medium ${new Date(tenant.subscription_expires_at)<new Date()?'text-danger':'text-foreground'}`}>
                           {new Date(tenant.subscription_expires_at).toLocaleDateString()}
                         </span>
                       ) : (
-                        <span className="text-xs text-gray-400">—</span>
+<span className="text-xs text-muted">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
-                        <button onClick={() => setDetailTenant(tenant)} className="text-xs p-1.5 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300"><Eye className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => handleImpersonate(tenant.id)} disabled={actionLoading === tenant.id || tenant.subscription_status === 'cancelled'} className="text-xs p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 disabled:opacity-50"><LogIn className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => handleSuspend(tenant.id, tenant.subscription_status)} disabled={actionLoading === tenant.id} className={`text-xs p-1.5 rounded-lg ${tenant.subscription_status === 'active' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'} disabled:opacity-50`}>
+<button onClick={()=>setDetailTenant(tenant)}className="text-xs p-1.5 rounded-lg bg-surface-secondary text-muted bg-surface-hover"><Eye className="w-3.5 h-3.5"/></button>
+<button onClick={()=>handleImpersonate(tenant.id)}disabled={actionLoading===tenant.id || tenant.subscription_status==='cancelled'}className="text-xs p-1.5 rounded-lg bg-accent-soft text-accent-soft-foreground hover:bg-blue-100 disabled:opacity-50"><LogIn className="w-3.5 h-3.5"/></button>
+<button onClick={()=>handleSuspend(tenant.id,tenant.subscription_status)}disabled={actionLoading===tenant.id}className={`text-xs p-1.5 rounded-lg ${tenant.subscription_status==='active'?'bg-danger-soft text-danger-soft-foreground hover:bg-red-100':'bg-success-soft text-success-soft-foreground hover:bg-green-100'}disabled:opacity-50`}>
                           {tenant.subscription_status === 'active' ? <AlertTriangle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
                         </button>
-                        <button onClick={() => handleDelete(tenant.id, tenant.name)} disabled={actionLoading === tenant.id} className="text-xs p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 disabled:opacity-50"><Trash2 className="w-3.5 h-3.5" /></button>
+<button onClick={()=>handleDelete(tenant.id,tenant.name)}disabled={actionLoading===tenant.id}className="text-xs p-1.5 rounded-lg bg-danger-soft text-danger-soft-foreground hover:bg-red-100 disabled:opacity-50"><Trash2 className="w-3.5 h-3.5"/></button>
                       </div>
                     </td>
                   </tr>
                 ))}
-                {tenants.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">{t('admin.noTenants') || 'No tenants found'}</td></tr>}
+{tenants.length===0 &&<tr><td colSpan={8}className="px-4 py-8 text-center text-muted">{t('admin.noTenants')||'No tenants found'}</td></tr>}
               </tbody>
             </table>
           </div>
         )}
 
         {totalPages > 1 && (
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
-            <span className="text-gray-500">{t('admin.showing') || 'Showing'} {((page - 1) * limit) + 1}–{Math.min(page * limit, total)} {t('admin.of') || 'of'} {total}</span>
+<div className="p-4 border-t border-border flex items-center justify-between text-sm">
+<span className="text-muted">{t('admin.showing')||'Showing'}{((page - 1)* limit)+ 1}–{Math.min(page * limit,total)}{t('admin.of')||'of'}{total}</span>
             <div className="flex gap-1">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 text-gray-700 dark:text-gray-300">{t('common.previous') || 'Prev'}</button>
-              <span className="px-3 py-1 text-gray-500">{page}/{totalPages}</span>
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 text-gray-700 dark:text-gray-300">{t('common.next') || 'Next'}</button>
+<button onClick={()=>setPage(p=>Math.max(1,p - 1))}disabled={page===1}className="px-3 py-1 rounded border border-border disabled:opacity-50 text-foreground">{t('common.previous')||'Prev'}</button>
+<span className="px-3 py-1 text-muted">{page}/{totalPages}</span>
+<button onClick={()=>setPage(p=>Math.min(totalPages,p + 1))}disabled={page===totalPages}className="px-3 py-1 rounded border border-border disabled:opacity-50 text-foreground">{t('common.next')||'Next'}</button>
             </div>
           </div>
         )}
@@ -487,24 +487,24 @@ function CreateTenantModal({ t, showToast, onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('admin.createNew') || 'Create Tenant'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+<div className="bg-surface rounded-xl shadow-xl w-full max-w-md mx-4"onClick={(e)=>e.stopPropagation()}>
+<div className="flex items-center justify-between p-4 border-b border-border">
+<h2 className="text-lg font-semibold text-foreground">{t('admin.createNew')||'Create Tenant'}</h2>
+<button onClick={onClose}className="text-muted text-foreground"><X className="w-5 h-5"/></button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-2 rounded">{error}</p>}
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('admin.storeName') || 'Store Name'} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
-          <input value={form.adminFullName} onChange={(e) => setForm({ ...form, adminFullName: e.target.value })} placeholder={t('admin.adminFullName') || 'Admin Full Name'} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
-          <input value={form.adminUsername} onChange={(e) => setForm({ ...form, adminUsername: e.target.value })} placeholder={t('admin.adminUsername') || 'Admin Username'} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
-          <input value={form.adminEmail} onChange={(e) => setForm({ ...form, adminEmail: e.target.value })} placeholder={t('admin.adminEmail') || 'Admin Email'} type="email" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required />
-          <input value={form.adminPassword} onChange={(e) => setForm({ ...form, adminPassword: e.target.value })} placeholder={t('admin.adminPassword') || 'Admin Password'} type="password" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" required minLength={8} />
-          <select value={form.tier} onChange={(e) => setForm({ ...form, tier: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+{error &&<p className="text-sm text-danger-soft-foreground bg-danger-soft p-2 rounded">{error}</p>}
+<input value={form.name}onChange={(e)=>setForm({...form,name: e.target.value})}placeholder={t('admin.storeName')||'Store Name'}className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"required />
+<input value={form.adminFullName}onChange={(e)=>setForm({...form,adminFullName: e.target.value})}placeholder={t('admin.adminFullName')||'Admin Full Name'}className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"required />
+<input value={form.adminUsername}onChange={(e)=>setForm({...form,adminUsername: e.target.value})}placeholder={t('admin.adminUsername')||'Admin Username'}className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"required />
+<input value={form.adminEmail}onChange={(e)=>setForm({...form,adminEmail: e.target.value})}placeholder={t('admin.adminEmail')||'Admin Email'}type="email"className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"required />
+<input value={form.adminPassword}onChange={(e)=>setForm({...form,adminPassword: e.target.value})}placeholder={t('admin.adminPassword')||'Admin Password'}type="password"className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"required minLength={8}/>
+<select value={form.tier}onChange={(e)=>setForm({...form,tier: e.target.value})}className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm">
             <option value="free">{t('pricing.free') || 'Free'}</option><option value="pro">{t('pricing.pro') || 'Pro'}</option><option value="enterprise">{t('pricing.enterprise') || 'Enterprise'}</option>
           </select>
           <div className="flex gap-2 justify-end pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">{t('common.cancel') || 'Cancel'}</button>
-            <button type="submit" disabled={loading} className="px-4 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg disabled:opacity-50">{loading ? '...' : (t('common.add') || 'Create')}</button>
+<button type="button"onClick={onClose}className="px-4 py-2 text-sm text-foreground bg-surface-hover rounded-lg">{t('common.cancel')||'Cancel'}</button>
+<button type="submit"disabled={loading}className="px-4 py-2 text-sm bg-accent hover:bg-primary-700 text-white rounded-lg disabled:opacity-50">{loading ?'...':(t('common.add')||'Create')}</button>
           </div>
         </form>
       </div>
@@ -522,37 +522,37 @@ function TenantDetailModal({ t, tenantId, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('admin.details') || 'Tenant Details'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+<div className="bg-surface rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto"onClick={(e)=>e.stopPropagation()}>
+<div className="flex items-center justify-between p-4 border-b border-border">
+<h2 className="text-lg font-semibold text-foreground">{t('admin.details')||'Tenant Details'}</h2>
+<button onClick={onClose}className="text-muted text-foreground"><X className="w-5 h-5"/></button>
         </div>
-        {loading ? <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+{loading ?<div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"/></div>
         : tenant ? (
           <div className="p-4 space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[{ label: t('common.users') || 'Users', value: tenant.user_count }, { label: t('common.products') || 'Products', value: tenant.product_count }, { label: t('common.orders') || 'Orders', value: tenant.order_count }, { label: t('admin.tier') || 'Tier', value: tenant.subscription_tier }].map(({ label, value }) => (
-                <div key={label} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">{value}</p>
+<div key={label}className="bg-surface-secondary rounded-lg p-3 text-center">
+<p className="text-xs text-muted">{label}</p>
+<p className="text-lg font-bold text-foreground">{value}</p>
                 </div>
               ))}
             </div>
             {tenant.users?.length > 0 && (
-              <div><h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('common.users') || 'Users'}</h3>
+<div><h3 className="text-sm font-medium text-foreground mb-2">{t('common.users')||'Users'}</h3>
                 <div className="space-y-1">{tenant.users.map((u) => (
-                  <div key={u.id} className="flex items-center justify-between text-sm py-1.5 px-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    <div><span className="font-medium text-gray-900 dark:text-white">{u.username}</span><span className="text-gray-400 ml-2">{u.role}</span></div>
-                    <span className={`text-xs ${u.is_active ? 'text-green-600' : 'text-red-600'}`}>{u.is_active ? (t('common.active') || 'Active') : (t('common.inactive') || 'Inactive')}</span>
+<div key={u.id}className="flex items-center justify-between text-sm py-1.5 px-3 bg-surface-secondary rounded-lg">
+<div><span className="font-medium text-foreground">{u.username}</span><span className="text-muted ml-2">{u.role}</span></div>
+<span className={`text-xs ${u.is_active ?'text-success':'text-danger'}`}>{u.is_active ?(t('common.active')||'Active'):(t('common.inactive')||'Inactive')}</span>
                   </div>
                 ))}</div>
               </div>
             )}
             {tenant.recent_orders?.length > 0 && (
-              <div><h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('admin.recentOrders') || 'Recent Orders'}</h3>
+<div><h3 className="text-sm font-medium text-foreground mb-2">{t('admin.recentOrders')||'Recent Orders'}</h3>
                 <div className="space-y-1">{tenant.recent_orders.map((o) => (
-                  <div key={o.id} className="flex items-center justify-between text-sm py-1.5 px-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    <span className="text-gray-900 dark:text-white">{o.order_number}</span><span className="text-gray-500">{o.total_amount} ج.م</span>
+<div key={o.id}className="flex items-center justify-between text-sm py-1.5 px-3 bg-surface-secondary rounded-lg">
+<span className="text-foreground">{o.order_number}</span><span className="text-muted">{o.total_amount}ج.م</span>
                   </div>
                 ))}</div>
               </div>
@@ -575,20 +575,20 @@ function PaymentsTab({ t }) {
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+if(loading)return<div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"/></div>
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <h3 className="font-medium text-gray-900 dark:text-white">{t('billing.paymentHistory') || 'Payment History'}</h3>
+<div className="bg-surface rounded-xl border border-border">
+<div className="p-4 border-b border-border flex items-center justify-between">
+<h3 className="font-medium text-foreground">{t('billing.paymentHistory')||'Payment History'}</h3>
       </div>
       {payments.length === 0 ? (
-        <div className="p-8 text-center text-gray-400"><CreditCard className="w-8 h-8 mx-auto mb-2 opacity-50" /><p>{t('admin.noPayments') || 'No payments recorded'}</p></div>
+<div className="p-8 text-center text-muted"><CreditCard className="w-8 h-8 mx-auto mb-2 opacity-50"/><p>{t('admin.noPayments')||'No payments recorded'}</p></div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-                <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+<tr className="text-left text-muted border-b border-border">
                 <th className="px-4 py-3 font-medium">{t('admin.tenant') || 'Tenant'}</th>
                 <th className="px-4 py-3 font-medium">{t('common.amount') || 'Amount'}</th>
                 <th className="px-4 py-3 font-medium">{t('common.status') || 'Status'}</th>
@@ -597,11 +597,11 @@ function PaymentsTab({ t }) {
             </thead>
             <tbody>
               {payments.map((p) => (
-                <tr key={p.id} className="border-b border-gray-100 dark:border-gray-700/50">
-                  <td className="px-4 py-3"><p className="text-gray-900 dark:text-white">{p.tenant?.name || (t('admin.unknown') || 'Unknown')}</p><p className="text-xs text-gray-400">{p.tenant?.subscription_tier || ''}</p></td>
-                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{(p.amount || 0).toLocaleString()} ج.م</td>
-                  <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-1 rounded-full ${p.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : p.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'}`}>{p.status}</span></td>
-                  <td className="px-4 py-3 text-gray-500">{p.created_at ? new Date(p.created_at).toLocaleString() : '—'}</td>
+<tr key={p.id}className="border-b border-border">
+<td className="px-4 py-3"><p className="text-foreground">{p.tenant?.name ||(t('admin.unknown')||'Unknown')}</p><p className="text-xs text-muted">{p.tenant?.subscription_tier ||''}</p></td>
+<td className="px-4 py-3 font-medium text-foreground">{(p.amount || 0).toLocaleString()}ج.م</td>
+<td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-1 rounded-full ${p.status==='paid'?'bg-success-soft text-success-soft-foreground': p.status==='pending'?'bg-warning-soft text-warning-soft-foreground':'bg-danger-soft text-danger-soft-foreground'}`}>{p.status}</span></td>
+<td className="px-4 py-3 text-muted">{p.created_at ? new Date(p.created_at).toLocaleString():'—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -640,38 +640,38 @@ function PlansTab({ t, showToast }) {
 
   const fmt = (v) => v === -1 || v === Infinity ? '∞' : v?.toLocaleString()
 
-  if (loading) return <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+if(loading)return<div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"/></div>
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {plans.map((plan) => (
-        <div key={plan.id} className={`bg-white dark:bg-gray-800 rounded-xl border p-5 ${editing === plan.id ? 'border-primary-500 ring-2 ring-primary-500/20' : 'border-gray-200 dark:border-gray-700'}`}>
+<div key={plan.id}className={`bg-surface rounded-xl border p-5 ${editing===plan.id ?'border-accent ring-2 ring-primary-500/20':'border-border'}`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{plan.name}</h3>
+<h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
             {editing === plan.id ? (
               <div className="flex gap-1">
-                <button onClick={() => handleSave(plan.id)} disabled={saving} className="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100"><Save className="w-4 h-4" /></button>
-                <button onClick={() => setEditing(null)} className="p-1.5 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100"><X className="w-4 h-4" /></button>
+<button onClick={()=>handleSave(plan.id)}disabled={saving}className="p-1.5 rounded-lg bg-success-soft text-success-soft-foreground hover:bg-green-100"><Save className="w-4 h-4"/></button>
+<button onClick={()=>setEditing(null)}className="p-1.5 rounded-lg bg-surface-secondary text-muted bg-surface-hover"><X className="w-4 h-4"/></button>
               </div>
-            ) : <button onClick={() => handleEdit(plan)} className="p-1.5 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300"><Edit3 className="w-4 h-4" /></button>}
+):<button onClick={()=>handleEdit(plan)}className="p-1.5 rounded-lg bg-surface-secondary text-muted bg-surface-hover"><Edit3 className="w-4 h-4"/></button>}
           </div>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-500">{t('admin.monthlyPrice') || 'Monthly Price'} (ج.م)</label>
-              {editing === plan.id ? <input type="number" value={editForm.price_monthly} onChange={(e) => setEditForm({ ...editForm, price_monthly: Number(e.target.value) })} className="w-full mt-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
-              : <p className="text-2xl font-bold text-gray-900 dark:text-white">{plan.price_monthly?.toLocaleString()} <span className="text-sm font-normal text-gray-500">ج.م/{t('pricing.perMonth') || 'mo'}</span></p>}
+<label className="text-xs text-muted">{t('admin.monthlyPrice')||'Monthly Price'}(ج.م)</label>
+{editing===plan.id ?<input type="number"value={editForm.price_monthly}onChange={(e)=>setEditForm({...editForm,price_monthly: Number(e.target.value)})}className="w-full mt-1 px-3 py-1.5 border border-border rounded-lg bg-surface text-foreground text-sm"/>
+:<p className="text-2xl font-bold text-foreground">{plan.price_monthly?.toLocaleString()}<span className="text-sm font-normal text-muted">ج.م/{t('pricing.perMonth')||'mo'}</span></p>}
             </div>
             <div>
-              <label className="text-xs text-gray-500">{t('admin.yearlyPrice') || 'Yearly Price'} (ج.م)</label>
-              {editing === plan.id ? <input type="number" value={editForm.price_yearly} onChange={(e) => setEditForm({ ...editForm, price_yearly: Number(e.target.value) })} className="w-full mt-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
-              : <p className="text-lg font-semibold text-gray-900 dark:text-white">{plan.price_yearly?.toLocaleString()} <span className="text-sm font-normal text-gray-500">ج.م/{t('pricing.perYear') || 'yr'}</span></p>}
+<label className="text-xs text-muted">{t('admin.yearlyPrice')||'Yearly Price'}(ج.م)</label>
+{editing===plan.id ?<input type="number"value={editForm.price_yearly}onChange={(e)=>setEditForm({...editForm,price_yearly: Number(e.target.value)})}className="w-full mt-1 px-3 py-1.5 border border-border rounded-lg bg-surface text-foreground text-sm"/>
+:<p className="text-lg font-semibold text-foreground">{plan.price_yearly?.toLocaleString()}<span className="text-sm font-normal text-muted">ج.م/{t('pricing.perYear')||'yr'}</span></p>}
             </div>
-            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+<div className="grid grid-cols-3 gap-2 pt-2 border-t border-border">
               {[{ label: t('common.products') || 'Products', key: 'max_products' }, { label: t('common.users') || 'Users', key: 'max_users' }, { label: t('admin.ordersPerMonth') || 'Orders/mo', key: 'max_orders_monthly' }].map(({ label, key }) => (
                 <div key={key}>
-                  <label className="text-xs text-gray-500">{label}</label>
-                  {editing === plan.id ? <input type="number" value={editForm[key]} onChange={(e) => setEditForm({ ...editForm, [key]: Number(e.target.value) })} className="w-full mt-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
-                  : <p className="text-sm font-medium text-gray-900 dark:text-white">{fmt(plan[key])}</p>}
+<label className="text-xs text-muted">{label}</label>
+{editing===plan.id ?<input type="number"value={editForm[key]}onChange={(e)=>setEditForm({...editForm,[key]: Number(e.target.value)})}className="w-full mt-1 px-2 py-1 border border-border rounded bg-surface text-foreground text-sm"/>
+:<p className="text-sm font-medium text-foreground">{fmt(plan[key])}</p>}
                 </div>
               ))}
             </div>
@@ -748,30 +748,30 @@ function BannersTab({ t, showToast }) {
     setShowModal(true)
   }
 
-  if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
+if(loading)return<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"/></div>
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+<h2 className="text-xl font-bold text-foreground flex items-center gap-2">
           <Megaphone className="h-5 w-5" />
           {t('admin.banners') || 'Dashboard Banners'}
         </h2>
-        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+<button onClick={openCreate}className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
           <Plus className="h-4 w-4" /> {t('banners.create') || 'Create Banner'}
         </button>
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-400">{t('banners.description') || 'Manage banners shown on all tenant dashboards.'}</p>
+<p className="text-sm text-muted">{t('banners.description')||'Manage banners shown on all tenant dashboards.'}</p>
 
       {banners.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <Megaphone className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">{t('banners.noBanners') || 'No banners yet'}</p>
+<div className="text-center py-12 bg-surface rounded-xl border border-border">
+<Megaphone className="h-12 w-12 text-foreground mx-auto mb-3"/>
+<p className="text-muted">{t('banners.noBanners')||'No banners yet'}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {banners.map((b) => (
-            <div key={b.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+<div key={b.id}className="bg-surface rounded-xl border border-border overflow-hidden">
               <div className="flex items-center">
                 {b.image_url && (
                   <div className="w-32 h-20 flex-shrink-0 overflow-hidden">
@@ -780,18 +780,18 @@ function BannersTab({ t, showToast }) {
                 )}
                 <div className="flex-1 p-4">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${b.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}`}>
+<span className={`px-2 py-0.5 rounded text-xs font-medium ${b.is_active ?'bg-success-soft text-success-soft-foreground':'bg-surface-tertiary text-muted'}`}>
                       {b.is_active ? (t('active') || 'Active') : (t('inactive') || 'Inactive')}
                     </span>
-                    <span className="text-xs text-gray-400">#{b.position}</span>
+<span className="text-xs text-muted">#{b.position}</span>
                   </div>
-                  <p className="font-semibold text-gray-900 dark:text-white text-sm">{b.title}</p>
-                  {b.content && <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{b.content}</p>}
+<p className="font-semibold text-foreground text-sm">{b.title}</p>
+{b.content &&<p className="text-xs text-muted line-clamp-1">{b.content}</p>}
                 </div>
                 <div className="flex items-center gap-2 pr-4">
-                  <div className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600" style={{ backgroundColor: b.background_color }} title="Background" />
-                  <button onClick={() => openEdit(b)} className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"><Edit3 className="h-4 w-4" /></button>
-                  <button onClick={() => handleDelete(b.id)} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"><Trash2 className="h-4 w-4" /></button>
+<div className="w-6 h-6 rounded border border-border"style={{backgroundColor: b.background_color}}title="Background"/>
+<button onClick={()=>openEdit(b)}className="p-1.5 text-muted hover:text-blue-600 transition-colors"><Edit3 className="h-4 w-4"/></button>
+<button onClick={()=>handleDelete(b.id)}className="p-1.5 text-muted hover:text-red-600 transition-colors"><Trash2 className="h-4 w-4"/></button>
                 </div>
               </div>
             </div>
@@ -801,45 +801,45 @@ function BannersTab({ t, showToast }) {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
+<div className="bg-surface rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+<h3 className="text-lg font-semibold text-foreground">
                 {editingBanner ? (t('banners.edit') || 'Edit Banner') : (t('banners.create') || 'Create Banner')}
               </h3>
-              <button onClick={() => { setShowModal(false); setEditingBanner(null) }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><X className="h-5 w-5" /></button>
+<button onClick={()=>{setShowModal(false);setEditingBanner(null)}}className="text-muted text-foreground"><X className="h-5 w-5"/></button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.title') || 'Title'} *</label>
-                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+<label className="block text-sm font-medium text-foreground mb-1">{t('banners.title')||'Title'}*</label>
+<input value={form.title}onChange={e=>setForm({...form,title: e.target.value})}className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.content') || 'Content'}</label>
-                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+<label className="block text-sm font-medium text-foreground mb-1">{t('banners.content')||'Content'}</label>
+<textarea value={form.content}onChange={e=>setForm({...form,content: e.target.value})}rows={3}className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.image') || 'Image'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('banners.image')||'Image'}</label>
                 {form.image_url && form.image_url.startsWith('data:') ? (
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2">
+<div className="flex items-center gap-2 text-sm text-success-soft-foreground bg-success-soft border border-success rounded-lg px-3 py-2">
                       <CheckCircle className="h-4 w-4 flex-shrink-0" />
                       <span className="truncate">{t('banners.fileUploaded') || 'Image uploaded successfully'}</span>
                     </div>
                     <div className="relative inline-block">
                       <img src={form.image_url} alt="Preview" className="h-20 rounded-lg object-cover" />
-                      <button onClick={() => setForm({ ...form, image_url: '' })} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"><X className="h-3 w-3" /></button>
+<button onClick={()=>setForm({...form,image_url:''})}className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-danger text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"><X className="h-3 w-3"/></button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <div className="flex-1 relative">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+<div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
                           <Link2 className="h-4 w-4" />
                         </div>
-                        <input value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" placeholder="https://example.com/image.jpg" />
+<input value={form.image_url}onChange={e=>setForm({...form,image_url: e.target.value})}className="w-full pl-9 pr-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"placeholder="https://example.com/image.jpg"/>
                       </div>
-                      <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer transition-colors flex-shrink-0">
+<label className="flex items-center gap-2 px-4 py-2 bg-surface-tertiary border border-border rounded-lg text-sm text-foreground bg-surface-hover cursor-pointer transition-colors flex-shrink-0">
                         <Upload className="h-4 w-4" />
                         <span className="hidden sm:inline">{t('banners.upload') || 'Upload'}</span>
                         <input type="file" accept="image/*" className="hidden" onChange={e => {
@@ -855,45 +855,45 @@ function BannersTab({ t, showToast }) {
                     {form.image_url && (
                       <div className="relative inline-block">
                         <img src={form.image_url} alt="Preview" className="h-20 rounded-lg object-cover" onError={e => e.target.style.display = 'none'} />
-                        <button onClick={() => setForm({ ...form, image_url: '' })} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"><X className="h-3 w-3" /></button>
+<button onClick={()=>setForm({...form,image_url:''})}className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-danger text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"><X className="h-3 w-3"/></button>
                       </div>
                     )}
                   </div>
                 )}
-                <p className="text-xs text-gray-400 mt-1">{t('banners.imageHint') || 'Paste a URL or upload a file (max 2MB). Uploads are stored as base64.'}</p>
+<p className="text-xs text-muted mt-1">{t('banners.imageHint')||'Paste a URL or upload a file(max 2MB). Uploads are stored as base64.'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.linkUrl') || 'Link URL'}</label>
-                <input value={form.link_url} onChange={e => setForm({ ...form, link_url: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" placeholder="https://..." />
+<label className="block text-sm font-medium text-foreground mb-1">{t('banners.linkUrl')||'Link URL'}</label>
+<input value={form.link_url}onChange={e=>setForm({...form,link_url: e.target.value})}className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"placeholder="https://..."/>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.bgColor') || 'Background'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('banners.bgColor')||'Background'}</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={form.background_color} onChange={e => setForm({ ...form, background_color: e.target.value })} className="w-8 h-8 rounded border-0 cursor-pointer" />
-                    <span className="text-xs text-gray-500">{form.background_color}</span>
+<span className="text-xs text-muted">{form.background_color}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.textColor') || 'Text Color'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('banners.textColor')||'Text Color'}</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={form.text_color} onChange={e => setForm({ ...form, text_color: e.target.value })} className="w-8 h-8 rounded border-0 cursor-pointer" />
-                    <span className="text-xs text-gray-500">{form.text_color}</span>
+<span className="text-xs text-muted">{form.text_color}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.position') || 'Position'}</label>
-                  <input type="number" value={form.position} onChange={e => setForm({ ...form, position: parseInt(e.target.value) || 0 })} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+<label className="block text-sm font-medium text-foreground mb-1">{t('banners.position')||'Position'}</label>
+<input type="number"value={form.position}onChange={e=>setForm({...form,position: parseInt(e.target.value)|| 0})}className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} className="rounded border-gray-300" id="banner-active" />
-                <label htmlFor="banner-active" className="text-sm text-gray-700 dark:text-gray-300">{t('banners.isActive') || 'Active'}</label>
+<input type="checkbox"checked={form.is_active}onChange={e=>setForm({...form,is_active: e.target.checked})}className="rounded border-border"id="banner-active"/>
+<label htmlFor="banner-active"className="text-sm text-foreground">{t('banners.isActive')||'Active'}</label>
               </div>
               {/* Live Preview */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('banners.preview') || 'Preview'}</label>
-                <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700" style={{ backgroundColor: form.background_color, color: form.text_color }}>
+<label className="block text-sm font-medium text-foreground mb-1">{t('banners.preview')||'Preview'}</label>
+<div className="rounded-lg overflow-hidden border border-border"style={{backgroundColor: form.background_color,color: form.text_color}}>
                   <div className="flex items-center">
                     {form.image_url && <div className="w-20 h-16 flex-shrink-0 overflow-hidden"><img src={form.image_url} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display='none'} /></div>}
                     <div className="flex-1 p-3">
@@ -905,8 +905,8 @@ function BannersTab({ t, showToast }) {
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => { setShowModal(false); setEditingBanner(null) }} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">{t('cancel') || 'Cancel'}</button>
-              <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">{t('save') || 'Save'}</button>
+<button onClick={()=>{setShowModal(false);setEditingBanner(null)}}className="px-4 py-2 text-sm text-foreground bg-surface-hover rounded-lg">{t('cancel')||'Cancel'}</button>
+<button onClick={handleSave}className="px-4 py-2 text-sm bg-accent text-white rounded-lg hover:bg-blue-700 font-medium">{t('save')||'Save'}</button>
             </div>
           </div>
         </div>
@@ -939,27 +939,27 @@ function ActivityTab({ t }) {
   useEffect(() => { fetchActivities(1) }, [fetchActivities])
 
   const actionColors = {
-    created: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-    updated: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-    deleted: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-    upgraded: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-    downgraded: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-    expired: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-    logged_in: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-    signed_up: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
+created:'bg-success-soft text-success-soft-foreground',
+updated:'bg-accent-soft text-accent-soft-foreground',
+deleted:'bg-danger-soft text-danger-soft-foreground',
+upgraded:'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+downgraded:'bg-warning-soft text-warning-soft-foreground',
+expired:'bg-warning-soft text-warning-soft-foreground',
+logged_in:'bg-surface-tertiary text-foreground',
+signed_up:'bg-accent-soft text-accent-soft-foreground',
     refunded: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+<div className="bg-surface rounded-xl border border-border">
+<div className="p-4 border-b border-border flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+<div className="flex items-center gap-2 text-sm text-muted">
           <Activity className="w-4 h-4" />
           <span>{pagination.total} {t('admin.totalActivities') || 'activities'}</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('common.search') || 'Search...'} className="text-sm px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-40" />
-          <select value={filterEntity} onChange={(e) => setFilterEntity(e.target.value)} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5">
+<input type="text"value={search}onChange={(e)=>setSearch(e.target.value)}placeholder={t('common.search')||'Search...'}className="text-sm px-3 py-1.5 border border-border rounded-lg bg-surface text-foreground w-40"/>
+<select value={filterEntity}onChange={(e)=>setFilterEntity(e.target.value)}className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-1.5">
             <option value="">{t('admin.allEntities') || 'All Entities'}</option>
             <option value="subscription">Subscription</option>
             <option value="product">Product</option>
@@ -969,7 +969,7 @@ function ActivityTab({ t }) {
             <option value="employee">Employee</option>
             <option value="auth">Auth</option>
           </select>
-          <select value={filterAction} onChange={(e) => setFilterAction(e.target.value)} className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1.5">
+<select value={filterAction}onChange={(e)=>setFilterAction(e.target.value)}className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-1.5">
             <option value="">{t('admin.allActions') || 'All Actions'}</option>
             <option value="created">{t('admin.actionCreated') || 'Created'}</option>
             <option value="updated">{t('admin.actionUpdated') || 'Updated'}</option>
@@ -982,44 +982,44 @@ function ActivityTab({ t }) {
         </div>
       </div>
       {loading ? (
-        <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+<div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"/></div>
       ) : activities.length === 0 ? (
-        <div className="p-8 text-center text-gray-400"><Activity className="w-8 h-8 mx-auto mb-2 opacity-50" /><p>{t('admin.noActivity') || 'No activity recorded'}</p></div>
+<div className="p-8 text-center text-muted"><Activity className="w-8 h-8 mx-auto mb-2 opacity-50"/><p>{t('admin.noActivity')||'No activity recorded'}</p></div>
       ) : (
         <>
-          <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
+<div className="divide-y divide-border">
             {activities.map((a) => (
-              <div key={a.id} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/30">
+<div key={a.id}className="px-4 py-3 flex items-center justify-between bg-surface-hover">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${actionColors[a.action] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
+<span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${actionColors[a.action] ||'bg-surface-tertiary text-foreground'}`}>
                     {a.action}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-white truncate">
+<p className="text-sm text-foreground truncate">
                       {a.entity_name || a.entity_type}
                       {a.details?.from_tier && a.details?.to_tier ? (
-                        <span className="text-gray-500 dark:text-gray-400"> — {a.details.from_tier} → {a.details.to_tier}</span>
+<span className="text-muted">—{a.details.from_tier}→{a.details.to_tier}</span>
                       ) : a.entity_id ? (
-                        <span className="text-gray-500 dark:text-gray-400"> #{a.entity_id}</span>
+<span className="text-muted">#{a.entity_id}</span>
                       ) : null}
                     </p>
-                    <p className="text-xs text-gray-400 truncate">
+<p className="text-xs text-muted truncate">
                       {a.users?.full_name || a.user_name || 'System'}
-                      {a.tenant_name ? <span className="ml-1 text-gray-300">• {a.tenant_name}</span> : null}
+{a.tenant_name ?<span className="ml-1 text-foreground">•{a.tenant_name}</span>: null}
                     </p>
                   </div>
                 </div>
-                <span className="text-xs text-gray-400 shrink-0 ml-4">{a.created_at ? new Date(a.created_at).toLocaleString() : '—'}</span>
+<span className="text-xs text-muted shrink-0 ml-4">{a.created_at ? new Date(a.created_at).toLocaleString():'—'}</span>
               </div>
             ))}
           </div>
           {pagination.totalPages > 1 && (
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
-              <span className="text-gray-500">{t('admin.showing') || 'Showing'} {((pagination.page - 1) * limit) + 1}–{Math.min(pagination.page * limit, pagination.total)} {t('admin.of') || 'of'} {pagination.total}</span>
+<div className="p-4 border-t border-border flex items-center justify-between text-sm">
+<span className="text-muted">{t('admin.showing')||'Showing'}{((pagination.page - 1)* limit)+ 1}–{Math.min(pagination.page * limit,pagination.total)}{t('admin.of')||'of'}{pagination.total}</span>
               <div className="flex gap-1">
-                <button onClick={() => fetchActivities(pagination.page - 1)} disabled={pagination.page === 1} className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 text-gray-700 dark:text-gray-300">{t('common.previous') || 'Prev'}</button>
-                <span className="px-3 py-1 text-gray-500">{pagination.page}/{pagination.totalPages}</span>
-                <button onClick={() => fetchActivities(pagination.page + 1)} disabled={pagination.page === pagination.totalPages} className="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 text-gray-700 dark:text-gray-300">{t('common.next') || 'Next'}</button>
+<button onClick={()=>fetchActivities(pagination.page - 1)}disabled={pagination.page===1}className="px-3 py-1 rounded border border-border disabled:opacity-50 text-foreground">{t('common.previous')||'Prev'}</button>
+<span className="px-3 py-1 text-muted">{pagination.page}/{pagination.totalPages}</span>
+<button onClick={()=>fetchActivities(pagination.page + 1)}disabled={pagination.page===pagination.totalPages}className="px-3 py-1 rounded border border-border disabled:opacity-50 text-foreground">{t('common.next')||'Next'}</button>
               </div>
             </div>
           )}
