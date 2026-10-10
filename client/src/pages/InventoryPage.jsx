@@ -97,12 +97,12 @@ export default function InventoryPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('inventory.title')}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('inventory.subtitle')}</p>
+<p className="text-muted">{t('inventory.subtitle')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setShowPrintSheet(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 min-h-[44px]"
+className="flex items-center gap-2 px-4 py-2.5 bg-surface-tertiary rounded-lg bg-surface-hover min-h-[44px]"
           >
             <Printer className="w-4 h-4" />
             <span className="hidden sm:inline">{t('inventory.printReport') || 'Print Report'}</span>
@@ -110,7 +110,7 @@ export default function InventoryPage() {
           {canEdit && (
             <button
               onClick={() => setShowCategoryManager(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 min-h-[44px]"
+className="flex items-center gap-2 px-4 py-2.5 bg-surface-tertiary rounded-lg bg-surface-hover min-h-[44px]"
             >
               <Tag className="w-4 h-4" />
               <span className="hidden sm:inline">{t('inventory.categories')}</span>
@@ -119,7 +119,7 @@ export default function InventoryPage() {
           {canEdit && (
             <button
               onClick={handleCreateProduct}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">{t('inventory.addProduct')}</span>
@@ -129,13 +129,13 @@ export default function InventoryPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit">
+<div className="flex gap-1 p-1 bg-surface-tertiary rounded-lg w-fit">
         <button
           onClick={() => setActiveTab('products')}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'products'
-              ? 'bg-white dark:bg-gray-600 shadow-sm'
-              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+?'bg-surface shadow-sm'
+:'text-muted text-foreground'
           }`}
         >
           <Package className="w-4 h-4 inline mr-2" />
@@ -145,8 +145,8 @@ export default function InventoryPage() {
           onClick={() => setActiveTab('low-stock')}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'low-stock'
-              ? 'bg-white dark:bg-gray-600 shadow-sm'
-              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+?'bg-surface shadow-sm'
+:'text-muted text-foreground'
           }`}
         >
           {t('inventory.lowStock')} ({products.filter(p => p.stock_quantity <= p.low_stock_threshold).length})
@@ -200,12 +200,12 @@ export default function InventoryPage() {
       {/* Print Inventory Sheet Modal */}
       {showPrintSheet && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center pt-10 pb-10 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-6xl mx-4 shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 no-print">
+<div className="bg-surface rounded-2xl w-full max-w-6xl mx-4 shadow-2xl">
+<div className="flex items-center justify-between p-4 border-b border-border no-print">
               <h2 className="text-xl font-semibold">{t('inventory.inventoryReport') || 'Inventory Report'}</h2>
               <button
                 onClick={() => setShowPrintSheet(false)}
-                className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
+className="p-2.5 rounded-lg bg-surface-hover min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>

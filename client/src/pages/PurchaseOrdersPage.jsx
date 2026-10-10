@@ -168,15 +168,15 @@ export default function PurchaseOrdersPage() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'draft':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+return'bg-surface-tertiary text-foreground'
       case 'sent':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+return'bg-accent-soft text-accent-soft-foreground'
       case 'received':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+return'bg-success-soft text-success-soft-foreground'
       case 'cancelled':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+return'bg-danger-soft text-danger-soft-foreground'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+return'bg-surface-tertiary text-foreground'
     }
   }
 
@@ -206,7 +206,7 @@ export default function PurchaseOrdersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+<Loader2 className="h-8 w-8 animate-spin text-accent"/>
       </div>
     )
   }
@@ -214,13 +214,13 @@ export default function PurchaseOrdersPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+<h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <ShoppingCart className="h-6 w-6" />
           {t('purchaseOrders') || 'Purchase Orders'}
         </h1>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="h-4 w-4" />
           {t('createPO') || 'Create PO'}
@@ -228,54 +228,54 @@ export default function PurchaseOrdersPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+<div className="bg-surface rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+<div className="p-3 bg-accent-soft rounded-lg">
+<ShoppingCart className="h-5 w-5 text-accent"/>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalOrders') || 'Total Orders'}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.total_orders || orders.length}</p>
+<p className="text-sm text-muted">{t('totalOrders')||'Total Orders'}</p>
+<p className="text-2xl font-bold text-foreground">{stats?.total_orders || orders.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+<div className="bg-surface rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-              <Truck className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+<div className="p-3 bg-warning-soft rounded-lg">
+<Truck className="h-5 w-5 text-warning"/>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('pending') || 'Pending'}</p>
-              <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats?.pending_count || 0}</p>
+<p className="text-sm text-muted">{t('pending')||'Pending'}</p>
+<p className="text-2xl font-bold text-warning">{stats?.pending_count || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+<div className="bg-surface rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+<div className="p-3 bg-success-soft rounded-lg">
+<CheckCircle className="h-5 w-5 text-success"/>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('received') || 'Received'}</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats?.received_count || 0}</p>
+<p className="text-sm text-muted">{t('received')||'Received'}</p>
+<p className="text-2xl font-bold text-success">{stats?.received_count || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+<div className="bg-surface rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-              <Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+<div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+<Package className="h-5 w-5 text-purple-600 dark:text-purple-400"/>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalValue') || 'Total Value'}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(stats?.total_value || 0)}</p>
+<p className="text-sm text-muted">{t('totalValue')||'Total Value'}</p>
+<p className="text-2xl font-bold text-foreground">{formatCurrency(stats?.total_value || 0)}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-5 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-xl shadow-sm border border-border">
+<div className="p-5 border-b border-border">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex flex-wrap gap-2">
               {['all', 'draft', 'sent', 'received', 'cancelled'].map((s) => (
@@ -284,8 +284,8 @@ export default function PurchaseOrdersPage() {
                   onClick={() => setFilter(s)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     filter === s
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+?'bg-accent text-white'
+:'bg-surface-tertiary text-muted bg-surface-hover'
                   }`}
                 >
                   {t(s) || s.charAt(0).toUpperCase() + s.slice(1)}
@@ -293,13 +293,13 @@ export default function PurchaseOrdersPage() {
               ))}
             </div>
             <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted"/>
               <input
                 type="text"
                 placeholder={t('search') || 'Search...'}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
               />
             </div>
           </div>
@@ -307,31 +307,31 @@ export default function PurchaseOrdersPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 dark:bg-gray-700/50">
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('poNumber') || 'PO #'}</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('supplier') || 'Supplier'}</th>
-                <th className="px-5 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('items') || 'Items'}</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('total') || 'Total'}</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('expectedDate') || 'Expected Date'}</th>
-                <th className="px-5 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('status') || 'Status'}</th>
-                <th className="px-5 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('actions') || 'Actions'}</th>
+<tr className="bg-surface-secondary">
+<th className="px-5 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{t('poNumber')||'PO #'}</th>
+<th className="px-5 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{t('supplier')||'Supplier'}</th>
+<th className="px-5 py-3 text-center text-xs font-medium text-muted uppercase tracking-wider">{t('items')||'Items'}</th>
+<th className="px-5 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">{t('total')||'Total'}</th>
+<th className="px-5 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{t('expectedDate')||'Expected Date'}</th>
+<th className="px-5 py-3 text-center text-xs font-medium text-muted uppercase tracking-wider">{t('status')||'Status'}</th>
+<th className="px-5 py-3 text-center text-xs font-medium text-muted uppercase tracking-wider">{t('actions')||'Actions'}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+<tbody className="divide-y divide-border">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
+<td colSpan={7}className="px-5 py-10 text-center text-muted">
                     {t('noPurchaseOrders') || 'No purchase orders found'}
                   </td>
                 </tr>
               ) : (
                 filteredOrders.map((po) => (
-                  <tr key={po.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                    <td className="px-5 py-4 text-sm font-mono font-medium text-gray-900 dark:text-white">{po.order_number}</td>
-                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">{getSupplierName(po)}</td>
-                    <td className="px-5 py-4 text-sm text-center text-gray-600 dark:text-gray-300">{po.items_count || po.items?.length || 0}</td>
-                    <td className="px-5 py-4 text-sm text-right text-gray-900 dark:text-white font-medium">{formatCurrency(po.total)}</td>
-                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+<tr key={po.id}className="bg-surface-hover transition-colors">
+<td className="px-5 py-4 text-sm font-mono font-medium text-foreground">{po.order_number}</td>
+<td className="px-5 py-4 text-sm text-muted">{getSupplierName(po)}</td>
+<td className="px-5 py-4 text-sm text-center text-muted">{po.items_count || po.items?.length || 0}</td>
+<td className="px-5 py-4 text-sm text-right text-foreground font-medium">{formatCurrency(po.total)}</td>
+<td className="px-5 py-4 text-sm text-muted">
                       {po.expected_date ? new Date(po.expected_date).toLocaleDateString() : '—'}
                     </td>
                     <td className="px-5 py-4 text-center">
@@ -342,21 +342,21 @@ export default function PurchaseOrdersPage() {
                     </td>
                     <td className="px-5 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => viewDetail(po.id)} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title={t('view') || 'View'}>
+<button onClick={()=>viewDetail(po.id)}className="p-1.5 text-muted hover:text-blue-600 transition-colors"title={t('view')||'View'}>
                           <Eye className="h-4 w-4" />
                         </button>
                         {po.status === 'draft' && (
-                          <button onClick={() => handleSend(po.id)} className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title={t('send') || 'Send'}>
+<button onClick={()=>handleSend(po.id)}className="p-1.5 text-muted hover:text-blue-600 transition-colors"title={t('send')||'Send'}>
                             <Send className="h-4 w-4" />
                           </button>
                         )}
                         {(po.status === 'draft' || po.status === 'sent') && (
-                          <button onClick={() => handleReceive(po.id)} className="p-1.5 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors" title={t('receive') || 'Receive'}>
+<button onClick={()=>handleReceive(po.id)}className="p-1.5 text-muted hover:text-green-600 transition-colors"title={t('receive')||'Receive'}>
                             <CheckCircle className="h-4 w-4" />
                           </button>
                         )}
                         {po.status === 'draft' && (
-                          <button onClick={() => handleDeletePO(po.id)} className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors" title={t('delete') || 'Delete'}>
+<button onClick={()=>handleDeletePO(po.id)}className="p-1.5 text-muted hover:text-red-600 transition-colors"title={t('delete')||'Delete'}>
                             <Trash2 className="h-4 w-4" />
                           </button>
                         )}
@@ -372,21 +372,21 @@ export default function PurchaseOrdersPage() {
 
       {showCreateForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6 max-h-[90vh] overflow-y-auto">
+<div className="bg-surface rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('createPO') || 'Create Purchase Order'}</h3>
-              <button onClick={() => setShowCreateForm(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+<h3 className="text-lg font-semibold text-foreground">{t('createPO')||'Create Purchase Order'}</h3>
+<button onClick={()=>setShowCreateForm(false)}className="text-muted text-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <form onSubmit={handleCreatePO} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('supplier') || 'Supplier'} *</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('supplier')||'Supplier'}*</label>
                   <select
                     value={form.supplier_id}
                     onChange={(e) => setForm({ ...form, supplier_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
                     required
                   >
                     <option value="">{t('selectSupplier') || 'Select supplier...'}</option>
@@ -396,24 +396,24 @@ export default function PurchaseOrdersPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('expectedDate') || 'Expected Date'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('expectedDate')||'Expected Date'}</label>
                   <input
                     type="date"
                     value={form.expected_date}
                     onChange={(e) => setForm({ ...form, expected_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('items') || 'Items'}</label>
+<label className="block text-sm font-medium text-foreground mb-2">{t('items')||'Items'}</label>
                 {form.items.map((item, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
                     <select
                       value={item.product_id}
                       onChange={(e) => handleItemChange(idx, 'product_id', e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm outline-none"
+className="flex-1 px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm outline-none"
                     >
                       <option value="">{t('selectProduct') || 'Product...'}</option>
                       {products.map((p) => (
@@ -426,7 +426,7 @@ export default function PurchaseOrdersPage() {
                       placeholder={t('qty') || 'Qty'}
                       value={item.quantity}
                       onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
-                      className="w-20 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm outline-none"
+className="w-20 px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm outline-none"
                     />
                     <input
                       type="number"
@@ -435,33 +435,33 @@ export default function PurchaseOrdersPage() {
                       placeholder={t('price') || 'Price'}
                       value={item.unit_price}
                       onChange={(e) => handleItemChange(idx, 'unit_price', e.target.value)}
-                      className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm outline-none"
+className="w-24 px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm outline-none"
                     />
-                    <button type="button" onClick={() => removeItem(idx)} className="px-2 text-gray-400 hover:text-red-500">
+<button type="button"onClick={()=>removeItem(idx)}className="px-2 text-muted hover:text-red-500">
                       <X className="h-4 w-4" />
                     </button>
                   </div>
                 ))}
-                <button type="button" onClick={addItem} className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+<button type="button"onClick={addItem}className="text-sm text-accent hover:text-blue-700">
                   + {t('addItem') || 'Add Item'}
                 </button>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('notes') || 'Notes'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('notes')||'Notes'}</label>
                 <textarea
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
                   rows={3}
                 />
               </div>
 
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowCreateForm(false)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+<button type="button"onClick={()=>setShowCreateForm(false)}className="flex-1 px-4 py-2 border border-border rounded-lg text-foreground bg-surface-hover transition-colors">
                   {t('cancel') || 'Cancel'}
                 </button>
-                <button type="submit" disabled={submitting} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+<button type="submit"disabled={submitting}className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
                   {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t('create') || 'Create'}
                 </button>
@@ -473,65 +473,65 @@ export default function PurchaseOrdersPage() {
 
       {showDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6 max-h-[90vh] overflow-y-auto">
+<div className="bg-surface rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+<h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 {showDetail.order_number}
               </h3>
-              <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+<button onClick={()=>setShowDetail(null)}className="text-muted text-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('supplier') || 'Supplier'}</p>
-                <p className="font-medium text-gray-900 dark:text-white">{getSupplierName(showDetail)}</p>
+<p className="text-sm text-muted">{t('supplier')||'Supplier'}</p>
+<p className="font-medium text-foreground">{getSupplierName(showDetail)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('status') || 'Status'}</p>
+<p className="text-sm text-muted">{t('status')||'Status'}</p>
                 <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(showDetail.status)}`}>
                   {getStatusIcon(showDetail.status)}
                   {t(showDetail.status) || showDetail.status}
                 </span>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('expectedDate') || 'Expected Date'}</p>
-                <p className="font-medium text-gray-900 dark:text-white">
+<p className="text-sm text-muted">{t('expectedDate')||'Expected Date'}</p>
+<p className="font-medium text-foreground">
                   {showDetail.expected_date ? new Date(showDetail.expected_date).toLocaleDateString() : '—'}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('total') || 'Total'}</p>
-                <p className="font-semibold text-gray-900 dark:text-white">{formatCurrency(showDetail.total)}</p>
+<p className="text-sm text-muted">{t('total')||'Total'}</p>
+<p className="font-semibold text-foreground">{formatCurrency(showDetail.total)}</p>
               </div>
             </div>
 
             {showDetail.notes && (
               <div className="mb-4">
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('notes') || 'Notes'}</p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">{showDetail.notes}</p>
+<p className="text-sm text-muted">{t('notes')||'Notes'}</p>
+<p className="text-sm text-foreground">{showDetail.notes}</p>
               </div>
             )}
 
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-700/50">
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('product') || 'Product'}</th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('qty') || 'Qty'}</th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('unitPrice') || 'Unit Price'}</th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t('subtotal') || 'Subtotal'}</th>
+<tr className="bg-surface-secondary">
+<th className="px-4 py-2 text-left text-xs font-medium text-muted uppercase">{t('product')||'Product'}</th>
+<th className="px-4 py-2 text-right text-xs font-medium text-muted uppercase">{t('qty')||'Qty'}</th>
+<th className="px-4 py-2 text-right text-xs font-medium text-muted uppercase">{t('unitPrice')||'Unit Price'}</th>
+<th className="px-4 py-2 text-right text-xs font-medium text-muted uppercase">{t('subtotal')||'Subtotal'}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+<tbody className="divide-y divide-border">
                   {showDetail.items?.map((item, idx) => (
                     <tr key={idx}>
-                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">{item.product_name}</td>
-                      <td className="px-4 py-3 text-sm text-right text-gray-600 dark:text-gray-300">{item.quantity}</td>
-                      <td className="px-4 py-3 text-sm text-right text-gray-600 dark:text-gray-300">{formatCurrency(item.unit_price)}</td>
-                      <td className="px-4 py-3 text-sm text-right font-medium text-gray-900 dark:text-white">
+<td className="px-4 py-3 text-sm text-foreground">{item.product_name}</td>
+<td className="px-4 py-3 text-sm text-right text-muted">{item.quantity}</td>
+<td className="px-4 py-3 text-sm text-right text-muted">{formatCurrency(item.unit_price)}</td>
+<td className="px-4 py-3 text-sm text-right font-medium text-foreground">
                         {formatCurrency(item.line_total || item.quantity * item.unit_price)}
                       </td>
                     </tr>
@@ -540,8 +540,8 @@ export default function PurchaseOrdersPage() {
               </table>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-              <span className="text-lg font-bold text-gray-900 dark:text-white">
+<div className="mt-4 pt-4 border-t border-border flex justify-end">
+<span className="text-lg font-bold text-foreground">
                 {t('total') || 'Total'}: {formatCurrency(showDetail.total)}
               </span>
             </div>

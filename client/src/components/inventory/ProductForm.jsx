@@ -111,15 +111,15 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl mx-4 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+<div className="bg-surface rounded-2xl w-full max-w-2xl mx-4 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">
             {product ? t('inventory.editProduct') : t('inventory.addProduct')}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+className="p-2 rounded-lg bg-surface-hover"
           >
             <X className="w-5 h-5" />
           </button>
@@ -130,7 +130,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.productName')} *
               </label>
               <input
@@ -139,13 +139,13 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
                 placeholder={t('inventory.productNamePlaceholder')}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.sku')}
               </label>
               <div className="flex gap-2">
@@ -154,13 +154,13 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
                   name="sku"
                   value={formData.sku}
                   onChange={handleChange}
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="flex-1 px-4 py-2 rounded-lg border border-border bg-surface"
                   placeholder={t('inventory.skuPlaceholder')}
                 />
                 <button
                   type="button"
                   onClick={handleGenerateSKU}
-                  className="px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+className="px-3 py-2 bg-surface-tertiary rounded-lg bg-surface-hover"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
@@ -168,7 +168,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.barcode')}
               </label>
               <input
@@ -176,20 +176,20 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
                 name="barcode"
                 value={formData.barcode}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
                 placeholder={t('inventory.barcodePlaceholder')}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.category')}
               </label>
               <select
                 name="category_id"
                 value={formData.category_id}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               >
                 <option value="">{t('inventory.selectCategory')}</option>
                 {categories.map(cat => (
@@ -199,14 +199,14 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.supplier')}
               </label>
               <select
                 name="supplier_id"
                 value={formData.supplier_id}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               >
                 <option value="">{t('inventory.selectSupplier')}</option>
                 {(suppliers || []).map(sup => (
@@ -216,7 +216,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.imageUrl')}
               </label>
               <input
@@ -224,7 +224,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
                 name="image_url"
                 value={formData.image_url}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
                 placeholder="https://..."
               />
             </div>
@@ -233,7 +233,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
           {/* Pricing */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.sellingPrice')} (ج.م) *
               </label>
               <input
@@ -244,13 +244,13 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
                 required
                 step="0.01"
                 min="0"
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
                 placeholder="0.00"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.costPrice')} (ج.م)
               </label>
               <input
@@ -260,7 +260,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
                 onChange={handleChange}
                 step="0.01"
                 min="0"
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
                 placeholder="0.00"
               />
             </div>
@@ -269,7 +269,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
           {/* Stock */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.stockQuantity')}
               </label>
               <input
@@ -279,12 +279,12 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
                 onChange={handleChange}
                 min="0"
                 step="0.01"
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.lowStockThreshold')}
               </label>
               <input
@@ -293,14 +293,14 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
                 value={formData.low_stock_threshold}
                 onChange={handleChange}
                 min="0"
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               />
             </div>
           </div>
 
           {/* Specifications */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('inventory.specifications')}
             </label>
             <div className="space-y-2">
@@ -311,19 +311,19 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
                     value={spec.name}
                     onChange={(e) => updateSpec(i, 'name', e.target.value)}
                     placeholder={t('inventory.specNamePlaceholder')}
-                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
+className="flex-1 px-3 py-2 rounded-lg border border-border bg-surface text-sm"
                   />
                   <input
                     type="text"
                     value={spec.value}
                     onChange={(e) => updateSpec(i, 'value', e.target.value)}
                     placeholder={t('inventory.specValuePlaceholder')}
-                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
+className="flex-1 px-3 py-2 rounded-lg border border-border bg-surface text-sm"
                   />
                   <button
                     type="button"
                     onClick={() => removeSpec(i)}
-                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+className="p-2 text-danger hover:bg-red-50 rounded-lg"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -332,7 +332,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
               <button
                 type="button"
                 onClick={addSpec}
-                className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400"
+className="flex items-center gap-1 text-sm text-accent hover:text-primary-700"
               >
                 <Plus className="w-4 h-4" /> {t('inventory.addSpec')}
               </button>
@@ -341,14 +341,14 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
 
           {/* Unit of Measure */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('inventory.unitOfMeasure')}
             </label>
             <select
               name="unit_of_measure"
               value={formData.unit_of_measure}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             >
               <option value="quantity">{t('inventory.unitQuantity')}</option>
               <option value="kilo">{t('inventory.unitKilo')}</option>
@@ -361,7 +361,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
           {/* Pieces per Box (only when unit = box) */}
           {formData.unit_of_measure === 'box' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.piecesPerBox') || 'Pieces per Box'}
               </label>
               <input
@@ -372,7 +372,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
                 value={formData.pieces_per_box}
                 onChange={handleChange}
                 placeholder={t('inventory.enterPiecesPerBox') || 'e.g. 12'}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
                 required
               />
             </div>
@@ -385,16 +385,16 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
               name="is_refundable"
               checked={formData.is_refundable}
               onChange={handleChange}
-              className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+className="w-4 h-4 text-accent rounded border-border ring-focus"
             />
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+<label className="text-sm font-medium text-foreground">
               {t('inventory.isRefundable')}
             </label>
           </div>
 
           {/* Commission Rate */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('inventory.commissionRate') || 'Commission Rate (%)'}
             </label>
             <input
@@ -406,7 +406,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
               value={formData.commission_rate}
               onChange={handleChange}
               placeholder="0"
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             />
           </div>
 
@@ -417,20 +417,20 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
               name="is_active"
               checked={formData.is_active}
               onChange={handleChange}
-              className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+className="w-4 h-4 text-accent rounded border-border ring-focus"
             />
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+<label className="text-sm font-medium text-foreground">
               {t('inventory.productActive')}
             </label>
           </div>
         </form>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+<div className="p-4 border-t border-border flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+className="px-4 py-2 text-foreground bg-surface-tertiary rounded-lg bg-surface-hover"
           >
             {t('common.cancel')}
           </button>
@@ -438,7 +438,7 @@ export default function ProductForm({ product, categories, suppliers, onSave, on
             type="submit"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (t('common.processing') || '...') : (product ? t('inventory.updateProduct') : t('inventory.addProduct'))}
           </button>
