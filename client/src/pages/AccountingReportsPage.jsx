@@ -118,37 +118,37 @@ export default function AccountingReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('accounting.financialReports') || 'Financial Reports'}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('accounting.financialReportsDesc') || 'View financial statements and reports'}</p>
+<p className="text-muted">{t('accounting.financialReportsDesc')||'View financial statements and reports'}</p>
         </div>
-        <button onClick={handlePrint} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium flex items-center gap-2 text-sm">
+<button onClick={handlePrint}className="px-4 py-2 bg-surface-tertiary bg-surface-hover rounded-xl font-medium flex items-center gap-2 text-sm">
           <Download className="w-4 h-4" /> {t('common.print') || 'Print'}
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 pb-2 overflow-x-auto">
+<div className="flex gap-2 border-b border-border pb-2 overflow-x-auto">
         {tabs.map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-colors ${activeTab === tab.key ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition-colors ${activeTab===tab.key ?'bg-accent text-white shadow-lg shadow-primary-500/20':'text-muted bg-surface-hover'}`}>
             <tab.icon className="w-4 h-4" /> {tab.label}
           </button>
         ))}
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"/></div>
       ) : (
         <div className="print:pt-0">
           {/* Trial Balance */}
           {activeTab === 'trial-balance' && trialBalance && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden">
+<div className="px-4 sm:px-6 py-4 border-b border-border">
                 <h2 className="text-lg font-bold">{t('accounting.trialBalance')}</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[480px]">
                   <thead>
-                    <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
+<tr className="bg-surface-secondary border-b border-border text-xs uppercase tracking-wider text-muted">
                       <th className="text-start px-4 sm:px-6 py-3 font-semibold">{t('accounting.code') || 'Code'}</th>
                       <th className="text-start px-4 sm:px-6 py-3 font-semibold">{t('accounting.name') || 'Name'}</th>
                       <th className="text-end px-4 sm:px-6 py-3 font-semibold">{t('accounting.debit') || 'Debit'}</th>
@@ -160,20 +160,20 @@ export default function AccountingReportsPage() {
                       trialBalance.accounts[type]?.length > 0 && (
                         <Fragment key={type}>
                           <tr>
-                            <td colSpan={4} className="px-4 sm:px-6 py-2 bg-gray-100 dark:bg-gray-700/30 border-b border-gray-200 dark:border-gray-700">
-                              <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+<td colSpan={4}className="px-4 sm:px-6 py-2 bg-surface-tertiary border-b border-border">
+<span className="text-xs font-bold uppercase tracking-wider text-muted">
                                 {t('accounting.' + type + 'Accounts') || `${type} Accounts`}
                               </span>
                             </td>
                           </tr>
                           {trialBalance.accounts[type].map(acc => (
-                            <tr key={acc.id} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                              <td className="px-4 sm:px-6 py-2.5 text-sm font-mono font-bold text-gray-900 dark:text-white">{acc.code}</td>
-                              <td className="px-4 sm:px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300">{getAccountName(acc)}</td>
-                              <td className="px-4 sm:px-6 py-2.5 text-sm text-end font-mono font-medium text-gray-900 dark:text-white">
+<tr key={acc.id}className="border-b border-border bg-surface-hover transition-colors">
+<td className="px-4 sm:px-6 py-2.5 text-sm font-mono font-bold text-foreground">{acc.code}</td>
+<td className="px-4 sm:px-6 py-2.5 text-sm text-foreground">{getAccountName(acc)}</td>
+<td className="px-4 sm:px-6 py-2.5 text-sm text-end font-mono font-medium text-foreground">
                                 {acc.balance >= 0 ? formatAmount(acc.balance) : ''}
                               </td>
-                              <td className="px-4 sm:px-6 py-2.5 text-sm text-end font-mono font-medium text-gray-900 dark:text-white">
+<td className="px-4 sm:px-6 py-2.5 text-sm text-end font-mono font-medium text-foreground">
                                 {acc.balance < 0 ? formatAmount(Math.abs(acc.balance)) : ''}
                               </td>
                             </tr>
@@ -183,7 +183,7 @@ export default function AccountingReportsPage() {
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr className="bg-gray-50 dark:bg-gray-700/50 border-t-2 border-gray-300 dark:border-gray-600 font-bold">
+<tr className="bg-surface-secondary border-t-2 border-border font-bold">
                       <td colSpan={2} className="px-4 sm:px-6 py-3 text-sm">{t('common.total') || 'Total'}</td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-end font-mono">{formatAmount(trialBalance.totalDebit)}</td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-end font-mono">{formatAmount(trialBalance.totalCredit)}</td>
@@ -196,23 +196,23 @@ export default function AccountingReportsPage() {
 
           {/* Balance Sheet */}
           {activeTab === 'balance-sheet' && balanceSheet && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden">
+<div className="px-6 py-4 border-b border-border">
                 <h2 className="text-lg font-bold">{t('accounting.balanceSheet')}</h2>
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Assets */}
                 <div>
-                  <h3 className="font-bold text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-2">
+<h3 className="font-bold text-accent mb-3 flex items-center gap-2">
                     <TrendingUp className="w-4 h-4" /> {t('accounting.assets')}
                   </h3>
                   {balanceSheet.assets.items.map(acc => (
-                    <div key={acc.id} className="flex justify-between py-1.5 text-sm border-b border-gray-100 dark:border-gray-700/50">
+<div key={acc.id}className="flex justify-between py-1.5 text-sm border-b border-border">
                       <span>{acc.code} - {getAccountName(acc)}</span>
                       <span className="font-mono font-medium">{formatAmount(acc.balance)}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between py-2 text-sm font-bold border-t-2 border-gray-300 dark:border-gray-600 mt-2">
+<div className="flex justify-between py-2 text-sm font-bold border-t-2 border-border mt-2">
                     <span>{t('accounting.totalAssets')}</span>
                     <span className="font-mono">{formatAmount(balanceSheet.assets.total)}</span>
                   </div>
@@ -220,16 +220,16 @@ export default function AccountingReportsPage() {
 
                 {/* Liabilities */}
                 <div>
-                  <h3 className="font-bold text-red-600 dark:text-red-400 mb-3 flex items-center gap-2">
+<h3 className="font-bold text-danger mb-3 flex items-center gap-2">
                     <TrendingDown className="w-4 h-4" /> {t('accounting.liabilities')}
                   </h3>
                   {balanceSheet.liabilities.items.map(acc => (
-                    <div key={acc.id} className="flex justify-between py-1.5 text-sm border-b border-gray-100 dark:border-gray-700/50">
+<div key={acc.id}className="flex justify-between py-1.5 text-sm border-b border-border">
                       <span>{acc.code} - {getAccountName(acc)}</span>
                       <span className="font-mono font-medium">{formatAmount(acc.balance)}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between py-2 text-sm font-bold border-t-2 border-gray-300 dark:border-gray-600 mt-2">
+<div className="flex justify-between py-2 text-sm font-bold border-t-2 border-border mt-2">
                     <span>{t('accounting.totalLiabilities')}</span>
                     <span className="font-mono">{formatAmount(balanceSheet.liabilities.total)}</span>
                   </div>
@@ -238,72 +238,72 @@ export default function AccountingReportsPage() {
 
               {/* Equity */}
               <div className="px-6 pb-6">
-                <h3 className="font-bold text-purple-600 dark:text-purple-400 mb-3">{t('accounting.equity')}</h3>
+<h3 className="font-bold text-purple-600 dark:text-purple-400 mb-3">{t('accounting.equity')}</h3>
                 {balanceSheet.equity.items.map(acc => (
-                  <div key={acc.id} className="flex justify-between py-1.5 text-sm border-b border-gray-100 dark:border-gray-700/50">
+<div key={acc.id}className="flex justify-between py-1.5 text-sm border-b border-border">
                     <span>{acc.code} - {getAccountName(acc)}</span>
                     <span className="font-mono font-medium">{formatAmount(acc.balance)}</span>
                   </div>
                 ))}
-                <div className="flex justify-between py-2 text-sm font-bold border-t-2 border-gray-300 dark:border-gray-600 mt-2">
+<div className="flex justify-between py-2 text-sm font-bold border-t-2 border-border mt-2">
                   <span>{t('accounting.totalEquity')}</span>
                   <span className="font-mono">{formatAmount(balanceSheet.equity.total)}</span>
                 </div>
               </div>
 
-              <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t-2 border-gray-300 dark:border-gray-600 flex justify-between font-bold">
+<div className="px-6 py-4 bg-surface-secondary border-t-2 border-border flex justify-between font-bold">
                 <span>{t('accounting.totalLiabilities')} & {t('accounting.equity')}</span>
                 <span className="font-mono">{formatAmount(balanceSheet.totalLiabilitiesAndEquity)}</span>
               </div>
               {!balanceSheet.isBalanced && (
-                <div className="px-6 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 text-sm font-medium">{t('accounting.balanceWarning')}</div>
+<div className="px-6 py-2 bg-danger-soft text-danger-soft-foreground text-sm font-medium">{t('accounting.balanceWarning')}</div>
               )}
             </div>
           )}
 
           {/* Profit & Loss */}
           {activeTab === 'profit-loss' && profitLoss && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden">
+<div className="px-6 py-4 border-b border-border">
                 <h2 className="text-lg font-bold">{t('accounting.profitLoss')}</h2>
               </div>
               <div className="p-6 space-y-6">
                 {/* Revenue */}
                 <div>
-                  <h3 className="font-bold text-green-600 dark:text-green-400 mb-3 flex items-center gap-2">
+<h3 className="font-bold text-success mb-3 flex items-center gap-2">
                     <TrendingUp className="w-4 h-4" /> {t('accounting.revenue')}
                   </h3>
                   {profitLoss.revenues.map(acc => (
-                    <div key={acc.code} className="flex justify-between py-1.5 text-sm border-b border-gray-100 dark:border-gray-700/50">
+<div key={acc.code}className="flex justify-between py-1.5 text-sm border-b border-border">
                       <span>{acc.code} - {getAccountName(acc)}</span>
                       <span className="font-mono font-medium">{formatAmount(acc.total)}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between py-2 text-sm font-bold border-t-2 border-gray-300 dark:border-gray-600 mt-2">
+<div className="flex justify-between py-2 text-sm font-bold border-t-2 border-border mt-2">
                     <span>{t('accounting.totalRevenue')}</span>
-                    <span className="font-mono text-green-600">{formatAmount(profitLoss.totalRevenue)}</span>
+<span className="font-mono text-success">{formatAmount(profitLoss.totalRevenue)}</span>
                   </div>
                 </div>
 
                 {/* Expenses */}
                 <div>
-                  <h3 className="font-bold text-orange-600 dark:text-orange-400 mb-3 flex items-center gap-2">
+<h3 className="font-bold text-warning mb-3 flex items-center gap-2">
                     <TrendingDown className="w-4 h-4" /> {t('accounting.expenses')}
                   </h3>
                   {profitLoss.expenses.map(acc => (
-                    <div key={acc.code} className="flex justify-between py-1.5 text-sm border-b border-gray-100 dark:border-gray-700/50">
+<div key={acc.code}className="flex justify-between py-1.5 text-sm border-b border-border">
                       <span>{acc.code} - {getAccountName(acc)}</span>
                       <span className="font-mono font-medium">{formatAmount(acc.total)}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between py-2 text-sm font-bold border-t-2 border-gray-300 dark:border-gray-600 mt-2">
+<div className="flex justify-between py-2 text-sm font-bold border-t-2 border-border mt-2">
                     <span>{t('accounting.totalExpenses')}</span>
-                    <span className="font-mono text-orange-600">{formatAmount(profitLoss.totalExpenses)}</span>
+<span className="font-mono text-warning">{formatAmount(profitLoss.totalExpenses)}</span>
                   </div>
                 </div>
 
                 {/* Net Income */}
-                <div className={`flex justify-between py-3 text-lg font-bold border-t-2 ${profitLoss.netIncome >= 0 ? 'border-green-500 text-green-600' : 'border-red-500 text-red-600'}`}>
+<div className={`flex justify-between py-3 text-lg font-bold border-t-2 ${profitLoss.netIncome>=0 ?'border-success text-success':'border-danger text-danger'}`}>
                   <span>{profitLoss.netIncome >= 0 ? t('accounting.netIncome') : t('accounting.netLoss')}</span>
                   <span className="font-mono">{formatAmount(profitLoss.netIncome)}</span>
                 </div>
@@ -313,14 +313,14 @@ export default function AccountingReportsPage() {
 
           {/* Fiscal Periods */}
           {activeTab === 'fiscal-periods' && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden">
+<div className="px-6 py-4 border-b border-border">
                 <h2 className="text-lg font-bold">{t('accounting.fiscalPeriods') || 'Fiscal Periods'}</h2>
               </div>
               <div className="overflow-x-auto">
               <table className="w-full min-w-[600px]">
                 <thead>
-                  <tr className="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+<tr className="text-xs text-muted border-b border-border">
                     <th className="text-start px-6 py-3 font-medium">{t('common.name')}</th>
                     <th className="text-start px-6 py-3 font-medium">{t('common.startDate')}</th>
                     <th className="text-start px-6 py-3 font-medium">{t('common.endDate')}</th>
@@ -330,18 +330,18 @@ export default function AccountingReportsPage() {
                 </thead>
                 <tbody>
                   {fiscalPeriods.map(period => (
-                    <tr key={period.id} className="border-t border-gray-100 dark:border-gray-700/50">
+<tr key={period.id}className="border-t border-border">
                       <td className="px-6 py-3 text-sm font-medium">{period.name}</td>
                       <td className="px-6 py-3 text-sm">{period.start_date}</td>
                       <td className="px-6 py-3 text-sm">{period.end_date}</td>
                       <td className="px-6 py-3 text-center">
-                        <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold ${period.is_closed ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
+<span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold ${period.is_closed ?'bg-surface-tertiary text-muted':'bg-success-soft text-success-soft-foreground'}`}>
                           {period.is_closed ? t('accounting.closed') : t('accounting.open')}
                         </span>
                       </td>
                       <td className="px-6 py-3 text-end">
                         {!period.is_closed && (
-                          <button onClick={() => setCloseTarget(period.id)} className="px-3 py-2 min-h-[44px] text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+<button onClick={()=>setCloseTarget(period.id)}className="px-3 py-2 min-h-[44px] text-sm font-medium text-danger hover:bg-red-50 rounded-lg">
                             {t('accounting.closePeriod')}
                           </button>
                         )}
@@ -350,7 +350,7 @@ export default function AccountingReportsPage() {
                   ))}
                 </tbody>
               </table>
-              {fiscalPeriods.length === 0 && <p className="text-center py-8 text-gray-400">{t('accounting.noPeriods')}</p>}
+{fiscalPeriods.length===0 &&<p className="text-center py-8 text-muted">{t('accounting.noPeriods')}</p>}
               </div>
             </div>
           )}

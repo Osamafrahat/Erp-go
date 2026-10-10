@@ -6,10 +6,10 @@ import { FileText, Search, Eye, RefreshCcw, CheckCircle, XCircle, Clock, Send, W
 import ReceiptModal from '../components/pos/ReceiptModal'
 
 const STATUS_COLORS = {
-  paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  refunded: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  partial: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  pending: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+paid:'bg-success-soft text-success-soft-foreground',
+refunded:'bg-danger-soft text-danger-soft-foreground',
+partial:'bg-warning-soft text-warning-soft-foreground',
+pending:'bg-surface-tertiary text-foreground',
 }
 
 const STATUS_ICONS = {
@@ -156,7 +156,7 @@ export default function InvoicesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
       </div>
     )
   }
@@ -166,56 +166,56 @@ export default function InvoicesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('invoices.title') || 'Invoices'}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('invoices.subtitle') || 'View all invoices'}</p>
+<p className="text-muted">{t('invoices.subtitle')||'View all invoices'}</p>
         </div>
-        <button onClick={loadData} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium flex items-center gap-2 text-sm">
+<button onClick={loadData}className="px-4 py-2 bg-surface-tertiary bg-surface-hover rounded-xl font-medium flex items-center gap-2 text-sm">
           <RefreshCcw className="w-4 h-4" /> {t('common.refresh') || 'Refresh'}
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-5">
+<div className="bg-surface-secondary rounded-2xl border border-border shadow-sm p-5">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-xl">
-              <FileText className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+<div className="p-3 bg-accent-soft rounded-xl">
+<FileText className="w-6 h-6 text-accent"/>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('invoices.totalOrders') || 'Total Orders'}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+<p className="text-xs font-medium text-muted uppercase tracking-wide">{t('invoices.totalOrders')||'Total Orders'}</p>
+<p className="text-2xl font-bold text-foreground">{stats.total}</p>
             </div>
           </div>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-5">
+<div className="bg-surface-secondary rounded-2xl border border-border shadow-sm p-5">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-              <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+<div className="p-3 bg-success-soft rounded-xl">
+<CheckCircle className="w-6 h-6 text-success"/>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('invoices.paid') || 'Paid'}</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.paid}</p>
+<p className="text-xs font-medium text-muted uppercase tracking-wide">{t('invoices.paid')||'Paid'}</p>
+<p className="text-2xl font-bold text-success">{stats.paid}</p>
             </div>
           </div>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-5">
+<div className="bg-surface-secondary rounded-2xl border border-border shadow-sm p-5">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
-              <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+<div className="p-3 bg-warning-soft rounded-xl">
+<Clock className="w-6 h-6 text-warning"/>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('invoices.partialRefund') || 'Partial Refund'}</p>
-              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.partial}</p>
+<p className="text-xs font-medium text-muted uppercase tracking-wide">{t('invoices.partialRefund')||'Partial Refund'}</p>
+<p className="text-2xl font-bold text-warning">{stats.partial}</p>
             </div>
           </div>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-5">
+<div className="bg-surface-secondary rounded-2xl border border-border shadow-sm p-5">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">
-              <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+<div className="p-3 bg-danger-soft rounded-xl">
+<XCircle className="w-6 h-6 text-danger"/>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('invoices.refunded') || 'Refunded'}</p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.refunded}</p>
+<p className="text-xs font-medium text-muted uppercase tracking-wide">{t('invoices.refunded')||'Refunded'}</p>
+<p className="text-2xl font-bold text-danger">{stats.refunded}</p>
             </div>
           </div>
         </div>
@@ -223,44 +223,44 @@ export default function InvoicesPage() {
 
       {/* Revenue Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-5">
+<div className="bg-surface-secondary rounded-2xl border border-border shadow-sm p-5">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-xl">
-              <DollarSign className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+<div className="p-3 bg-accent-soft rounded-xl">
+<DollarSign className="w-6 h-6 text-accent"/>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('invoices.totalRevenue') || 'Total Revenue'}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(stats.totalRevenue)}</p>
+<p className="text-xs font-medium text-muted uppercase tracking-wide">{t('invoices.totalRevenue')||'Total Revenue'}</p>
+<p className="text-2xl font-bold text-foreground">{formatCurrency(stats.totalRevenue)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-5">
+<div className="bg-surface-secondary rounded-2xl border border-border shadow-sm p-5">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-              <Wrench className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+<div className="p-3 bg-accent-soft rounded-xl">
+<Wrench className="w-6 h-6 text-accent"/>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('services.serviceSales') || 'Service Sales'}</p>
+<p className="text-xs font-medium text-muted uppercase tracking-wide">{t('services.serviceSales')||'Service Sales'}</p>
               <div className="flex items-baseline gap-3">
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.serviceOrders}</p>
+<p className="text-2xl font-bold text-accent">{stats.serviceOrders}</p>
                 {stats.serviceRevenue > 0 && (
-                  <p className="text-sm font-medium text-blue-500 dark:text-blue-400/70">{formatCurrency(stats.serviceRevenue)}</p>
+<p className="text-sm font-medium text-accent">{formatCurrency(stats.serviceRevenue)}</p>
                 )}
               </div>
             </div>
           </div>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700/50 shadow-sm p-5">
+<div className="bg-surface-secondary rounded-2xl border border-border shadow-sm p-5">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-              <Repeat className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+<div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+<Repeat className="w-6 h-6 text-purple-600 dark:text-purple-400"/>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('billingCycle.subscriptions') || 'Subscriptions'}</p>
+<p className="text-xs font-medium text-muted uppercase tracking-wide">{t('billingCycle.subscriptions')||'Subscriptions'}</p>
               <div className="flex items-baseline gap-3">
-                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.subscriptionPayments}</p>
+<p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.subscriptionPayments}</p>
                 {stats.subscriptionRevenue > 0 && (
-                  <p className="text-sm font-medium text-purple-500 dark:text-purple-400/70">{formatCurrency(stats.subscriptionRevenue)}</p>
+<p className="text-sm font-medium text-purple-500 dark:text-purple-400/70">{formatCurrency(stats.subscriptionRevenue)}</p>
                 )}
               </div>
             </div>
@@ -271,13 +271,13 @@ export default function InvoicesPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"/>
           <input
             type="text"
             placeholder={t('invoices.searchPlaceholder') || 'Search by order number, customer, or cashier...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface text-sm ring-focus focus:border-transparent"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -292,8 +292,8 @@ export default function InvoicesPage() {
               onClick={() => setTypeFilter(key)}
               className={`px-3 py-2.5 rounded-xl text-xs font-medium transition-colors min-h-[44px] ${
                 typeFilter === key
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+?'bg-accent text-white'
+:'bg-surface-tertiary text-foreground bg-surface-hover'
               }`}
             >
               {label}
@@ -313,8 +313,8 @@ export default function InvoicesPage() {
               onClick={() => setStatusFilter(key)}
               className={`px-3 py-2.5 rounded-xl text-xs font-medium transition-colors min-h-[44px] ${
                 statusFilter === key
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+?'bg-accent text-white'
+:'bg-surface-tertiary text-foreground bg-surface-hover'
               }`}
             >
               {label}
@@ -324,11 +324,11 @@ export default function InvoicesPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+<div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[600px] text-sm">
             <thead>
-              <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+<tr className="bg-surface-secondary border-b border-border">
                 <th className="text-left px-4 py-3 font-semibold">{t('invoices.orderNumber') || 'Order #'}</th>
                 <th className="text-left px-4 py-3 font-semibold">{t('invoices.date') || 'Date'}</th>
                 <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">{t('invoices.customer') || 'Customer'}</th>
@@ -343,7 +343,7 @@ export default function InvoicesPage() {
             <tbody>
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="text-center py-12 text-gray-400">
+<td colSpan="9"className="text-center py-12 text-muted">
                     {t('invoices.noOrders') || 'No invoices found'}
                   </td>
                 </tr>
@@ -354,25 +354,25 @@ export default function InvoicesPage() {
                   const StatusIcon = STATUS_ICONS[orderStatus] || Clock
                   const items = isSub ? (invoice.items || []) : getOrderItems(invoice)
                   return (
-                    <tr key={invoice.id} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+<tr key={invoice.id}className="border-b border-border bg-surface-hover">
                       <td className="px-4 py-3 font-mono font-semibold">
                         <div className="flex items-center gap-2">
                           {invoice.order_number}
                           {isSub && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
                               <Repeat className="w-3 h-3" />
                               {t('billingCycle.subscriptions') || 'Subscription'}
                             </span>
                           )}
                           {!isSub && isServiceOrder(invoice) && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent-soft text-accent-soft-foreground">
                               <Wrench className="w-3 h-3" />
                               {t('services.service') || 'Service'}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{new Date(invoice.created_at).toLocaleDateString()}</td>
+<td className="px-4 py-3 text-muted">{new Date(invoice.created_at).toLocaleDateString()}</td>
                       <td className="px-4 py-3 hidden sm:table-cell">{invoice.customers?.name || '-'}</td>
                       <td className="px-4 py-3 hidden md:table-cell">{isSub ? '-' : (invoice.users?.full_name || '-')}</td>
                       <td className="px-4 py-3 text-center">
@@ -381,7 +381,7 @@ export default function InvoicesPage() {
                       <td className="px-4 py-3 text-right font-semibold">
                         {formatCurrency(invoice.total)}
                         {!isSub && invoice.total_refunded > 0 && (
-                          <div className="text-xs text-red-500">-{formatCurrency(invoice.total_refunded)} refunded</div>
+<div className="text-xs text-danger">-{formatCurrency(invoice.total_refunded)}refunded</div>
                         )}
                       </td>
                       <td className="px-4 py-3 capitalize hidden sm:table-cell">{invoice.payment_method}</td>
@@ -397,24 +397,24 @@ export default function InvoicesPage() {
                             <button
                               onClick={() => handleEtaSubmit(invoice)}
                               disabled={etaSubmitting === invoice.id}
-                              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 text-gray-500 hover:text-green-600 transition-colors disabled:opacity-50"
+className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-green-50 text-muted hover:text-green-600 transition-colors disabled:opacity-50"
                               title={t('invoices.submitEta') || 'Submit to ETA'}
                             >
                               {etaSubmitting === invoice.id ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-success"></div>
                               ) : (
                                 <Send className="w-4 h-4" />
                               )}
                             </button>
                           )}
                           {!isSub && invoice.eta_uuid && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" title={invoice.eta_uuid}>
+<span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-success-soft text-success-soft-foreground"title={invoice.eta_uuid}>
                               ETA
                             </span>
                           )}
                           <button
                             onClick={() => handleViewReceipt(invoice)}
-                            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-primary-600 transition-colors"
+className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-surface-hover text-muted hover:text-primary-600 transition-colors"
                             title={t('common.view') || 'View'}
                           >
                             <Eye className="w-4 h-4" />
