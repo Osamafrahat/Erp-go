@@ -86,36 +86,36 @@ export default function SessionTimeout() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-4 shadow-2xl p-6">
+<div className="bg-surface rounded-2xl w-full max-w-md mx-4 shadow-2xl p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-            <AlertTriangle className="w-6 h-6 text-amber-600" />
+<div className="p-2 bg-warning-soft rounded-lg">
+<AlertTriangle className="w-6 h-6 text-warning"/>
           </div>
           <h2 className="text-xl font-semibold">{t('session.expiring')}</h2>
         </div>
 
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
+<p className="text-muted mb-4">
           {t('session.expiringMessage')}
         </p>
 
-        <div className="flex items-center gap-2 mb-6 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-          <Clock className="w-5 h-5 text-gray-500" />
-          <span className="text-lg font-mono font-semibold text-amber-600">
+<div className="flex items-center gap-2 mb-6 p-3 bg-surface-secondary rounded-lg">
+<Clock className="w-5 h-5 text-muted"/>
+<span className="text-lg font-mono font-semibold text-warning">
             {formatTime(remainingTime)}
           </span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">{t('session.remaining')}</span>
+<span className="text-sm text-muted">{t('session.remaining')}</span>
         </div>
 
         <div className="flex gap-3">
           <button
             onClick={handleLogout}
-            className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+className="flex-1 py-3 bg-surface-tertiary text-foreground rounded-lg font-medium bg-surface-hover transition-colors"
           >
             {t('users.signOut')}
           </button>
           <button
             onClick={handleStayLoggedIn}
-            className="flex-1 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
+className="flex-1 py-3 bg-accent text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
           >
             {t('session.stayLoggedIn')}
           </button>

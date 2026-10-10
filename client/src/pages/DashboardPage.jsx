@@ -193,9 +193,9 @@ export default function DashboardPage() {
       <BannerCarousel banners={banners} />
 
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-4 sm:p-6 text-white">
+<div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-4 sm:p-6 text-white">
         <h1 className="text-xl sm:text-2xl font-bold break-words">{getGreeting()}, {currentUser?.fullName}!</h1>
-        <p className="text-primary-100 mt-1 truncate">
+<p className="text-accent mt-1 truncate">
           {settings.storeName || t('layout.defaultStoreName')} — {ROLES_LABELS[role] || role}
         </p>
       </div>
@@ -370,11 +370,11 @@ function AccountantQuickActions() {
   const { t } = useAppStore()
 
   const actions = [
-    { label: t('dashboard.chartOfAccounts'), icon: ClipboardList, href: '/accounting/accounts', color: 'bg-indigo-600 hover:bg-indigo-700' },
-    { label: t('dashboard.journalEntries'), icon: BookOpen, href: '/accounting/journals', color: 'bg-purple-600 hover:bg-purple-700' },
-    { label: t('dashboard.viewPayments'), icon: DollarSign, href: '/accounting/payments', color: 'bg-green-600 hover:bg-green-700' },
-    { label: t('dashboard.manageExpenses'), icon: Receipt, href: '/expenses', color: 'bg-amber-600 hover:bg-amber-700' },
-    { label: t('dashboard.viewReports'), icon: BarChart3, href: '/accounting/reports', color: 'bg-blue-600 hover:bg-blue-700' },
+{label: t('dashboard.chartOfAccounts'),icon: ClipboardList,href:'/accounting/accounts',color:'bg-accent hover:bg-indigo-700'},
+{label: t('dashboard.journalEntries'),icon: BookOpen,href:'/accounting/journals',color:'bg-purple-600 hover:bg-purple-700'},
+{label: t('dashboard.viewPayments'),icon: DollarSign,href:'/accounting/payments',color:'bg-success hover:bg-green-700'},
+{label: t('dashboard.manageExpenses'),icon: Receipt,href:'/expenses',color:'bg-warning hover:bg-amber-700'},
+{label: t('dashboard.viewReports'),icon: BarChart3,href:'/accounting/reports',color:'bg-accent hover:bg-blue-700'},
   ]
 
   return (
@@ -383,7 +383,7 @@ function AccountantQuickActions() {
         <Link
           key={action.href}
           to={action.href}
-          className={`${action.color} text-white rounded-xl p-4 flex items-center gap-3 transition-colors`}
+className={`${action.color}text-white rounded-xl p-4 flex items-center gap-3 transition-colors`}
         >
           <action.icon className="w-6 h-6" />
           <div>
@@ -468,11 +468,11 @@ function StatCard({ icon: Icon, label, value, color, href }) {
   const colorClasses = {
     green: 'bg-success-soft text-success',
     blue: 'bg-accent-soft text-accent-soft-foreground',
-    purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600',
+purple:'bg-purple-100 dark:bg-purple-900/30 text-purple-600',
     red: 'bg-danger-soft text-danger',
     amber: 'bg-warning-soft text-warning',
     pink: 'bg-pink-100 dark:bg-pink-900/30 text-pink-600',
-    indigo: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600',
+indigo:'bg-accent-soft text-accent-soft-foreground',
     gray: 'bg-surface-tertiary text-muted',
   }
 
@@ -506,7 +506,7 @@ function QuickActions({ showAll, showPOS, showInventory, showSuppliers, showProm
       description: t('dashboard.startSellingDesc'),
       icon: ShoppingCart,
       href: '/pos',
-      color: 'bg-primary-600 hover:bg-primary-700',
+color:'bg-accent hover:bg-primary-700',
     })
   }
 
@@ -516,7 +516,7 @@ function QuickActions({ showAll, showPOS, showInventory, showSuppliers, showProm
       description: t('dashboard.manageInventoryDesc'),
       icon: Package,
       href: '/inventory',
-      color: 'bg-green-600 hover:bg-green-700',
+color:'bg-success hover:bg-green-700',
     })
   }
 
@@ -526,7 +526,7 @@ function QuickActions({ showAll, showPOS, showInventory, showSuppliers, showProm
       description: t('dashboard.addSupplierDesc'),
       icon: Truck,
       href: '/suppliers',
-      color: 'bg-amber-600 hover:bg-amber-700',
+color:'bg-warning hover:bg-amber-700',
     })
   }
 
@@ -548,12 +548,12 @@ function QuickActions({ showAll, showPOS, showInventory, showSuppliers, showProm
         <Link
           key={action.href}
           to={action.href}
-          className={`${action.color} text-white rounded-xl p-4 flex items-center gap-3 transition-colors`}
+className={`${action.color}text-white rounded-xl p-4 flex items-center gap-3 transition-colors`}
         >
           <action.icon className="w-6 h-6" />
           <div>
             <p className="font-semibold">{action.label}</p>
-            <p className="text-sm text-white/80 line-clamp-2">{action.description}</p>
+<p className="text-sm text-white/80 line-clamp-2">{action.description}</p>
           </div>
         </Link>
       ))}

@@ -31,7 +31,7 @@ export default function BannerCarousel({ banners }) {
   const wrapperProps = banner.link_url ? { href: banner.link_url, target: '_blank', rel: 'noopener noreferrer' } : {}
 
   return (
-    <div className="relative rounded-2xl overflow-hidden shadow-lg border border-gray-200/50 dark:border-gray-700/50 group">
+<div className="relative rounded-2xl overflow-hidden shadow-lg border border-border group">
       <Wrapper
         {...wrapperProps}
         className="block relative"
@@ -52,10 +52,10 @@ export default function BannerCarousel({ banners }) {
           </>
         )}
 
-        <div className={`relative z-10 p-6 md:p-10 ${hasImage ? 'bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl mx-4 md:mx-8 my-4 md:my-8' : ''}`} style={{ paddingBottom: visibleBanners.length > 1 ? '4rem' : undefined }}>
+<div className={`relative z-10 p-6 md:p-10 ${hasImage ?'bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl mx-4 md:mx-8 my-4 md:my-8':''}`}style={{paddingBottom: visibleBanners.length>1 ?'4rem': undefined}}>
           {hasImage && (
             <div className="mb-3">
-              <span className="inline-block px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-sm border border-white/20">
+<span className="inline-block px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-sm border border-white/20">
                 Featured
               </span>
             </div>
@@ -77,7 +77,7 @@ export default function BannerCarousel({ banners }) {
             </p>
           )}
           {banner.link_url && (
-            <span className="inline-flex items-center gap-1.5 mt-3 px-4 py-1.5 rounded-full text-xs font-bold bg-white/20 backdrop-blur-sm border border-white/20 hover:bg-white/30 transition-colors cursor-pointer">
+<span className="inline-flex items-center gap-1.5 mt-3 px-4 py-1.5 rounded-full text-xs font-bold bg-white/20 backdrop-blur-sm border border-white/20 hover:bg-white/30 transition-colors cursor-pointer">
               Learn more
               <ChevronRight className="h-3 w-3" />
             </span>
@@ -89,13 +89,13 @@ export default function BannerCarousel({ banners }) {
         <>
           <button
             onClick={(e) => { e.stopPropagation(); prev() }}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 border border-white/20"
+className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 border border-white/20"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); next() }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 border border-white/20"
+className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 border border-white/20"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -106,8 +106,8 @@ export default function BannerCarousel({ banners }) {
                 onClick={(e) => { e.stopPropagation(); setCurrent(i) }}
                 className={`rounded-full transition-all duration-300 ${
                   i === current
-                    ? 'w-6 h-2 bg-white'
-                    : 'w-2 h-2 bg-white/40 hover:bg-white/60'
+?'w-6 h-2 bg-surface'
+:'w-2 h-2 bg-white/40 hover:bg-white/60'
                 }`}
               />
             ))}
@@ -117,7 +117,7 @@ export default function BannerCarousel({ banners }) {
 
       <button
         onClick={(e) => { e.stopPropagation(); setDismissed(true) }}
-        className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 border border-white/20 z-20"
+className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 border border-white/20 z-20"
       >
         <X className="h-3.5 w-3.5" />
       </button>

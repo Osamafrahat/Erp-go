@@ -61,7 +61,7 @@ function ProtectedRoute({ children }) {
 function PageLoader() {
   return (
     <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
     </div>
   )
 }
@@ -89,7 +89,7 @@ function App() {
 
   return (
     <div className={theme === 'dark' ? 'dark' : ''}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<div className="min-h-screen bg-surface-secondary text-foreground">
         <Router>
           <ErrorBoundary>
             <Toast />

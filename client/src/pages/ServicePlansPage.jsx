@@ -54,22 +54,22 @@ export default function ServicePlansPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('services.plansTitle') || 'Service Plans'}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('services.plansSubtitle') || 'Manage service packages and pricing'}</p>
+<p className="text-muted">{t('services.plansSubtitle')||'Manage service packages and pricing'}</p>
         </div>
         {canEdit && (
           <button onClick={() => { setEditing(null); setShowForm(true) }}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700">
             <Plus className="w-4 h-4" />{t('services.addPlan') || 'Add Plan'}
           </button>
         )}
       </div>
 
       {loading ? (
-        <div className="text-center py-8 text-gray-500">{t('common.loading') || 'Loading...'}</div>
+<div className="text-center py-8 text-muted">{t('common.loading')||'Loading...'}</div>
       ) : plans.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-          <CreditCard className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-          <p className="text-gray-500">{t('services.noPlans') || 'No plans yet'}</p>
+<div className="text-center py-12 bg-surface-secondary rounded-xl">
+<CreditCard className="w-12 h-12 mx-auto text-foreground mb-3"/>
+<p className="text-muted">{t('services.noPlans')||'No plans yet'}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -78,16 +78,16 @@ export default function ServicePlansPage() {
             const cycleLabel = t(cycleKey)
             const features = Array.isArray(plan.features) ? plan.features : []
             return (
-              <div key={plan.id} className="bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 shadow-sm rounded-xl p-5">
+<div key={plan.id}className="bg-surface border border-border shadow-sm rounded-xl p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="font-semibold text-lg">{plan.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 flex items-center gap-1">
+<span className="text-xs px-2 py-0.5 rounded-full bg-accent-soft text-accent-soft-foreground flex items-center gap-1">
                         <Repeat className="w-3 h-3" />{cycleLabel}
                       </span>
                       {plan.duration_months > 1 && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+<span className="text-xs px-2 py-0.5 rounded-full bg-surface-tertiary text-muted">
                           {plan.duration_months} {t('services.months') || 'months'}
                         </span>
                       )}
@@ -95,24 +95,24 @@ export default function ServicePlansPage() {
                   </div>
                   {canEdit && (
                     <div className="flex items-center gap-1">
-                      <button onClick={() => { setEditing(plan); setShowForm(true) }} className="p-1.5 text-gray-400 hover:text-primary-600 rounded-lg"><Edit2 className="w-4 h-4" /></button>
-                      <button onClick={() => setDeleteTarget(plan.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+<button onClick={()=>{setEditing(plan);setShowForm(true)}}className="p-1.5 text-muted hover:text-primary-600 rounded-lg"><Edit2 className="w-4 h-4"/></button>
+<button onClick={()=>setDeleteTarget(plan.id)}className="p-1.5 text-muted hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4"/></button>
                     </div>
                   )}
                 </div>
-                {plan.description && <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{plan.description}</p>}
+{plan.description &&<p className="text-sm text-muted mb-3">{plan.description}</p>}
                 {features.length > 0 && (
                   <ul className="mb-3 space-y-1">
                     {features.map((f, i) => (
-                      <li key={i} className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary-500 flex-shrink-0" />{f}
+<li key={i}className="text-sm text-muted flex items-center gap-2">
+<span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0"/>{f}
                       </li>
                     ))}
                   </ul>
                 )}
-                <div className="text-2xl font-bold text-primary-600">
+<div className="text-2xl font-bold text-accent">
                   {plan.price?.toLocaleString()} {t('common.currency') || 'EGP'}
-                  <span className="text-sm font-normal text-gray-500">/{cycleLabel}</span>
+<span className="text-sm font-normal text-muted">/{cycleLabel}</span>
                 </div>
               </div>
             )
@@ -152,32 +152,32 @@ function PlanForm({ plan, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl w-full max-w-md mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">{plan ? t('services.editPlan') : t('services.addPlan')}</h2>
-          <button onClick={onClose} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><X className="w-5 h-5" /></button>
+<button onClick={onClose}className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-surface-hover"><X className="w-5 h-5"/></button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">{t('services.name') || 'Name'} *</label>
             <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">{t('services.description') || 'Description'}</label>
             <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={2}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">{t('services.price') || 'Price'} *</label>
               <input type="number" step="0.01" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} required
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">{t('services.billingCycle') || 'Billing Cycle'}</label>
               <select value={form.billing_cycle} onChange={e => setForm({ ...form, billing_cycle: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface">
                 <option value="monthly">{t('services.monthly') || 'Monthly'}</option>
                 <option value="annual">{t('services.annual') || 'Annual'}</option>
                 <option value="one_time">{t('services.oneTime') || 'One Time'}</option>
@@ -187,17 +187,17 @@ function PlanForm({ plan, onSave, onClose }) {
           <div>
             <label className="block text-sm font-medium mb-1">{t('services.durationMonths') || 'Duration (months)'}</label>
             <input type="number" min="1" value={form.duration_months} onChange={e => setForm({ ...form, duration_months: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">{t('services.features') || 'Features (one per line)'}</label>
             <textarea value={form.features} onChange={e => setForm({ ...form, features: e.target.value })} rows={4}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               placeholder={t('services.featuresPlaceholder')} />
           </div>
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">{t('common.cancel')}</button>
-            <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">{t('common.save')}</button>
+<button type="button"onClick={onClose}className="px-4 py-2 text-foreground bg-surface-tertiary rounded-lg bg-surface-hover">{t('common.cancel')}</button>
+<button type="submit"className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700">{t('common.save')}</button>
           </div>
         </form>
       </div>

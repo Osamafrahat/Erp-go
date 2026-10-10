@@ -10,17 +10,17 @@ const icons = {
 }
 
 const colors = {
-  success: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-300',
-  error: 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300',
-  warning: 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-300',
-  info: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300',
+success:'bg-success-soft border-success text-success-soft-foreground',
+error:'bg-danger-soft border-danger text-danger-soft-foreground',
+warning:'bg-warning-soft border-warning text-warning-soft-foreground',
+info:'bg-accent-soft border-accent text-accent-soft-foreground',
 }
 
 const iconColors = {
-  success: 'text-green-500',
-  error: 'text-red-500',
-  warning: 'text-yellow-500',
-  info: 'text-blue-500',
+success:'text-success',
+error:'text-danger',
+warning:'text-warning',
+info:'text-accent',
 }
 
 export default function Toast() {
@@ -78,7 +78,7 @@ export default function Toast() {
             </div>
             <button
               onClick={() => removeToast(toast.id)}
-              className="flex-shrink-0 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5"
+className="flex-shrink-0 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5"
             >
               <X className="w-4 h-4" />
             </button>
