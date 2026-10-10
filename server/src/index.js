@@ -51,6 +51,7 @@ import servicePlansRouter from './routes/servicePlans.js'
 import subscriptionsRouter from './routes/subscriptions.js'
 import billingRouter from './routes/billing.js'
 import paymobRouter from './routes/paymob.js'
+import { walletUserRouter, walletAdminRouter } from './routes/walletPayments.js'
 import tenantRouter from './routes/tenant.js'
 import superAdminRouter from './routes/superAdmin.js'
 import commissionsRouter from './routes/commissions.js'
@@ -197,6 +198,10 @@ app.use('/api/service-plans', authenticateToken, setTenantContext, activityLogge
 app.use('/api/subscriptions', authenticateToken, setTenantContext, activityLogger, subscriptionsRouter)
 app.use('/api/billing', billingRouter)
 app.use('/api/billing/paymob', paymobRouter)
+app.use('/api/billing/wallet', walletUserRouter)
+// Registered before the generic /api/super-admin mount so the wallet admin
+// routes resolve without passing through superAdmin.js first.
+app.use('/api/super-admin/wallet', walletAdminRouter)
 app.use('/api/tenant', authenticateToken, setTenantContext, tenantRouter)
 app.use('/api/super-admin', authenticateToken, superAdminRouter)
 app.use('/api/commissions', authenticateToken, setTenantContext, activityLogger, commissionsRouter)

@@ -23,6 +23,37 @@ export async function runSchemaMigrations() {
     const sqlStatements = [
       'ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz',
       'ALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text',
+      // Wallet-transfer payment proofs (manual InstaPay / Vodafone Cash flow).
+      // exec_sql is typically revoked for the service role, so this logs
+      // "manual migration may be needed" — the same SQL is pasted into the
+      // Supabase SQL Editor in that case.
+      `CREATE TABLE IF NOT EXISTS wallet_payment_requests (
+        id SERIAL PRIMARY KEY,
+        tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        plan_slug TEXT NOT NULL,
+        billing_period TEXT NOT NULL DEFAULT 'monthly',
+        amount_egp NUMERIC(12,2) NOT NULL,
+        wallet_type TEXT NOT NULL,
+        reference_note TEXT,
+        screenshot TEXT NOT NULL,
+        payment_code TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        rejection_reason TEXT,
+        confirmed_by INTEGER,
+        confirmed_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT now(),
+        CONSTRAINT wallet_payment_requests_status_check CHECK (status IN ('pending','confirmed','rejected'))
+      )`,
+      // One in-flight request per tenant, enforced by the database itself so
+      // concurrent double submissions cannot both land.
+      `CREATE UNIQUE INDEX IF NOT EXISTS uq_wallet_payment_requests_pending
+         ON wallet_payment_requests(tenant_id) WHERE status = 'pending'`,
+      `CREATE INDEX IF NOT EXISTS idx_wallet_payment_requests_status
+         ON wallet_payment_requests(status, created_at DESC)`,
+      // Deny direct anon/authenticated access — proof screenshots are only
+      // reachable through the authenticated API routes.
+      'ALTER TABLE wallet_payment_requests ENABLE ROW LEVEL SECURITY',
     ]
 
     for (const sql of sqlStatements) {

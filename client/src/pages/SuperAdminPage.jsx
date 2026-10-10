@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { superAdminApi } from '../lib/api'
-import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard, Database, Megaphone, Upload, Link2, Image } from 'lucide-react'
+import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard, Database, Megaphone, Upload, Link2, Image, Wallet, RefreshCw, Loader2 } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
 
 const tierColors = {
@@ -60,6 +60,7 @@ export default function SuperAdminPage() {
     { key: 'dashboard', label: t('admin.tabDashboard') || 'Dashboard', icon: BarChart3 },
     { key: 'tenants', label: t('admin.tabTenants') || 'Tenants', icon: Building2 },
     { key: 'payments', label: t('admin.tabPayments') || 'Payments', icon: CreditCard },
+    { key: 'wallet', label: t('admin.tabWallet') || 'Wallet Transfers', icon: Wallet },
     { key: 'plans', label: t('admin.tabPlans') || 'Plans', icon: DollarSign },
     { key: 'banners', label: t('admin.tabBanners') || 'Banners', icon: Megaphone },
     { key: 'activity', label: t('admin.tabActivity') || 'Activity', icon: Activity },
@@ -105,6 +106,7 @@ toast.type==='error'?'bg-danger text-white':'bg-success text-white'
       {tab === 'dashboard' && <DashboardTab t={t} />}
       {tab === 'tenants' && <TenantsTab t={t} showToast={showToast} />}
       {tab === 'payments' && <PaymentsTab t={t} />}
+      {tab === 'wallet' && <WalletPaymentsTab t={t} showToast={showToast} />}
       {tab === 'plans' && <PlansTab t={t} showToast={showToast} />}
       {tab === 'banners' && <BannersTab t={t} showToast={showToast} />}
       {tab === 'activity' && <ActivityTab t={t} />}
@@ -606,6 +608,303 @@ if(loading)return<div className="flex items-center justify-center h-32"><div cla
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Manual Egyptian-wallet transfer proofs (InstaPay / Vodafone Cash / ...)
+// awaiting superadmin review. The screenshot itself is fetched per-row via
+// the detail endpoint so the list stays light.
+function WalletPaymentsTab({ t, showToast }) {
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [statusFilter, setStatusFilter] = useState('pending')
+  const [selected, setSelected] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [rejecting, setRejecting] = useState(false)
+  const [rejectReason, setRejectReason] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const load = useCallback(() => {
+    setLoading(true)
+    superAdminApi.getWalletPayments({ status: statusFilter })
+      .then(({ data }) => setRows(data?.requests || []))
+      .catch((err) => showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error'))
+      .finally(() => setLoading(false))
+  }, [statusFilter, showToast, t])
+
+  useEffect(() => { load() }, [load])
+
+  const openDetail = async (row) => {
+    setSelected(null)
+    setRejecting(false)
+    setRejectReason('')
+    setDetailLoading(true)
+    try {
+      const { data } = await superAdminApi.getWalletPayment(row.id)
+      setSelected(data.request)
+    } catch (err) {
+      showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
+  const confirmRow = async () => {
+    if (!selected) return
+    setBusy(true)
+    try {
+      await superAdminApi.confirmWalletPayment(selected.id)
+      showToast(t('admin.walletConfirmed') || 'Payment confirmed and plan activated')
+      setSelected(null)
+      load()
+    } catch (err) {
+      showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const rejectRow = async () => {
+    if (!selected) return
+    if (!rejectReason.trim()) {
+      showToast(t('admin.walletReasonRequired') || 'Please provide a rejection reason', 'error')
+      return
+    }
+    setBusy(true)
+    try {
+      await superAdminApi.rejectWalletPayment(selected.id, { reason: rejectReason.trim() })
+      showToast(t('admin.walletRejected') || 'Payment request rejected')
+      setSelected(null)
+      load()
+    } catch (err) {
+      showToast(err.response?.data?.error || (t('common.error') || 'Failed'), 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const chip = (s) =>
+    s === 'confirmed'
+      ? 'bg-success-soft text-success-soft-foreground'
+      : s === 'rejected'
+        ? 'bg-danger-soft text-danger-soft-foreground'
+        : 'bg-warning-soft text-warning-soft-foreground'
+
+  const statusLabel = (s) =>
+    s === 'confirmed'
+      ? (t('admin.walletConfirmedTab') || 'Confirmed')
+      : s === 'rejected'
+        ? (t('admin.walletRejectedTab') || 'Rejected')
+        : (t('admin.walletPendingTab') || 'Pending')
+
+  return (
+    <div className="bg-surface rounded-xl border border-border">
+      <div className="p-4 border-b border-border flex items-center justify-between gap-3 flex-wrap">
+        <h3 className="font-medium text-foreground">{t('admin.walletTitle') || 'Wallet Transfer Payments'}</h3>
+        <div className="flex items-center gap-2">
+          {['pending', 'confirmed', 'rejected'].map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                statusFilter === s ? 'bg-accent text-white' : 'bg-surface-secondary text-muted hover:text-foreground'
+              }`}
+            >
+              {statusLabel(s)}
+            </button>
+          ))}
+          <button
+            onClick={load}
+            title={t('common.refresh') || 'Refresh'}
+            className="p-1.5 rounded-lg bg-surface-secondary text-muted hover:text-foreground"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="p-8 text-center text-muted">
+          <Wallet className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p>{t('admin.walletEmpty') || 'No wallet transfer requests'}</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-muted border-b border-border">
+                <th className="px-4 py-3 font-medium">{t('admin.tenant') || 'Tenant'}</th>
+                <th className="px-4 py-3 font-medium">{t('admin.walletPlan') || 'Plan'}</th>
+                <th className="px-4 py-3 font-medium">{t('common.amount') || 'Amount'}</th>
+                <th className="px-4 py-3 font-medium">{t('admin.walletMethod') || 'Method'}</th>
+                <th className="px-4 py-3 font-medium">{t('common.date') || 'Date'}</th>
+                <th className="px-4 py-3 font-medium" />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b border-border">
+                  <td className="px-4 py-3">
+                    <p className="text-foreground">{r.tenant?.name || (t('admin.unknown') || 'Unknown')}</p>
+                    <p className="text-xs text-muted">{r.user?.full_name || r.user?.username || ''}</p>
+                  </td>
+                  <td className="px-4 py-3 text-foreground">{r.plan_slug} <span className="text-xs text-muted">({r.billing_period})</span></td>
+                  <td className="px-4 py-3 font-medium text-foreground">{Number(r.amount_egp).toLocaleString()} ج.م</td>
+                  <td className="px-4 py-3">
+                    <p className="text-foreground">{r.wallet_type}</p>
+                    {r.reference_note && <p className="text-xs text-muted break-all">{r.reference_note}</p>}
+                  </td>
+                  <td className="px-4 py-3 text-muted">{r.created_at ? new Date(r.created_at).toLocaleString() : '—'}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full mr-2 ${chip(r.status)}`}>{statusLabel(r.status)}</span>
+                    <button
+                      onClick={() => openDetail(r)}
+                      className="text-xs font-medium text-accent hover:underline"
+                    >
+                      {t('common.view') || 'View'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Detail + confirm/reject modal */}
+      {(selected || detailLoading) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setSelected(null)}>
+          <div
+            className="bg-surface rounded-xl shadow-xl w-full max-w-lg p-5 relative max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button onClick={() => setSelected(null)} className="absolute top-3 right-3 text-muted hover:text-foreground">
+              <X className="w-5 h-5" />
+            </button>
+
+            {detailLoading || !selected ? (
+              <div className="flex items-center justify-center h-40">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-foreground">
+                    {selected.tenant?.name || (t('admin.unknown') || 'Unknown')} — {selected.plan_slug} ({selected.billing_period})
+                  </h3>
+                  <span className={`inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full ${chip(selected.status)}`}>
+                    {statusLabel(selected.status)}
+                  </span>
+                </div>
+
+                <div className="space-y-1 text-sm text-muted">
+                  <p>
+                    <span className="text-foreground font-medium">{t('common.amount')}: </span>
+                    {Number(selected.amount_egp).toLocaleString()} ج.م
+                  </p>
+                  <p>
+                    <span className="text-foreground font-medium">{t('admin.walletMethod')}: </span>
+                    {selected.wallet_type}
+                  </p>
+                  {selected.reference_note && (
+                    <p>
+                      <span className="text-foreground font-medium">{t('admin.walletReference')}: </span>
+                      {selected.reference_note}
+                    </p>
+                  )}
+                  {selected.user && (
+                    <p>
+                      <span className="text-foreground font-medium">{t('admin.walletSubmittedBy')}: </span>
+                      {selected.user.full_name || selected.user.username}
+                    </p>
+                  )}
+                  <p>
+                    <span className="text-foreground font-medium">{t('common.date')}: </span>
+                    {selected.created_at ? new Date(selected.created_at).toLocaleString() : '—'}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted mb-1">{t('admin.walletScreenshot') || 'Payment screenshot'}</p>
+                  {selected.screenshot ? (
+                    <img
+                      src={selected.screenshot}
+                      alt={t('admin.walletScreenshot') || 'Payment screenshot'}
+                      className="w-full max-h-80 object-contain bg-surface-secondary rounded-lg border border-border"
+                    />
+                  ) : (
+                    <p className="text-sm text-muted">—</p>
+                  )}
+                </div>
+
+                {selected.status === 'pending' && !rejecting && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={confirmRow}
+                      disabled={busy}
+                      className="flex-1 py-2 bg-success text-white rounded-lg font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                      {t('admin.walletConfirm') || 'Confirm payment'}
+                    </button>
+                    <button
+                      onClick={() => setRejecting(true)}
+                      disabled={busy}
+                      className="px-4 py-2 bg-danger-soft text-danger rounded-lg font-medium disabled:opacity-50"
+                    >
+                      {t('admin.walletReject') || 'Reject'}
+                    </button>
+                  </div>
+                )}
+
+                {selected.status === 'pending' && rejecting && (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      maxLength={300}
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      placeholder={t('admin.walletReason') || 'Rejection reason'}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm focus:outline-none focus:border-accent"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={rejectRow}
+                        disabled={busy || !rejectReason.trim()}
+                        className="flex-1 py-2 bg-danger text-white rounded-lg font-medium disabled:opacity-50"
+                      >
+                        {t('admin.walletRejectSubmit') || 'Confirm rejection'}
+                      </button>
+                      <button
+                        onClick={() => setRejecting(false)}
+                        disabled={busy}
+                        className="px-4 py-2 bg-surface-secondary text-foreground rounded-lg font-medium"
+                      >
+                        {t('common.cancel') || 'Cancel'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {selected.status !== 'pending' && (
+                  <p className="text-sm text-muted">
+                    {selected.status === 'rejected' && selected.rejection_reason
+                      ? `${t('admin.walletReason') || 'Reason'}: ${selected.rejection_reason}`
+                      : selected.status === 'confirmed'
+                        ? `${t('admin.walletConfirmedAt') || 'Confirmed'}: ${selected.confirmed_at ? new Date(selected.confirmed_at).toLocaleString() : '—'}`
+                        : ''}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -371,6 +371,10 @@ export const superAdminApi = {
   getPayments: (params) => api.get('/super-admin/payments', { params }),
   getAnalytics: (params) => api.get('/super-admin/analytics', { params }),
   getBanners: () => api.get('/super-admin/banners'),
+  getWalletPayments: (params) => api.get('/super-admin/wallet', { params }),
+  getWalletPayment: (id) => api.get(`/super-admin/wallet/${id}`),
+  confirmWalletPayment: (id) => api.post(`/super-admin/wallet/${id}/confirm`),
+  rejectWalletPayment: (id, data) => api.post(`/super-admin/wallet/${id}/reject`, data),
 }
 
 // Billing API
@@ -384,6 +388,15 @@ export const billingApi = {
 export const paymobApi = {
   checkout: (data) => api.post('/billing/paymob/checkout', data),
   verify: (intentionId) => api.get(`/billing/paymob/verify?intention_id=${intentionId}`),
+}
+
+// Wallet transfer API — Egyptian wallets (InstaPay, Vodafone Cash, ...):
+// receiving numbers + payment-proof submission awaiting superadmin approval.
+export const walletApi = {
+  getConfig: () => api.get('/billing/wallet/config'),
+  getStatus: () => api.get('/billing/wallet/status'),
+  // Proofs are up to ~3MB → base64 body; give the upload time to land.
+  submit: (data) => api.post('/billing/wallet/submit', data, { timeout: 30000 }),
 }
 
 // Cash Shifts API

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
-import { paymobApi, billingApi } from '../lib/api'
-import { Check, X, Star, Zap, Crown, CreditCard, Smartphone, Loader2, ArrowDown } from 'lucide-react'
+import { paymobApi, billingApi, walletApi } from '../lib/api'
+import { Check, X, Star, Zap, Crown, CreditCard, Smartphone, Loader2, ArrowDown, ArrowLeft, Copy, Upload, Clock, Wallet } from 'lucide-react'
 import api from '../lib/api'
 
 const TIER_ORDER = { free: 0, pro: 1, enterprise: 2 }
@@ -131,6 +131,16 @@ export default function PricingPage() {
   const [showDowngradeConfirm, setShowDowngradeConfirm] = useState(null)
   const [downgrading, setDowngrading] = useState(false)
   const [billingPeriod, setBillingPeriod] = useState('monthly')
+  // Wallet-transfer flow (InstaPay / Vodafone Cash / ... — manual transfer
+  // with a proof screenshot awaiting superadmin confirmation)
+  const [payStep, setPayStep] = useState('method')
+  const [walletCfg, setWalletCfg] = useState(null)
+  const [walletType, setWalletType] = useState('')
+  const [walletNote, setWalletNote] = useState('')
+  const [walletShot, setWalletShot] = useState(null)
+  const [walletSubmitting, setWalletSubmitting] = useState(false)
+  const [walletRequest, setWalletRequest] = useState(null)
+  const [walletNotice, setWalletNotice] = useState(null)
 
   useEffect(() => {
     api.get('/billing/plans').then(({ data }) => setPlans(data || [])).catch(() => {})
@@ -138,6 +148,28 @@ export default function PricingPage() {
       if (data?.tenant?.plan) setCurrentPlan(data.tenant.plan)
     }).catch(() => {})
   }, [])
+
+  // Reset the wallet flow and load this tenant's latest request whenever the
+  // payment modal opens — a pending request must be visible immediately.
+  useEffect(() => {
+    if (!showPayment) return
+    setPayStep('method')
+    setWalletNotice(null)
+    setWalletShot(null)
+    setWalletNote('')
+    setWalletRequest(null)
+    walletApi.getStatus().then(({ data }) => setWalletRequest(data?.request || null)).catch(() => {})
+  }, [showPayment])
+
+  // Receiving numbers come from the server (WALLET_CONFIG), never hardcoded
+  // in the client, so the operator can rotate them without a redeploy.
+  useEffect(() => {
+    if (payStep !== 'wallet' || walletCfg) return
+    walletApi.getConfig().then(({ data }) => {
+      setWalletCfg(data || { configured: false, methods: [] })
+      setWalletType(data?.methods?.[0]?.id || '')
+    }).catch(() => setWalletCfg({ configured: false, methods: [] }))
+  }, [payStep, walletCfg])
 
   const tiers = getTiers(t, plans, billingPeriod)
 
@@ -213,6 +245,62 @@ export default function PricingPage() {
     } catch (err) {
       alert(err.response?.data?.error || (t('pricing.paymentFailed') || 'Payment failed'))
       setProcessing(false)
+    }
+  }
+
+  const handleShotChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Client-side pre-checks only — the server re-validates type (magic
+    // bytes), size and charset before anything is stored.
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setWalletNotice({ type: 'error', msg: t('pricing.walletBadType') || 'Screenshot must be a JPEG, PNG or WebP image' })
+      return
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setWalletNotice({ type: 'error', msg: t('pricing.walletTooLarge') || 'Screenshot is too large (max 3MB)' })
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      setWalletShot({ dataUrl: reader.result, name: file.name })
+      setWalletNotice(null)
+    }
+    reader.onerror = () => setWalletNotice({ type: 'error', msg: t('pricing.walletBadType') || 'Could not read the selected file' })
+    reader.readAsDataURL(file)
+  }
+
+  const handleWalletSubmit = async () => {
+    if (!showPayment) return
+    if (!walletShot) {
+      setWalletNotice({ type: 'error', msg: t('pricing.walletRequiredShot') || 'Please attach a payment screenshot first' })
+      return
+    }
+    setWalletSubmitting(true)
+    setWalletNotice(null)
+    try {
+      // No amount in the payload — the server prices the plan itself.
+      const { data } = await walletApi.submit({
+        planSlug: showPayment.id,
+        billingPeriod,
+        walletType,
+        referenceNote: walletNote,
+        screenshot: walletShot.dataUrl,
+      })
+      setWalletRequest(data.request)
+    } catch (err) {
+      setWalletNotice({ type: 'error', msg: err.response?.data?.error || (t('pricing.paymentFailed') || 'Payment failed') })
+    } finally {
+      setWalletSubmitting(false)
+    }
+  }
+
+  const copyNumber = async (number) => {
+    try {
+      await navigator.clipboard.writeText(number)
+      setWalletNotice({ type: 'ok', msg: t('pricing.walletCopied') || 'Copied to clipboard' })
+    } catch {
+      setWalletNotice({ type: 'error', msg: t('pricing.walletCopyFailed') || 'Copy failed — long-press the number to copy' })
     }
   }
 
@@ -411,19 +499,176 @@ className="absolute top-4 right-4 text-muted text-foreground"
               <div className="mb-6" />
             )}
 
-            <div className="space-y-3">
-              <button
-                onClick={handlePaymob}
-                disabled={processing}
-className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-accent hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-              >
-                {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-                {t('pricing.payWithCard') || 'Pay with Card / Wallet / Fawry'}
-              </button>
-            </div>
+            {payStep === 'method' ? (
+              <div className="space-y-3">
+                <button
+                  onClick={handlePaymob}
+                  disabled={processing}
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-accent hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
+                  {t('pricing.payWithCard') || 'Pay with Card (Paymob)'}
+                </button>
+
+                <button
+                  onClick={() => setPayStep('wallet')}
+                  disabled={processing}
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-surface-secondary hover:bg-surface-tertiary border border-border text-foreground rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  <Wallet className="w-5 h-5" />
+                  <span className="flex flex-col items-start text-left">
+                    <span>{t('pricing.payWithWallet') || 'Pay with Wallet Transfer'}</span>
+                    <span className="text-[11px] font-normal text-muted">{t('pricing.walletMethodsHint') || 'InstaPay · Vodafone Cash · Orange Money · Etisalat Cash'}</span>
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setPayStep('method')}
+                  className="flex items-center gap-1 text-sm text-muted hover:text-foreground transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  {t('pricing.walletBack') || 'Back'}
+                </button>
+
+                {walletRequest?.status === 'pending' ? (
+                  <div className="text-center py-3 space-y-2">
+                    <div className="w-12 h-12 rounded-full bg-warning-soft flex items-center justify-center mx-auto">
+                      <Clock className="w-6 h-6 text-warning" />
+                    </div>
+                    <h3 className="font-semibold text-foreground">
+                      {t('pricing.walletPending') || 'Payment awaiting confirmation'}
+                    </h3>
+                    <p className="text-sm text-muted">
+                      {t('pricing.walletPendingHint') || 'We will verify your transfer and activate your plan shortly.'}
+                    </p>
+                    <p className="text-xs text-muted">
+                      {walletRequest.plan_slug} · {Number(walletRequest.amount_egp).toLocaleString()} ج.م · {new Date(walletRequest.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                ) : walletRequest?.status === 'confirmed' ? (
+                  <div className="text-center py-3 space-y-2">
+                    <div className="w-12 h-12 rounded-full bg-success-soft flex items-center justify-center mx-auto">
+                      <Check className="w-6 h-6 text-success" />
+                    </div>
+                    <h3 className="font-semibold text-foreground">
+                      {t('pricing.walletConfirmed') || 'Payment confirmed — your plan is active'}
+                    </h3>
+                    <button
+                      onClick={() => { setShowPayment(null); setProcessing(false) }}
+                      className="mt-2 px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium"
+                    >
+                      {t('common.close') || 'Close'}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {walletRequest?.status === 'rejected' && (
+                      <div className="p-3 bg-danger-soft rounded-lg text-sm text-danger">
+                        <p className="font-medium">{t('pricing.walletRejected') || 'Payment rejected'}</p>
+                        {walletRequest.rejection_reason && (
+                          <p className="text-xs mt-1">{walletRequest.rejection_reason}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {walletCfg === null ? (
+                      <div className="flex justify-center py-6">
+                        <Loader2 className="w-5 h-5 animate-spin text-muted" />
+                      </div>
+                    ) : !walletCfg.configured ? (
+                      <div className="p-3 bg-warning-soft rounded-lg text-sm text-warning">
+                        {t('pricing.walletNotConfigured') || 'Wallet transfer is being set up. Please contact support to pay.'}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-sm font-medium text-foreground">
+                          {t('pricing.walletTransferTitle') || 'Transfer the amount to one of these accounts'}
+                        </p>
+
+                        <div className="space-y-2">
+                          {walletCfg.methods.map((m) => (
+                            <div
+                              key={m.id}
+                              onClick={() => setWalletType(m.id)}
+                              className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 border cursor-pointer transition-colors ${
+                                walletType === m.id
+                                  ? 'border-accent bg-accent-soft'
+                                  : 'border-border bg-surface-secondary'
+                              }`}
+                            >
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-foreground">
+                                  {m.name}{m.name_ar && m.name_ar !== m.name ? ` · ${m.name_ar}` : ''}
+                                </p>
+                                <p className="text-xs font-mono text-muted break-all">{m.number}</p>
+                              </div>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); copyNumber(m.number) }}
+                                className="shrink-0 flex items-center gap-1 text-xs text-muted hover:text-foreground px-2 py-1 rounded border border-border"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                                {t('pricing.walletCopy') || 'Copy'}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        <input
+                          type="text"
+                          maxLength={120}
+                          value={walletNote}
+                          onChange={(e) => setWalletNote(e.target.value)}
+                          placeholder={t('pricing.walletReferenceLabel') || 'Transfer reference or sender number (optional)'}
+                          className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm focus:outline-none focus:border-accent"
+                        />
+
+                        <div>
+                          <label className="block text-xs text-muted mb-1">
+                            {t('pricing.walletScreenshotLabel') || 'Payment screenshot'}
+                          </label>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handleShotChange}
+                            className="w-full text-sm text-muted file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-surface-secondary file:text-foreground file:text-sm file:cursor-pointer"
+                          />
+                          <p className="text-[11px] text-muted mt-1">
+                            {t('pricing.walletScreenshotHint') || 'JPEG, PNG or WebP — up to 3 MB'}
+                          </p>
+                          {walletShot && (
+                            <img src={walletShot.dataUrl} alt="" className="mt-2 h-24 rounded-lg border border-border object-contain" />
+                          )}
+                        </div>
+
+                        {walletNotice && (
+                          <p className={`text-sm ${walletNotice.type === 'error' ? 'text-danger' : 'text-success'}`}>
+                            {walletNotice.msg}
+                          </p>
+                        )}
+
+                        <button
+                          onClick={handleWalletSubmit}
+                          disabled={walletSubmitting || !walletShot || !walletType}
+                          className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-accent hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                        >
+                          {walletSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                          {t('pricing.walletSubmit') || 'Submit for confirmation'}
+                        </button>
+
+                        <p className="text-[11px] text-muted text-center">
+                          {t('pricing.walletSecurityNote') || 'Your screenshot is sent only to the platform administrator to verify the transfer.'}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
 
 <p className="text-xs text-muted text-center mt-4">
-              {t('pricing.securePayment') || 'Secure payment processed by Paymob'}
+              {t('pricing.securePayment') || 'Secure payment via Paymob or wallet transfer'}
             </p>
           </div>
         </div>
