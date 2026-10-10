@@ -83,7 +83,7 @@ export default function SuppliersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
       </div>
     )
   }
@@ -93,7 +93,7 @@ export default function SuppliersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('suppliers.title')}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('suppliers.subtitle')}</p>
+<p className="text-muted">{t('suppliers.subtitle')}</p>
         </div>
         {canEdit && (
           <button
@@ -101,7 +101,7 @@ export default function SuppliersPage() {
               setEditingSupplier(null)
               setShowForm(true)
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700"
           >
             <Plus className="w-4 h-4" />
             {t('suppliers.addSupplier')}
@@ -111,27 +111,27 @@ export default function SuppliersPage() {
 
       {/* Suppliers Grid */}
       {suppliers.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
-          <Truck className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('suppliers.noSuppliers')}</h3>
-          <p className="text-gray-500 dark:text-gray-400">{t('suppliers.addFirstSupplier')}</p>
+<div className="bg-surface rounded-xl border border-border p-12 text-center">
+<Truck className="w-16 h-16 mx-auto text-foreground mb-4"/>
+<h3 className="text-lg font-medium text-foreground mb-2">{t('suppliers.noSuppliers')}</h3>
+<p className="text-muted">{t('suppliers.addFirstSupplier')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {suppliers.map((supplier) => (
             <div
               key={supplier.id}
-              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
+className="bg-surface rounded-xl border border-border p-4"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                    <Truck className="w-5 h-5 text-primary-600" />
+<div className="p-2 bg-accent-soft rounded-lg">
+<Truck className="w-5 h-5 text-accent"/>
                   </div>
                   <div>
                     <h3 className="font-semibold">{supplier.name}</h3>
                     {supplier.contact_person && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{supplier.contact_person}</p>
+<p className="text-sm text-muted">{supplier.contact_person}</p>
                     )}
                   </div>
                 </div>
@@ -139,7 +139,7 @@ export default function SuppliersPage() {
                   {canEdit && (
                     <button
                       onClick={() => handleEdit(supplier)}
-                      className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg"
+className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted hover:text-primary-600 hover:bg-primary-50 rounded-lg"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -147,7 +147,7 @@ export default function SuppliersPage() {
                   {canEdit && (
                     <button
                       onClick={() => setDeleteTarget(supplier.id)}
-                      className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
+className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted hover:text-red-600 hover:bg-red-50 rounded-lg"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -157,19 +157,19 @@ export default function SuppliersPage() {
 
               <div className="space-y-2 text-sm">
                 {supplier.phone && (
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+<div className="flex items-center gap-2 text-muted">
                     <Phone className="w-4 h-4" />
                     <span>{supplier.phone}</span>
                   </div>
                 )}
                 {supplier.email && (
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+<div className="flex items-center gap-2 text-muted">
                     <Mail className="w-4 h-4" />
                     <span>{supplier.email}</span>
                   </div>
                 )}
                 {supplier.address && (
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+<div className="flex items-center gap-2 text-muted">
                     <MapPin className="w-4 h-4" />
                     <span className="line-clamp-1">{supplier.address}</span>
                   </div>
@@ -177,20 +177,20 @@ export default function SuppliersPage() {
               </div>
 
               {supplier.notes && (
-                <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-3">
+<p className="mt-3 text-sm text-muted border-t border-border pt-3">
                   {supplier.notes}
                 </p>
               )}
 
               {/* AP Balance */}
               {supplier.account_code && (
-                <div className="mt-3 border-t border-gray-200 dark:border-gray-700 pt-3">
+<div className="mt-3 border-t border-border pt-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+<div className="flex items-center gap-2 text-sm text-muted">
                       <DollarSign className="w-4 h-4" />
                       <span>{t('suppliers.remainingBalance')}</span>
                     </div>
-                    <span className={`text-sm font-bold ${parseFloat(supplier.balance) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+<span className={`text-sm font-bold ${parseFloat(supplier.balance)>0 ?'text-danger':'text-success'}`}>
                       {formatAmount(supplier.balance)}
                     </span>
                   </div>
@@ -250,14 +250,14 @@ function SupplierForm({ supplier, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">
             {supplier ? t('suppliers.editSupplier') : t('suppliers.addNewSupplier')}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+className="p-2 rounded-lg bg-surface-hover"
           >
             <X className="w-5 h-5" />
           </button>
@@ -265,7 +265,7 @@ function SupplierForm({ supplier, onSave, onClose }) {
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('suppliers.supplierName')} *
             </label>
             <input
@@ -274,13 +274,13 @@ function SupplierForm({ supplier, onSave, onClose }) {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('suppliers.contactPerson')}
               </label>
               <input
@@ -288,11 +288,11 @@ function SupplierForm({ supplier, onSave, onClose }) {
                 name="contact_person"
                 value={formData.contact_person}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('suppliers.phone')}
               </label>
               <input
@@ -300,13 +300,13 @@ function SupplierForm({ supplier, onSave, onClose }) {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('suppliers.email')}
             </label>
             <input
@@ -314,12 +314,12 @@ function SupplierForm({ supplier, onSave, onClose }) {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('suppliers.address')}
             </label>
             <textarea
@@ -327,12 +327,12 @@ function SupplierForm({ supplier, onSave, onClose }) {
               value={formData.address}
               onChange={handleChange}
               rows={2}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('suppliers.notes')}
             </label>
             <textarea
@@ -340,7 +340,7 @@ function SupplierForm({ supplier, onSave, onClose }) {
               value={formData.notes}
               onChange={handleChange}
               rows={2}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             />
           </div>
 
@@ -348,13 +348,13 @@ function SupplierForm({ supplier, onSave, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+className="px-4 py-2 text-foreground bg-surface-tertiary rounded-lg bg-surface-hover"
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700"
             >
               {supplier ? t('suppliers.update') : t('suppliers.add')} {t('suppliers.title')}
             </button>

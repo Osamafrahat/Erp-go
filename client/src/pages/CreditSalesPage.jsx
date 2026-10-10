@@ -102,15 +102,15 @@ export default function CreditSalesPage() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+return'bg-warning-soft text-warning-soft-foreground'
       case 'partial':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+return'bg-accent-soft text-accent-soft-foreground'
       case 'paid':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+return'bg-success-soft text-success-soft-foreground'
       case 'overdue':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+return'bg-danger-soft text-danger-soft-foreground'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+return'bg-surface-tertiary text-foreground'
     }
   }
 
@@ -154,7 +154,7 @@ export default function CreditSalesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+<Loader2 className="h-8 w-8 animate-spin text-accent"/>
       </div>
     )
   }
@@ -162,43 +162,43 @@ export default function CreditSalesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+<h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <CreditCard className="h-6 w-6" />
           {t('creditSales') || 'Credit Sales / Accounts Receivable'}
         </h1>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+<div className="bg-surface rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-              <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+<div className="p-3 bg-warning-soft rounded-lg">
+<Clock className="h-5 w-5 text-warning"/>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalPending') || 'Total Pending'}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(stats?.total_pending || 0)}</p>
+<p className="text-sm text-muted">{t('totalPending')||'Total Pending'}</p>
+<p className="text-2xl font-bold text-foreground">{formatCurrency(stats?.total_pending || 0)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+<div className="bg-surface rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+<div className="p-3 bg-danger-soft rounded-lg">
+<AlertTriangle className="h-5 w-5 text-danger"/>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalOverdue') || 'Total Overdue'}</p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrency(stats?.total_overdue || 0)}</p>
+<p className="text-sm text-muted">{t('totalOverdue')||'Total Overdue'}</p>
+<p className="text-2xl font-bold text-danger">{formatCurrency(stats?.total_overdue || 0)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+<div className="bg-surface rounded-xl shadow-sm border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+<div className="p-3 bg-success-soft rounded-lg">
+<CheckCircle className="h-5 w-5 text-success"/>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('totalCollected') || 'Total Collected'}</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(stats?.total_collected || 0)}</p>
+<p className="text-sm text-muted">{t('totalCollected')||'Total Collected'}</p>
+<p className="text-2xl font-bold text-success">{formatCurrency(stats?.total_collected || 0)}</p>
             </div>
           </div>
         </div>
@@ -206,8 +206,8 @@ export default function CreditSalesPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="p-5 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-xl shadow-sm border border-border">
+<div className="p-5 border-b border-border">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="flex flex-wrap gap-2">
                   {['all', 'pending', 'partial', 'paid', 'overdue'].map((s) => (
@@ -216,8 +216,8 @@ export default function CreditSalesPage() {
                       onClick={() => setFilter(s)}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                         filter === s
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+?'bg-accent text-white'
+:'bg-surface-tertiary text-muted bg-surface-hover'
                       }`}
                     >
                       {t(s) || s.charAt(0).toUpperCase() + s.slice(1)}
@@ -225,13 +225,13 @@ export default function CreditSalesPage() {
                   ))}
                 </div>
                 <div className="relative flex-1 max-w-xs">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted"/>
                   <input
                     type="text"
                     placeholder={t('search') || 'Search...'}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
                   />
                 </div>
               </div>
@@ -239,33 +239,33 @@ export default function CreditSalesPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-700/50">
-                    <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('customer') || 'Customer'}</th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('order') || 'Order #'}</th>
-                    <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('total') || 'Total'}</th>
-                    <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('paid') || 'Paid'}</th>
-                    <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('remaining') || 'Remaining'}</th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('dueDate') || 'Due Date'}</th>
-                    <th className="px-5 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('status') || 'Status'}</th>
-                    <th className="px-5 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('actions') || 'Actions'}</th>
+<tr className="bg-surface-secondary">
+<th className="px-5 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{t('customer')||'Customer'}</th>
+<th className="px-5 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{t('order')||'Order #'}</th>
+<th className="px-5 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">{t('total')||'Total'}</th>
+<th className="px-5 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">{t('paid')||'Paid'}</th>
+<th className="px-5 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">{t('remaining')||'Remaining'}</th>
+<th className="px-5 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">{t('dueDate')||'Due Date'}</th>
+<th className="px-5 py-3 text-center text-xs font-medium text-muted uppercase tracking-wider">{t('status')||'Status'}</th>
+<th className="px-5 py-3 text-center text-xs font-medium text-muted uppercase tracking-wider">{t('actions')||'Actions'}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+<tbody className="divide-y divide-border">
                   {filteredSales.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
+<td colSpan={8}className="px-5 py-10 text-center text-muted">
                         {t('noCreditSales') || 'No credit sales found'}
                       </td>
                     </tr>
                   ) : (
                     filteredSales.map((sale) => (
-                      <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                        <td className="px-5 py-4 text-sm font-medium text-gray-900 dark:text-white">{getCustomerName(sale)}</td>
-                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300 font-mono">{getOrderRef(sale)}</td>
-                        <td className="px-5 py-4 text-sm text-right text-gray-900 dark:text-white">{formatCurrency(sale.total_amount)}</td>
-                        <td className="px-5 py-4 text-sm text-right text-green-600 dark:text-green-400">{formatCurrency(sale.paid_amount)}</td>
-                        <td className="px-5 py-4 text-sm text-right text-red-600 dark:text-red-400 font-medium">{formatCurrency(sale.remaining_amount)}</td>
-                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
+<tr key={sale.id}className="bg-surface-hover transition-colors">
+<td className="px-5 py-4 text-sm font-medium text-foreground">{getCustomerName(sale)}</td>
+<td className="px-5 py-4 text-sm text-muted font-mono">{getOrderRef(sale)}</td>
+<td className="px-5 py-4 text-sm text-right text-foreground">{formatCurrency(sale.total_amount)}</td>
+<td className="px-5 py-4 text-sm text-right text-success">{formatCurrency(sale.paid_amount)}</td>
+<td className="px-5 py-4 text-sm text-right text-danger font-medium">{formatCurrency(sale.remaining_amount)}</td>
+<td className="px-5 py-4 text-sm text-muted">
                           {sale.due_date ? new Date(sale.due_date).toLocaleDateString() : '—'}
                         </td>
                         <td className="px-5 py-4 text-center">
@@ -278,7 +278,7 @@ export default function CreditSalesPage() {
                           {sale.status !== 'paid' && (
                             <button
                               onClick={() => openPaymentModal(sale)}
-                              className="px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
+className="px-3 py-1 bg-accent text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
                             >
                               {t('recordPayment') || 'Record Payment'}
                             </button>
@@ -294,27 +294,27 @@ export default function CreditSalesPage() {
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-gray-500" />
+<div className="bg-surface rounded-xl shadow-sm border border-border p-5">
+<h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+<Wallet className="h-5 w-5 text-muted"/>
               {t('customerBalances') || 'Customer Balances'}
             </h3>
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {balances.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">{t('noOutstanding') || 'No outstanding balances'}</p>
+<p className="text-sm text-muted text-center py-4">{t('noOutstanding')||'No outstanding balances'}</p>
               ) : (
                 balances.map((b, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+<div key={idx}className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-gray-200 dark:bg-gray-600 rounded-full">
-                        <User className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+<div className="p-1.5 bg-surface-tertiary rounded-full">
+<User className="h-3 w-3 text-muted"/>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{b.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{b.sale_count} {t('sales') || 'sales'}</p>
+<p className="text-sm font-medium text-foreground">{b.name}</p>
+<p className="text-xs text-muted">{b.sale_count}{t('sales')||'sales'}</p>
                       </div>
                     </div>
-                    <span className="text-sm font-semibold text-red-600 dark:text-red-400">{formatCurrency(b.total_owed)}</span>
+<span className="text-sm font-semibold text-danger">{formatCurrency(b.total_owed)}</span>
                   </div>
                 ))
               )}
@@ -325,30 +325,30 @@ export default function CreditSalesPage() {
 
       {showPaymentModal && selectedSale && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+<div className="bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('recordPayment') || 'Record Payment'}</h3>
-              <button onClick={() => setShowPaymentModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+<h3 className="text-lg font-semibold text-foreground">{t('recordPayment')||'Record Payment'}</h3>
+<button onClick={()=>setShowPaymentModal(false)}className="text-muted text-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 space-y-2">
+<div className="bg-surface-secondary rounded-lg p-4 mb-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 dark:text-gray-400">{t('customer') || 'Customer'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{getCustomerName(selectedSale)}</span>
+<span className="text-muted">{t('customer')||'Customer'}</span>
+<span className="font-medium text-foreground">{getCustomerName(selectedSale)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 dark:text-gray-400">{t('order') || 'Order'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{getOrderRef(selectedSale)}</span>
+<span className="text-muted">{t('order')||'Order'}</span>
+<span className="font-medium text-foreground">{getOrderRef(selectedSale)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 dark:text-gray-400">{t('remaining') || 'Remaining'}</span>
-                <span className="font-semibold text-red-600 dark:text-red-400">{formatCurrency(selectedSale.remaining_amount)}</span>
+<span className="text-muted">{t('remaining')||'Remaining'}</span>
+<span className="font-semibold text-danger">{formatCurrency(selectedSale.remaining_amount)}</span>
               </div>
             </div>
             <form onSubmit={handleRecordPayment} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('amount') || 'Amount'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('amount')||'Amount'}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -356,16 +356,16 @@ export default function CreditSalesPage() {
                   max={selectedSale.remaining_amount}
                   value={paymentForm.amount}
                   onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('method') || 'Payment Method'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('method')||'Payment Method'}</label>
                 <select
                   value={paymentForm.method}
                   onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
                 >
                   <option value="cash">{t('cash') || 'Cash'}</option>
                   <option value="card">{t('card') || 'Card'}</option>
@@ -375,20 +375,20 @@ export default function CreditSalesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('reference') || 'Reference'}</label>
+<label className="block text-sm font-medium text-foreground mb-1">{t('reference')||'Reference'}</label>
                 <input
                   type="text"
                   value={paymentForm.reference}
                   onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
                   placeholder={t('optionalReference') || 'Optional reference number'}
                 />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowPaymentModal(false)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+<button type="button"onClick={()=>setShowPaymentModal(false)}className="flex-1 px-4 py-2 border border-border rounded-lg text-foreground bg-surface-hover transition-colors">
                   {t('cancel') || 'Cancel'}
                 </button>
-                <button type="submit" disabled={submitting} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+<button type="submit"disabled={submitting}className="flex-1 px-4 py-2 bg-success text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
                   {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t('recordPayment') || 'Record Payment'}
                 </button>

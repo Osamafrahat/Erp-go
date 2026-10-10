@@ -105,7 +105,7 @@ export default function PromotionsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
       </div>
     )
   }
@@ -115,14 +115,14 @@ export default function PromotionsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('promotions.title')}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('promotions.subtitle')}</p>
+<p className="text-muted">{t('promotions.subtitle')}</p>
         </div>
         <button
           onClick={() => {
             setEditingPromo(null)
             setShowForm(true)
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700"
         >
           <Plus className="w-4 h-4" />
           {t('promotions.addPromo')}
@@ -131,10 +131,10 @@ export default function PromotionsPage() {
 
       {/* Promotions List */}
       {promotions.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
-          <Tag className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('promotions.noPromotions')}</h3>
-          <p className="text-gray-500 dark:text-gray-400">{t('promotions.createFirst')}</p>
+<div className="bg-surface rounded-xl border border-border p-12 text-center">
+<Tag className="w-16 h-16 mx-auto text-foreground mb-4"/>
+<h3 className="text-lg font-medium text-foreground mb-2">{t('promotions.noPromotions')}</h3>
+<p className="text-muted">{t('promotions.createFirst')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -145,28 +145,28 @@ export default function PromotionsPage() {
             return (
               <div
                 key={promo.id}
-                className={`bg-white dark:bg-gray-800 rounded-xl border p-4 ${
+className={`bg-surface rounded-xl border p-4 ${
                   !promo.is_active || expired
-                    ? 'border-gray-200 dark:border-gray-700 opacity-60'
-                    : 'border-primary-200 dark:border-primary-800'
+?'border-border opacity-60'
+:'border-accent'
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${
                       promo.type === 'percentage'
-                        ? 'bg-blue-100 dark:bg-blue-900/30'
-                        : 'bg-green-100 dark:bg-green-900/30'
+?'bg-accent-soft'
+:'bg-success-soft'
                     }`}>
                       {promo.type === 'percentage' ? (
-                        <Percent className="w-5 h-5 text-blue-600" />
+<Percent className="w-5 h-5 text-accent"/>
                       ) : (
-                        <DollarSign className="w-5 h-5 text-green-600" />
+<DollarSign className="w-5 h-5 text-success"/>
                       )}
                     </div>
                     <div>
                       <h3 className="font-mono font-bold text-lg">{promo.code}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+<p className="text-sm text-muted">
                         {promo.type === 'percentage' ? `${promo.value}% ${t('promotions.off')}` : `${formatCurrency(promo.value)} ${t('promotions.off')}`}
                       </p>
                     </div>
@@ -174,13 +174,13 @@ export default function PromotionsPage() {
                   <div className="flex gap-1">
                     <button
                       onClick={() => handleEdit(promo)}
-                      className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg"
+className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted hover:text-primary-600 hover:bg-primary-50 rounded-lg"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setDeleteTarget(promo.id)}
-                      className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
+className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted hover:text-red-600 hover:bg-red-50 rounded-lg"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -189,15 +189,15 @@ export default function PromotionsPage() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">{t('promotions.minOrder')}</span>
+<span className="text-muted">{t('promotions.minOrder')}</span>
                     <span>{promo.min_order_amount ? formatCurrency(promo.min_order_amount) : t('common.none')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">{t('promotions.usage')}</span>
+<span className="text-muted">{t('promotions.usage')}</span>
                     <span>{promo.used_count} / {promo.max_uses || '∞'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">{t('promotions.validTo')}</span>
+<span className="text-muted">{t('promotions.validTo')}</span>
                     <span>{formatDate(promo.end_date)}</span>
                   </div>
                 </div>
@@ -205,22 +205,22 @@ export default function PromotionsPage() {
                 <div className="mt-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {expired ? (
-                      <span className="flex items-center gap-1 text-sm text-red-500">
+<span className="flex items-center gap-1 text-sm text-danger">
                         <XCircle className="w-4 h-4" />
                         {t('promotions.expired')}
                       </span>
                     ) : usageLimitReached ? (
-                      <span className="flex items-center gap-1 text-sm text-amber-500">
+<span className="flex items-center gap-1 text-sm text-warning">
                         <XCircle className="w-4 h-4" />
                         {t('promotions.limitReached')}
                       </span>
                     ) : promo.is_active ? (
-                      <span className="flex items-center gap-1 text-sm text-green-500">
+<span className="flex items-center gap-1 text-sm text-success">
                         <CheckCircle className="w-4 h-4" />
                         {t('promotions.active')}
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-sm text-gray-500">
+<span className="flex items-center gap-1 text-sm text-muted">
                         <XCircle className="w-4 h-4" />
                         {t('promotions.inactive')}
                       </span>
@@ -229,7 +229,7 @@ export default function PromotionsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSendPromo(promo)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
+className="p-2 text-muted hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                       title={t('promotions.sendNotification')}
                     >
                       <Send className="w-4 h-4" />
@@ -239,8 +239,8 @@ export default function PromotionsPage() {
                       disabled={expired}
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
                         promo.is_active
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-500'
+?'bg-success-soft text-success-soft-foreground'
+:'bg-surface-tertiary text-muted'
                       } ${expired ? 'cursor-not-allowed' : 'hover:opacity-80'}`}
                     >
                       {promo.is_active ? t('promotions.active') : t('promotions.inactive')}
@@ -321,14 +321,14 @@ function PromotionForm({ promotion, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">
             {promotion ? t('promotions.editPromo') : t('promotions.addNewPromo')}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+className="p-2 rounded-lg bg-surface-hover"
           >
             <X className="w-5 h-5" />
           </button>
@@ -336,7 +336,7 @@ function PromotionForm({ promotion, onSave, onClose }) {
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('promotions.promoCodeLabel')} *
             </label>
             <input
@@ -345,28 +345,28 @@ function PromotionForm({ promotion, onSave, onClose }) {
               value={formData.code}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 font-mono uppercase"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface font-mono uppercase"
               placeholder={t('promotions.promoCodePlaceholder')}
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('promotions.discountType')}
               </label>
               <select
                 name="type"
                 value={formData.type}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               >
                 <option value="percentage">{t('promotions.percentage')} (%)</option>
                 <option value="fixed">{t('promotions.fixed')} (ج.م)</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {formData.type === 'percentage' ? t('promotions.percentageOff') : t('promotions.amountOff')} *
               </label>
               <input
@@ -377,14 +377,14 @@ function PromotionForm({ promotion, onSave, onClose }) {
                 required
                 min="0"
                 step="0.01"
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('promotions.minOrderAmount')}
               </label>
               <input
@@ -394,12 +394,12 @@ function PromotionForm({ promotion, onSave, onClose }) {
                 onChange={handleChange}
                 min="0"
                 step="0.01"
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
                 placeholder={t('promotions.noMinimum')}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('promotions.maxUses')}
               </label>
               <input
@@ -408,7 +408,7 @@ function PromotionForm({ promotion, onSave, onClose }) {
                 value={formData.max_uses}
                 onChange={handleChange}
                 min="1"
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
                 placeholder={t('promotions.unlimited')}
               />
             </div>
@@ -416,7 +416,7 @@ function PromotionForm({ promotion, onSave, onClose }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('promotions.startDate')}
               </label>
               <input
@@ -424,11 +424,11 @@ function PromotionForm({ promotion, onSave, onClose }) {
                 name="start_date"
                 value={formData.start_date}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('promotions.endDate')} *
               </label>
               <input
@@ -437,7 +437,7 @@ function PromotionForm({ promotion, onSave, onClose }) {
                 value={formData.end_date}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               />
             </div>
           </div>
@@ -448,9 +448,9 @@ function PromotionForm({ promotion, onSave, onClose }) {
               name="is_active"
               checked={formData.is_active}
               onChange={handleChange}
-              className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+className="w-4 h-4 text-accent rounded border-border ring-focus"
             />
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+<label className="text-sm font-medium text-foreground">
               {t('promotions.promotionActive')}
             </label>
           </div>
@@ -459,13 +459,13 @@ function PromotionForm({ promotion, onSave, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+className="px-4 py-2 text-foreground bg-surface-tertiary rounded-lg bg-surface-hover"
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700"
             >
               {promotion ? t('promotions.update') : t('promotions.create')} {t('promotions.title').split(' ')[0]}
             </button>

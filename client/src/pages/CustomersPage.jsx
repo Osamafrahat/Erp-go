@@ -86,7 +86,7 @@ export default function CustomersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
       </div>
     )
   }
@@ -96,7 +96,7 @@ export default function CustomersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('customers.title')}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('customers.subtitle')}</p>
+<p className="text-muted">{t('customers.subtitle')}</p>
         </div>
         {canEdit && (
           <button
@@ -104,7 +104,7 @@ export default function CustomersPage() {
               setEditingCustomer(null)
               setShowForm(true)
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700"
           >
             <Plus className="w-4 h-4" />
             {t('customers.addCustomer')}
@@ -119,11 +119,11 @@ export default function CustomersPage() {
           placeholder={t('customers.searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="flex-1 px-4 py-2 rounded-lg border border-border bg-surface"
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+className="px-4 py-2 bg-surface-tertiary rounded-lg bg-surface-hover"
         >
           {t('common.search')}
         </button>
@@ -131,10 +131,10 @@ export default function CustomersPage() {
 
       {/* Customers Grid */}
       {customers.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
-          <User className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('customers.noCustomers')}</h3>
-          <p className="text-gray-500 dark:text-gray-400">{t('customers.addFirst')}</p>
+<div className="bg-surface rounded-xl border border-border p-12 text-center">
+<User className="w-16 h-16 mx-auto text-foreground mb-4"/>
+<h3 className="text-lg font-medium text-foreground mb-2">{t('customers.noCustomers')}</h3>
+<p className="text-muted">{t('customers.addFirst')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -142,23 +142,23 @@ export default function CustomersPage() {
             <div
               key={customer.id}
               onClick={() => setSelectedCustomer(customer)}
-              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 cursor-pointer hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-md transition-all duration-200"
+className="bg-surface rounded-xl border border-border p-4 cursor-pointer hover:border-primary-300 hover:shadow-md transition-all duration-200"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                    <User className="w-5 h-5 text-primary-600" />
+<div className="p-2 bg-accent-soft rounded-lg">
+<User className="w-5 h-5 text-accent"/>
                   </div>
                   <div>
                     <h3 className="font-semibold">{customer.name}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('customers.since')} {new Date(customer.created_at).toLocaleDateString()}</p>
+<p className="text-sm text-muted">{t('customers.since')}{new Date(customer.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                   {canEdit && (
                     <button
                       onClick={() => handleEdit(customer)}
-                      className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg"
+className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted hover:text-primary-600 hover:bg-primary-50 rounded-lg"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -166,7 +166,7 @@ export default function CustomersPage() {
                   {canEdit && (
                     <button
                       onClick={() => setDeleteTarget(customer.id)}
-                      className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
+className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted hover:text-red-600 hover:bg-red-50 rounded-lg"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -176,31 +176,31 @@ export default function CustomersPage() {
 
               <div className="space-y-2 text-sm">
                 {customer.phone && (
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+<div className="flex items-center gap-2 text-muted">
                     <Phone className="w-4 h-4" />
                     <span>{customer.phone}</span>
                   </div>
                 )}
                 {customer.email && (
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+<div className="flex items-center gap-2 text-muted">
                     <Mail className="w-4 h-4" />
                     <span>{customer.email}</span>
                   </div>
                 )}
                 {customer.address && (
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+<div className="flex items-center gap-2 text-muted">
                     <MapPin className="w-4 h-4" />
                     <span className="line-clamp-1">{customer.address}</span>
                   </div>
                 )}
               </div>
 
-              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
-                <div className="flex items-center gap-1 text-yellow-600">
+<div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-sm">
+<div className="flex items-center gap-1 text-warning">
                   <Star className="w-4 h-4" />
                   <span>{customer.loyalty_points || 0} {t('customers.points')}</span>
                 </div>
-                <div className="text-gray-500 dark:text-gray-400">
+<div className="text-muted">
                   {t('customers.totalLabel')} ج.م {customer.total_spent?.toFixed(2) || '0.00'}
                 </div>
               </div>
@@ -271,10 +271,10 @@ function CustomerDetailDrawer({ customer, onClose }) {
   const loyaltyPoints = customer.loyalty_points || 0
 
   const stats = [
-    { label: t('customers.totalOrders') || 'Total Orders', value: totalOrders, icon: ShoppingCart, color: 'text-primary-600 bg-primary-100 dark:bg-primary-900/30' },
-    { label: t('customers.totalSpent') || 'Total Spent', value: `ج.م ${totalSpent.toFixed(2)}`, icon: Receipt, color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' },
-    { label: t('customers.avgOrder') || 'Avg Order', value: `ج.م ${avgOrderValue.toFixed(2)}`, icon: CreditCard, color: 'text-amber-600 bg-amber-100 dark:bg-amber-900/30' },
-    { label: t('customers.loyaltyPoints') || 'Loyalty Points', value: loyaltyPoints, icon: Star, color: 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30' },
+{label: t('customers.totalOrders')||'Total Orders',value: totalOrders,icon: ShoppingCart,color:'text-accent-soft-foreground bg-accent-soft'},
+{label: t('customers.totalSpent')||'Total Spent',value:`ج.م ${totalSpent.toFixed(2)}`,icon: Receipt,color:'text-success-soft-foreground bg-success-soft'},
+{label: t('customers.avgOrder')||'Avg Order',value:`ج.م ${avgOrderValue.toFixed(2)}`,icon: CreditCard,color:'text-warning-soft-foreground bg-warning-soft'},
+{label: t('customers.loyaltyPoints')||'Loyalty Points',value: loyaltyPoints,icon: Star,color:'text-warning-soft-foreground bg-warning-soft'},
   ]
 
   const paymentMethodLabels = {
@@ -287,22 +287,22 @@ function CustomerDetailDrawer({ customer, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-2xl bg-white dark:bg-gray-800 shadow-2xl overflow-y-auto">
+<div className="relative w-full max-w-2xl bg-surface shadow-2xl overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+<div className="sticky top-0 z-10 bg-surface border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                <User className="w-5 h-5 text-primary-600" />
+<div className="p-2 bg-accent-soft rounded-lg">
+<User className="w-5 h-5 text-accent"/>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{customer.name}</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('customers.since')} {new Date(customer.created_at).toLocaleDateString()}</p>
+<h2 className="text-xl font-bold text-foreground">{customer.name}</h2>
+<p className="text-sm text-muted">{t('customers.since')}{new Date(customer.created_at).toLocaleDateString()}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
+className="p-2.5 rounded-lg bg-surface-hover min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <X className="w-5 h-5" />
             </button>
@@ -313,25 +313,25 @@ function CustomerDetailDrawer({ customer, onClose }) {
           {/* Contact Info */}
           <div className="space-y-2 text-sm">
             {customer.phone && (
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                <Phone className="w-4 h-4 text-gray-400" />
+<div className="flex items-center gap-2 text-muted">
+<Phone className="w-4 h-4 text-muted"/>
                 <span>{customer.phone}</span>
               </div>
             )}
             {customer.email && (
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                <Mail className="w-4 h-4 text-gray-400" />
+<div className="flex items-center gap-2 text-muted">
+<Mail className="w-4 h-4 text-muted"/>
                 <span>{customer.email}</span>
               </div>
             )}
             {customer.address && (
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                <MapPin className="w-4 h-4 text-gray-400" />
+<div className="flex items-center gap-2 text-muted">
+<MapPin className="w-4 h-4 text-muted"/>
                 <span>{customer.address}</span>
               </div>
             )}
             {customer.notes && (
-              <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-gray-600 dark:text-gray-300">
+<div className="mt-2 p-3 bg-surface-secondary rounded-lg text-muted">
                 {customer.notes}
               </div>
             )}
@@ -340,31 +340,31 @@ function CustomerDetailDrawer({ customer, onClose }) {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-3">
             {stats.map((stat) => (
-              <div key={stat.label} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
+<div key={stat.label}className="bg-surface-secondary rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <div className={`p-1.5 rounded-lg ${stat.color}`}>
                     <stat.icon className="w-4 h-4" />
                   </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</span>
+<span className="text-xs text-muted">{stat.label}</span>
                 </div>
-                <div className="text-lg font-bold text-gray-900 dark:text-white">{stat.value}</div>
+<div className="text-lg font-bold text-foreground">{stat.value}</div>
               </div>
             ))}
           </div>
 
           {/* Purchase History */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+<h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
               <Receipt className="w-5 h-5" />
               {t('customers.purchaseHistory') || 'Purchase History'}
             </h3>
 
             {loadingOrders ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
               </div>
             ) : orders.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+<div className="text-center py-8 text-muted">
                 <ShoppingCart className="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p>{t('customers.noOrders') || 'No orders yet'}</p>
               </div>
@@ -373,16 +373,16 @@ function CustomerDetailDrawer({ customer, onClose }) {
                 {orders.map((order) => (
                   <div
                     key={order.id}
-                    className="bg-gray-50 dark:bg-gray-700/50 rounded-xl overflow-hidden"
+className="bg-surface-secondary rounded-xl overflow-hidden"
                   >
                     <button
                       onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+className="w-full px-4 py-3 flex items-center justify-between bg-surface-hover transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <div className="text-left">
-                          <div className="font-medium text-gray-900 dark:text-white text-sm">{order.order_number}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+<div className="font-medium text-foreground text-sm">{order.order_number}</div>
+<div className="text-xs text-muted flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {new Date(order.created_at).toLocaleDateString()}
                           </div>
@@ -390,40 +390,40 @@ function CustomerDetailDrawer({ customer, onClose }) {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <div className="font-bold text-gray-900 dark:text-white text-sm">ج.م {parseFloat(order.total).toFixed(2)}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
+<div className="font-bold text-foreground text-sm">ج.م{parseFloat(order.total).toFixed(2)}</div>
+<div className="text-xs text-muted">
                             {order.order_items?.length || 0} {t('customers.items') || 'items'}
                           </div>
                         </div>
                         {expandedOrder === order.id ? (
-                          <ChevronDown className="w-4 h-4 text-gray-400" />
+<ChevronDown className="w-4 h-4 text-muted"/>
                         ) : (
-                          <ChevronRight className="w-4 h-4 text-gray-400" />
+<ChevronRight className="w-4 h-4 text-muted"/>
                         )}
                       </div>
                     </button>
 
                     {/* Expanded Order Items */}
                     {expandedOrder === order.id && (
-                      <div className="px-4 pb-3 border-t border-gray-200 dark:border-gray-600">
+<div className="px-4 pb-3 border-t border-border">
                         <div className="pt-3 space-y-2">
                           {order.order_items?.map((item) => (
                             <div key={item.id} className="flex items-center justify-between text-sm">
                               <div className="flex items-center gap-2">
-                                <Package className="w-4 h-4 text-gray-400" />
-                                <span className="text-gray-700 dark:text-gray-300">{item.product_name}</span>
-                                <span className="text-gray-400 dark:text-gray-500">x{item.quantity}</span>
+<Package className="w-4 h-4 text-muted"/>
+<span className="text-foreground">{item.product_name}</span>
+<span className="text-muted">x{item.quantity}</span>
                               </div>
-                              <span className="font-medium text-gray-900 dark:text-white">ج.م {parseFloat(item.total).toFixed(2)}</span>
+<span className="font-medium text-foreground">ج.م{parseFloat(item.total).toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
-                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+<div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs text-muted">
                           <span>{t('customers.payment') || 'Payment'}: {paymentMethodLabels[order.payment_method] || order.payment_method}</span>
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                            order.payment_status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                            order.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                            'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+order.payment_status==='paid'?'bg-success-soft text-success-soft-foreground':
+order.payment_status==='pending'?'bg-warning-soft text-warning-soft-foreground':
+'bg-surface-tertiary text-foreground'
                           }`}>
                             {order.payment_status}
                           </span>
@@ -507,14 +507,14 @@ function CustomerForm({ customer, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">
             {customer ? t('customers.editCustomer') : t('customers.addCustomer')}
           </h2>
           <button
             onClick={onClose}
-            className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
+className="p-2.5 rounded-lg bg-surface-hover min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <X className="w-5 h-5" />
           </button>
@@ -522,7 +522,7 @@ function CustomerForm({ customer, onSave, onClose }) {
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('customers.name')} *
             </label>
             <input
@@ -531,12 +531,12 @@ function CustomerForm({ customer, onSave, onClose }) {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('customers.phone')}
             </label>
             <div className="flex gap-2">
@@ -544,7 +544,7 @@ function CustomerForm({ customer, onSave, onClose }) {
                 name="countryCode"
                 value={formData.countryCode}
                 onChange={handleChange}
-                className="w-32 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
+className="w-32 px-3 py-2 rounded-lg border border-border bg-surface text-sm"
               >
                 {countryCodes.map(c => (
                   <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
@@ -558,21 +558,21 @@ function CustomerForm({ customer, onSave, onClose }) {
                 placeholder="1xxxxxxxxx"
                 inputMode="numeric"
                 maxLength={10}
-                className={`flex-1 px-4 py-2 rounded-lg border bg-white dark:bg-gray-800 ${
-                  phoneError ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'
+className={`flex-1 px-4 py-2 rounded-lg border bg-surface ${
+phoneError ?'border-danger':'border-border'
                 }`}
               />
             </div>
             {phoneError && (
-              <p className="mt-1 text-xs text-red-500 dark:text-red-400">{phoneError}</p>
+<p className="mt-1 text-xs text-danger">{phoneError}</p>
             )}
             {!phoneError && formData.phone && formData.phone.length < 10 && (
-              <p className="mt-1 text-xs text-amber-500 dark:text-amber-400">{10 - formData.phone.length} {t('customers.digitsRemaining')}</p>
+<p className="mt-1 text-xs text-warning">{10 - formData.phone.length}{t('customers.digitsRemaining')}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('customers.email')}
             </label>
             <input
@@ -580,12 +580,12 @@ function CustomerForm({ customer, onSave, onClose }) {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('customers.address')}
             </label>
             <textarea
@@ -593,12 +593,12 @@ function CustomerForm({ customer, onSave, onClose }) {
               value={formData.address}
               onChange={handleChange}
               rows={2}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('customers.notes')}
             </label>
             <textarea
@@ -606,7 +606,7 @@ function CustomerForm({ customer, onSave, onClose }) {
               value={formData.notes}
               onChange={handleChange}
               rows={2}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             />
           </div>
 
@@ -614,13 +614,13 @@ function CustomerForm({ customer, onSave, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 min-h-[44px]"
+className="px-4 py-2.5 text-foreground bg-surface-tertiary rounded-lg bg-surface-hover min-h-[44px]"
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
-              className="px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 min-h-[44px]"
+className="px-4 py-2.5 bg-accent text-white rounded-lg hover:bg-primary-700 min-h-[44px]"
             >
               {customer ? t('common.edit') : t('common.add')} {t('customers.name')}
             </button>
