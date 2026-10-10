@@ -21,6 +21,17 @@ export const walletUserRouter = Router()
 // Super-admin flow: reviews proofs and confirms/rejects payments.
 export const walletAdminRouter = Router()
 
+// Boot-time visibility: operators change receiving numbers via the
+// WALLET_CONFIG secret, so log which configuration actually loaded.
+const bootWalletCfg = getWalletMethods()
+console.log(
+  bootWalletCfg.configured
+    ? `[Wallet] ${bootWalletCfg.methods.length} receiving method(s): ${bootWalletCfg.methods
+        .map((m) => `${m.id} (${m.name_ar || m.name})`)
+        .join(', ')}`
+    : '[Wallet] WALLET_CONFIG missing or invalid — wallet transfer disabled'
+)
+
 // Submissions carry a full screenshot (~4MB) — a tight per-IP budget prevents
 // the endpoint from being used to flood storage or the dashboard.
 const submitLimiter = rateLimit({
