@@ -114,7 +114,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
       </div>
     )
   }
@@ -134,28 +134,28 @@ export default function ProfilePage() {
       <div className="flex items-center gap-4">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+className="p-2 rounded-xl bg-surface-hover transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
           <h1 className="text-2xl font-bold">{t('profile.title')}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('profile.subtitle')}</p>
+<p className="text-muted">{t('profile.subtitle')}</p>
         </div>
       </div>
 
       {/* Profile Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+<div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden">
         {/* Avatar Header */}
-        <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-8">
+<div className="bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-8">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-xl">
-              <span className="text-white font-bold text-3xl">{profile?.full_name?.charAt(0)?.toUpperCase()}</span>
+<div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-xl">
+<span className="text-white font-bold text-3xl">{profile?.full_name?.charAt(0)?.toUpperCase()}</span>
             </div>
-            <div className="text-white">
+<div className="text-white">
               <h2 className="text-2xl font-bold">{profile?.full_name}</h2>
-              <p className="text-white/80">@{profile?.username}</p>
-              <span className="inline-block mt-1 px-2.5 py-0.5 bg-white/20 backdrop-blur-sm rounded-lg text-sm font-medium">
+<p className="text-white/80">@{profile?.username}</p>
+<span className="inline-block mt-1 px-2.5 py-0.5 bg-white/20 backdrop-blur-sm rounded-lg text-sm font-medium">
                 {roleLabels[profile?.role] || profile?.role}
               </span>
             </div>
@@ -173,7 +173,7 @@ export default function ProfilePage() {
               icon={CheckCircle}
               label={t('profile.status')}
               value={profile?.is_active ? t('profile.active') : t('profile.inactive')}
-              valueColor={profile?.is_active ? 'text-green-600' : 'text-red-600'}
+valueColor={profile?.is_active ?'text-success':'text-danger'}
             />
             <InfoRow
               icon={Calendar}
@@ -190,16 +190,16 @@ export default function ProfilePage() {
       </div>
 
       {/* Contact Info */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+<div className="bg-surface rounded-2xl shadow-sm border border-border p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Phone className="w-5 h-5 text-primary-500" />
+<Phone className="w-5 h-5 text-accent"/>
             {t('profile.contactInfo')}
           </h3>
           {!editingContact && (
             <button
               onClick={startEditContact}
-              className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] text-sm font-medium text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] text-sm font-medium text-accent hover:bg-primary-50 rounded-lg transition-colors"
             >
               <Pencil className="w-3.5 h-3.5" />
               {t('common.edit') || 'Edit'}
@@ -210,37 +210,37 @@ export default function ProfilePage() {
         {editingContact ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('profile.phone')}</label>
+<label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.phone')}</label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder={t('profile.phonePlaceholder')}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary ring-focus focus:border-transparent outline-none transition-all"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('profile.email')}</label>
+<label className="block text-sm font-medium text-foreground mb-1.5">{t('profile.email')}</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('profile.emailPlaceholder')}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary ring-focus focus:border-transparent outline-none transition-all"
               />
             </div>
             <div className="flex gap-3">
               <button
                 onClick={handleContactSave}
                 disabled={savingContact}
-                className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-xl font-medium transition-colors flex items-center gap-2"
+className="px-5 py-2.5 bg-accent hover:bg-primary-700 disabled:opacity-50 text-white rounded-xl font-medium transition-colors flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 {savingContact ? '...' : t('common.save') || 'Save'}
               </button>
               <button
                 onClick={cancelEditContact}
-                className="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors flex items-center gap-2"
+className="px-5 py-2.5 bg-surface-tertiary bg-surface-hover text-foreground rounded-xl font-medium transition-colors flex items-center gap-2"
               >
                 <X className="w-4 h-4" />
                 {t('common.cancel') || 'Cancel'}
@@ -256,16 +256,16 @@ export default function ProfilePage() {
       </div>
 
       {/* Change Password */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+<div className="bg-surface rounded-2xl shadow-sm border border-border p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Lock className="w-5 h-5 text-primary-500" />
+<Lock className="w-5 h-5 text-accent"/>
             {t('profile.changePassword')}
           </h3>
           {!editingPassword && (
             <button
               onClick={startEditPassword}
-              className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] text-sm font-medium text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
+className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] text-sm font-medium text-accent hover:bg-primary-50 rounded-lg transition-colors"
             >
               <Pencil className="w-3.5 h-3.5" />
               {t('common.edit') || 'Edit'}
@@ -281,12 +281,12 @@ export default function ProfilePage() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder={t('profile.currentPassword')}
-                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+className="w-full px-4 py-2.5 pr-10 rounded-xl border border-border bg-surface-secondary ring-focus focus:border-transparent outline-none transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-foreground"
               >
                 {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -297,12 +297,12 @@ export default function ProfilePage() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder={t('profile.newPassword')}
-                className="w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+className="w-full px-4 py-2.5 pr-10 rounded-xl border border-border bg-surface-secondary ring-focus focus:border-transparent outline-none transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-foreground"
               >
                 {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -312,20 +312,20 @@ export default function ProfilePage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder={t('profile.confirmPassword')}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary ring-focus focus:border-transparent outline-none transition-all"
             />
             <div className="flex gap-3">
               <button
                 onClick={handlePasswordChange}
                 disabled={savingPassword || !currentPassword || !newPassword || !confirmPassword}
-                className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-xl font-medium transition-colors flex items-center gap-2"
+className="px-5 py-2.5 bg-accent hover:bg-primary-700 disabled:opacity-50 text-white rounded-xl font-medium transition-colors flex items-center gap-2"
               >
                 <Lock className="w-4 h-4" />
                 {savingPassword ? '...' : t('profile.changePassword')}
               </button>
               <button
                 onClick={cancelEditPassword}
-                className="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors flex items-center gap-2"
+className="px-5 py-2.5 bg-surface-tertiary bg-surface-hover text-foreground rounded-xl font-medium transition-colors flex items-center gap-2"
               >
                 <X className="w-4 h-4" />
                 {t('common.cancel') || 'Cancel'}
@@ -333,7 +333,7 @@ export default function ProfilePage() {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-gray-500 dark:text-gray-400">••••••••</p>
+<p className="text-sm text-muted">••••••••</p>
         )}
       </div>
     </div>
@@ -342,12 +342,12 @@ export default function ProfilePage() {
 
 function InfoRow({ icon: Icon, label, value, valueColor = '' }) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50">
-      <div className="w-9 h-9 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
-        <Icon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+<div className="flex items-center gap-3 p-3 rounded-xl bg-surface-secondary">
+<div className="w-9 h-9 rounded-lg bg-accent-soft flex items-center justify-center flex-shrink-0">
+<Icon className="w-4 h-4 text-accent"/>
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+<p className="text-xs text-muted">{label}</p>
         <p className={`text-sm font-medium truncate ${valueColor}`}>{value || '-'}</p>
       </div>
     </div>

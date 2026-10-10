@@ -125,9 +125,9 @@ export default function UsersPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <Shield className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{t('users.accessDenied')}</h2>
-          <p className="text-gray-500 dark:text-gray-400">{t('users.managerOnly')}</p>
+<Shield className="w-16 h-16 mx-auto text-foreground mb-4"/>
+<h2 className="text-xl font-semibold text-foreground mb-2">{t('users.accessDenied')}</h2>
+<p className="text-muted">{t('users.managerOnly')}</p>
         </div>
       </div>
     )
@@ -167,7 +167,7 @@ export default function UsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('users.title')}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('users.subtitle')}</p>
+<p className="text-muted">{t('users.subtitle')}</p>
         </div>
         {canManage && (
         <button
@@ -175,7 +175,7 @@ export default function UsersPage() {
             setEditingUser(null)
             setShowForm(true)
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700"
         >
           <Plus className="w-4 h-4" />
           {t('users.addUser')}
@@ -184,52 +184,52 @@ export default function UsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+<div className="bg-surface rounded-xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[500px]">
             <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-                <th className="text-start p-4 font-medium text-gray-500 dark:text-gray-400">{t('users.fullName')}</th>
-                <th className="text-start p-4 font-medium text-gray-500 dark:text-gray-400">{t('users.role')}</th>
-                <th className="text-start p-4 font-medium text-gray-500 dark:text-gray-400">{t('users.employee')}</th>
-                <th className="text-start p-4 font-medium text-gray-500 dark:text-gray-400">{t('users.status')}</th>
-                <th className="text-end p-4 font-medium text-gray-500 dark:text-gray-400">{t('common.actions')}</th>
+<tr className="border-b border-border bg-surface-secondary">
+<th className="text-start p-4 font-medium text-muted">{t('users.fullName')}</th>
+<th className="text-start p-4 font-medium text-muted">{t('users.role')}</th>
+<th className="text-start p-4 font-medium text-muted">{t('users.employee')}</th>
+<th className="text-start p-4 font-medium text-muted">{t('users.status')}</th>
+<th className="text-end p-4 font-medium text-muted">{t('common.actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+<tbody className="divide-y divide-border">
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+<tr key={user.id}className="bg-surface-hover">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                        <User className="w-5 h-5 text-primary-600" />
+<div className="w-10 h-10 rounded-full bg-accent-soft flex items-center justify-center">
+<User className="w-5 h-5 text-accent"/>
                       </div>
                       <div>
                         <p className="font-medium">{user.fullName}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">@{user.username}</p>
+<p className="text-sm text-muted">@{user.username}</p>
                       </div>
                     </div>
                   </td>
                   <td className="p-4">
                     {user.id === 1 ? (
-                      <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+<span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-warning-soft text-warning-soft-foreground">
                         {t('users.adminProtected')}
                       </span>
                     ) : (
                       <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                         user.role === 'MANAGER'
-                          ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
+?'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
                           : user.role === 'SALES_MANAGER'
-                          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+?'bg-warning-soft text-warning-soft-foreground'
                           : user.role === 'CASHIER'
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+?'bg-success-soft text-success-soft-foreground'
                           : user.role === 'INVENTORY_CLERK'
-                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+?'bg-accent-soft text-accent-soft-foreground'
                           : user.role === 'ACCOUNTANT'
-                          ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'
+?'bg-accent-soft text-accent-soft-foreground'
                           : user.role === 'HR_MANAGER'
                           ? 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+:'bg-surface-tertiary text-foreground'
                       }`}>
                         {ROLES[user.role]?.name || user.role}
                       </span>
@@ -238,13 +238,13 @@ export default function UsersPage() {
                   <td className="p-4">
                     {user.employee ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                          <UserCheck className="w-3 h-3 text-green-600" />
+<div className="w-6 h-6 rounded-full bg-success-soft flex items-center justify-center">
+<UserCheck className="w-3 h-3 text-success"/>
                         </div>
                         <span className="text-sm">{user.employee.name}</span>
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-400">-</span>
+<span className="text-sm text-muted">-</span>
                     )}
                   </td>
                   <td className="p-4">
@@ -253,8 +253,8 @@ export default function UsersPage() {
                       disabled={user.id === 1 || user.id === currentUser?.id}
                       className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                         user.isActive
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+?'bg-success-soft text-success-soft-foreground'
+:'bg-danger-soft text-danger-soft-foreground'
                       } ${(user.id === 1 || user.id === currentUser?.id) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                     >
                       {user.isActive ? t('users.active') : t('users.inactive')}
@@ -265,7 +265,7 @@ export default function UsersPage() {
                       {user.id !== 1 && canManage && (
                         <button
                           onClick={() => handleEdit(user)}
-                          className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg"
+className="p-2 text-muted hover:text-primary-600 hover:bg-primary-50 rounded-lg"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -273,7 +273,7 @@ export default function UsersPage() {
                       {user.id !== 1 && user.id !== currentUser?.id && canManage && (
                         <button
                           onClick={() => setDeleteTarget(user.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
+className="p-2 text-muted hover:text-red-600 hover:bg-red-50 rounded-lg"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -385,15 +385,15 @@ function UserForm({ user, employees, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+<div className="bg-surface rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">
             {user ? t('users.editUser') : t('users.addNewUser')}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+className="p-2 rounded-lg bg-surface-hover"
           >
             <X className="w-5 h-5" />
           </button>
@@ -402,7 +402,7 @@ function UserForm({ user, employees, onSave, onClose }) {
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-auto p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('users.fullName')} *
             </label>
             <input
@@ -411,13 +411,13 @@ function UserForm({ user, employees, onSave, onClose }) {
               value={formData.fullName}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               placeholder={t('users.namePlaceholder')}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('users.username')} *
             </label>
             <input
@@ -426,13 +426,13 @@ function UserForm({ user, employees, onSave, onClose }) {
               value={formData.username}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               placeholder={t('users.usernamePlaceholder')}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('users.password')} {user ? `(${t('users.passwordHint')})` : '*'}
             </label>
             <input
@@ -440,20 +440,20 @@ function UserForm({ user, employees, onSave, onClose }) {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               placeholder="••••••••"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('users.role')} *
             </label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             >
               {Object.entries(ROLES).map(([key, role]) => (
                 <option key={key} value={key}>{language === 'ar' ? role.nameAr : role.name}</option>
@@ -462,14 +462,14 @@ function UserForm({ user, employees, onSave, onClose }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
               {t('users.employee')}
             </label>
             <select
               name="employeeId"
               value={formData.employeeId}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
             >
               <option value="">{t('users.noEmployee')}</option>
               {employees.filter(e => e.is_active).map(emp => (
@@ -480,17 +480,17 @@ function UserForm({ user, employees, onSave, onClose }) {
 
           {/* Custom Permissions */}
           {user && (
-            <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 rounded-lg">
-              <span className="text-yellow-600 dark:text-yellow-400 text-sm">
+<div className="flex items-center gap-2 p-3 bg-warning-soft border border-warning rounded-lg">
+<span className="text-warning text-sm">
                 {language === 'ar' ? 'تغيير الصلاحيات سيجبر المستخدم على تسجيل الخروج' : 'Changing permissions will force the user to re-login'}
               </span>
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+<label className="block text-sm font-medium text-foreground mb-2">
               {t('users.permissions')}
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg max-h-48 overflow-auto">
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-surface-secondary rounded-lg max-h-48 overflow-auto">
               {Object.entries(permissionLabels).map(([key, label]) => (
                 <label
                   key={key}
@@ -500,9 +500,9 @@ function UserForm({ user, employees, onSave, onClose }) {
                     type="checkbox"
                     checked={formData.permissions.includes(key)}
                     onChange={() => handlePermissionToggle(key)}
-                    className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+className="w-4 h-4 text-accent rounded border-border ring-focus"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+<span className="text-sm text-foreground">{label}</span>
                 </label>
               ))}
             </div>
@@ -510,18 +510,18 @@ function UserForm({ user, employees, onSave, onClose }) {
         </form>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+<div className="p-4 border-t border-border flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+className="px-4 py-2 text-foreground bg-surface-tertiary rounded-lg bg-surface-hover"
           >
             {t('common.cancel')}
           </button>
           <button
             type="submit"
             onClick={handleSubmit}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700"
           >
             {user ? t('common.save') : t('users.addUser')}
           </button>

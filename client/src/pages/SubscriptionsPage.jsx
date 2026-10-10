@@ -6,10 +6,10 @@ import { X, Plus, Edit2, Trash2, RefreshCw, Ban, CreditCard, Calendar, User, Sea
 import ConfirmModal from '../components/ConfirmModal'
 
 const STATUS_STYLES = {
-  active: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
-  cancelled: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
-  expired: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
-  past_due: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+active:'bg-success-soft text-success-soft-foreground',
+cancelled:'bg-danger-soft text-danger-soft-foreground',
+expired:'bg-surface-tertiary text-muted',
+past_due:'bg-warning-soft text-warning-soft-foreground',
 }
 
 const STATUS_LABEL_KEYS = {
@@ -103,11 +103,11 @@ export default function SubscriptionsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('services.subscriptionsTitle') || 'Subscriptions'}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('services.subscriptionsSubtitle') || 'Manage customer subscriptions'}</p>
+<p className="text-muted">{t('services.subscriptionsSubtitle')||'Manage customer subscriptions'}</p>
         </div>
         {canEdit && (
           <button onClick={() => { setEditing(null); setShowForm(true) }}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700">
             <Plus className="w-4 h-4" />{t('services.addSubscription') || 'Add Subscription'}
           </button>
         )}
@@ -117,40 +117,40 @@ export default function SubscriptionsPage() {
       <div className="flex gap-2">
         {['', 'active', 'expired', 'cancelled', 'past_due'].map(s => (
           <button key={s} onClick={() => setFilterStatus(s)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${filterStatus === s ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
+className={`px-3 py-1.5 rounded-lg text-sm font-medium ${filterStatus===s ?'bg-accent text-white':'bg-surface-tertiary text-muted bg-surface-hover'}`}>
             {s ? t(STATUS_LABEL_KEYS[s]) || s : t('services.all') || 'All'}
           </button>
         ))}
       </div>
 
       {loading ? (
-        <div className="text-center py-8 text-gray-500">{t('common.loading') || 'Loading...'}</div>
+<div className="text-center py-8 text-muted">{t('common.loading')||'Loading...'}</div>
       ) : subscriptions.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-          <CreditCard className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-          <p className="text-gray-500">{t('services.noSubscriptions') || 'No subscriptions yet'}</p>
+<div className="text-center py-12 bg-surface-secondary rounded-xl">
+<CreditCard className="w-12 h-12 mx-auto text-foreground mb-3"/>
+<p className="text-muted">{t('services.noSubscriptions')||'No subscriptions yet'}</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 shadow-sm rounded-xl overflow-hidden">
+<div className="bg-surface border border-border shadow-sm rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-start p-4 font-medium text-gray-500">{t('services.customer') || 'Customer'}</th>
-                  <th className="text-start p-4 font-medium text-gray-500">{t('services.plan') || 'Plan'}</th>
-                  <th className="text-start p-4 font-medium text-gray-500">{t('services.amount') || 'Amount'}</th>
-                  <th className="text-start p-4 font-medium text-gray-500">{t('services.startDate') || 'Start'}</th>
-                  <th className="text-start p-4 font-medium text-gray-500">{t('services.endDate') || 'End'}</th>
-                  <th className="text-start p-4 font-medium text-gray-500">{t('services.status') || 'Status'}</th>
-                  {canEdit && <th className="text-end p-4 font-medium text-gray-500">{t('common.actions') || 'Actions'}</th>}
+<tr className="border-b border-border">
+<th className="text-start p-4 font-medium text-muted">{t('services.customer')||'Customer'}</th>
+<th className="text-start p-4 font-medium text-muted">{t('services.plan')||'Plan'}</th>
+<th className="text-start p-4 font-medium text-muted">{t('services.amount')||'Amount'}</th>
+<th className="text-start p-4 font-medium text-muted">{t('services.startDate')||'Start'}</th>
+<th className="text-start p-4 font-medium text-muted">{t('services.endDate')||'End'}</th>
+<th className="text-start p-4 font-medium text-muted">{t('services.status')||'Status'}</th>
+{canEdit &&<th className="text-end p-4 font-medium text-muted">{t('common.actions')||'Actions'}</th>}
                 </tr>
               </thead>
               <tbody>
                 {subscriptions.map(sub => (
-                  <tr key={sub.id} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+<tr key={sub.id}className="border-b border-border bg-surface-hover">
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-gray-400" />
+<User className="w-4 h-4 text-muted"/>
                         {sub.customer?.name || '-'}
                       </div>
                     </td>
@@ -169,17 +169,17 @@ export default function SubscriptionsPage() {
                           {sub.status === 'active' && (
                             <>
                               <button onClick={() => setRenewTarget(sub.id)} title={t('services.renew')}
-                                className="p-1.5 text-gray-400 hover:text-green-600 rounded-lg"><RefreshCw className="w-4 h-4" /></button>
+className="p-1.5 text-muted hover:text-green-600 rounded-lg"><RefreshCw className="w-4 h-4"/></button>
                               <button onClick={() => setCancelTarget(sub.id)} title={t('services.cancel')}
-                                className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg"><Ban className="w-4 h-4" /></button>
+className="p-1.5 text-muted hover:text-red-600 rounded-lg"><Ban className="w-4 h-4"/></button>
                             </>
                           )}
                           <button onClick={() => { setEditing(sub); setShowForm(true) }} title={t('services.edit')}
-                            className="p-1.5 text-gray-400 hover:text-primary-600 rounded-lg"><Edit2 className="w-4 h-4" /></button>
+className="p-1.5 text-muted hover:text-primary-600 rounded-lg"><Edit2 className="w-4 h-4"/></button>
                           <button onClick={() => setShowPayments(sub.id)} title={t('services.payments')}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg"><CreditCard className="w-4 h-4" /></button>
+className="p-1.5 text-muted hover:text-blue-600 rounded-lg"><CreditCard className="w-4 h-4"/></button>
                           <button onClick={() => setDeleteTarget(sub.id)} title={t('services.delete')}
-                            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+className="p-1.5 text-muted hover:text-red-600 rounded-lg"><Trash2 className="w-4 h-4"/></button>
                         </div>
                       </td>
                     )}
@@ -256,16 +256,16 @@ function SubscriptionForm({ subscription, services, plans, customers, onSave, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">{subscription ? t('services.editSubscription') : t('services.addSubscription')}</h2>
-           <button onClick={onClose} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><X className="w-5 h-5" /></button>
+<button onClick={onClose}className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-surface-hover"><X className="w-5 h-5"/></button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">{t('services.customer') || 'Customer'} *</label>
             <select value={form.customer_id} onChange={e => setForm({ ...form, customer_id: e.target.value })} required
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface">
               <option value="">{t('services.selectCustomer') || 'Select customer'}</option>
               {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -273,12 +273,12 @@ function SubscriptionForm({ subscription, services, plans, customers, onSave, on
           <div>
             <label className="block text-sm font-medium mb-1">{t('services.plan') || 'Plan'} *</label>
             <select value={form.plan_id} onChange={e => handlePlanChange(e.target.value)} required
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface">
               <option value="">{t('services.selectPlan') || 'Select plan'}</option>
               {plans.map(p => <option key={p.id} value={p.id}>{p.name} - {p.price?.toLocaleString()} {t('common.currency') || 'EGP'} ({p.billing_cycle})</option>)}
             </select>
             {selectedPlan && (
-              <p className="text-xs text-gray-500 mt-1">
+<p className="text-xs text-muted mt-1">
                 {selectedPlan.duration_months} {t('services.months') || 'months'} | {selectedPlan.billing_cycle}
               </p>
             )}
@@ -287,39 +287,39 @@ function SubscriptionForm({ subscription, services, plans, customers, onSave, on
             <div>
               <label className="block text-sm font-medium mb-1">{t('services.startDate') || 'Start Date'} *</label>
               <input type="date" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} required
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">{t('services.endDate') || 'End Date'}</label>
               <input type="date" value={form.end_date} onChange={e => setForm({ ...form, end_date: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">{t('services.nextBilling') || 'Next Billing'}</label>
               <input type="date" value={form.next_billing_date} onChange={e => setForm({ ...form, next_billing_date: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">{t('services.amount') || 'Amount'} *</label>
               <input type="number" step="0.01" min="0" value={form.billing_amount} onChange={e => setForm({ ...form, billing_amount: e.target.value })} required
-                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <input type="checkbox" id="auto_renew" checked={form.auto_renew} onChange={e => setForm({ ...form, auto_renew: e.target.checked })}
-              className="w-4 h-4 text-primary-600 rounded" />
+className="w-4 h-4 text-accent rounded"/>
             <label htmlFor="auto_renew" className="text-sm">{t('services.autoRenew') || 'Auto Renew'}</label>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">{t('services.notes') || 'Notes'}</label>
             <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2}
-              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
           </div>
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">{t('common.cancel')}</button>
-            <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">{t('common.save')}</button>
+<button type="button"onClick={onClose}className="px-4 py-2 text-foreground bg-surface-tertiary rounded-lg bg-surface-hover">{t('common.cancel')}</button>
+<button type="submit"className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700">{t('common.save')}</button>
           </div>
         </form>
       </div>
@@ -361,55 +361,55 @@ function PaymentsModal({ subscriptionId, onClose, onRecord }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-4 shadow-2xl">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl w-full max-w-md mx-4 shadow-2xl">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">{t('services.payments') || 'Payments'}</h2>
           <div className="flex items-center gap-2">
             <button onClick={() => setShowPayForm(!showPayForm)}
-              className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+className="px-3 py-1.5 text-sm bg-accent text-white rounded-lg hover:bg-primary-700">
               <Plus className="w-4 h-4 inline mr-1" />{t('services.recordPayment') || 'Record Payment'}
             </button>
-            <button onClick={onClose} className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><X className="w-5 h-5" /></button>
+<button onClick={onClose}className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-surface-hover"><X className="w-5 h-5"/></button>
           </div>
         </div>
         <div className="p-4 max-h-96 overflow-y-auto">
           {showPayForm && (
-            <form onSubmit={handleRecord} className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-3">
+<form onSubmit={handleRecord}className="mb-4 p-3 bg-surface-secondary rounded-lg space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input type="number" step="0.01" min="0.01" placeholder={t('services.amount') || 'Amount'} value={form.amount}
                   onChange={e => setForm({ ...form, amount: e.target.value })} required
-                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm" />
+className="px-3 py-2 rounded-lg border border-border bg-surface text-sm"/>
                 <select value={form.payment_method} onChange={e => setForm({ ...form, payment_method: e.target.value })}
-                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm">
+className="px-3 py-2 rounded-lg border border-border bg-surface text-sm">
                   <option value="cash">{t('payments.cash') || 'Cash'}</option>
                   <option value="card">{t('payments.card') || 'Card'}</option>
                   <option value="bank">{t('payments.bank') || 'Bank Transfer'}</option>
                 </select>
               </div>
               <button type="submit" disabled={recording}
-                className="w-full px-3 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 disabled:opacity-50">
+className="w-full px-3 py-2 bg-accent text-white rounded-lg text-sm hover:bg-primary-700 disabled:opacity-50">
                 {recording ? (t('common.processing') || 'Processing...') : (t('common.save'))}
               </button>
             </form>
           )}
           {loading ? (
-            <div className="text-center py-4 text-gray-500">{t('common.loading')}</div>
+<div className="text-center py-4 text-muted">{t('common.loading')}</div>
           ) : payments.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">{t('services.noPayments') || 'No payments yet'}</div>
+<div className="text-center py-6 text-muted">{t('services.noPayments')||'No payments yet'}</div>
           ) : (
             <>
-              <div className="flex justify-between items-center mb-3 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+<div className="flex justify-between items-center mb-3 p-3 bg-accent-soft rounded-lg">
                 <span className="text-sm font-medium">{t('services.totalPaid') || 'Total Paid'}</span>
-                <span className="text-lg font-bold text-primary-600">{totalPaid.toLocaleString()} {t('common.currency') || 'EGP'}</span>
+<span className="text-lg font-bold text-accent">{totalPaid.toLocaleString()}{t('common.currency')||'EGP'}</span>
               </div>
               <div className="space-y-2">
                 {payments.map(p => (
-                  <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+<div key={p.id}className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
                     <div>
                       <div className="font-medium">{p.amount?.toLocaleString()} {t('common.currency') || 'EGP'}</div>
-                      <div className="text-xs text-gray-500">{p.payment_date} - {p.payment_method}</div>
+<div className="text-xs text-muted">{p.payment_date}-{p.payment_method}</div>
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+<span className={`text-xs px-2 py-0.5 rounded-full ${p.status==='paid'?'bg-success-soft text-success-soft-foreground':'bg-warning-soft text-warning-soft-foreground'}`}>
                       {p.status === 'paid' ? t('services.paymentPaid') : p.status === 'pending' ? t('services.paymentPending') : t('services.paymentFailed')}
                     </span>
                   </div>

@@ -86,34 +86,34 @@ function getTiers(t, plans = [], billingPeriod = 'monthly') {
 
 const colorMap = {
   gray: {
-    bg: 'bg-gray-50 dark:bg-gray-800',
-    border: 'border-gray-200 dark:border-gray-700',
-    iconBg: 'bg-gray-100 dark:bg-gray-700',
-    iconColor: 'text-gray-600 dark:text-gray-300',
-    button: 'bg-gray-600 hover:bg-gray-700 text-white',
-    buttonCurrent: 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed',
-    buttonDowngrade: 'bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400',
-    check: 'text-gray-500',
+bg:'bg-surface-secondary',
+border:'border-border',
+iconBg:'bg-surface-tertiary',
+iconColor:'text-muted',
+button:'bg-surface-secondary bg-surface-hover text-white',
+buttonCurrent:'bg-surface-tertiary text-muted cursor-not-allowed',
+buttonDowngrade:'bg-surface border border-border text-foreground hover:bg-red-50 hover:text-red-600',
+check:'text-muted',
   },
   primary: {
-    bg: 'bg-primary-50 dark:bg-primary-900/20',
-    border: 'border-primary-500',
-    iconBg: 'bg-primary-100 dark:bg-primary-800',
-    iconColor: 'text-primary-600 dark:text-primary-400',
-    button: 'bg-primary-600 hover:bg-primary-700 text-white',
-    buttonCurrent: 'bg-primary-300 dark:bg-primary-700 text-primary-500 dark:text-primary-400 cursor-not-allowed',
-    buttonDowngrade: 'bg-white dark:bg-gray-700 border border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400',
-    check: 'text-primary-500',
+bg:'bg-accent-soft',
+border:'border-accent',
+iconBg:'bg-accent-soft',
+iconColor:'text-accent',
+button:'bg-accent hover:bg-primary-700 text-white',
+buttonCurrent:'bg-accent text-accent cursor-not-allowed',
+buttonDowngrade:'bg-surface border border-accent text-accent hover:bg-red-50 hover:text-red-600',
+check:'text-accent',
   },
   yellow: {
-    bg: 'bg-yellow-50 dark:bg-yellow-900/20',
-    border: 'border-yellow-400 dark:border-yellow-600',
-    iconBg: 'bg-yellow-100 dark:bg-yellow-800',
-    iconColor: 'text-yellow-600 dark:text-yellow-400',
-    button: 'bg-yellow-600 hover:bg-yellow-700 text-white',
-    buttonCurrent: 'bg-yellow-300 dark:bg-yellow-700 text-yellow-600 dark:text-yellow-400 cursor-not-allowed',
-    buttonDowngrade: 'bg-white dark:bg-gray-700 border border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400',
-    check: 'text-yellow-500',
+bg:'bg-warning-soft',
+border:'border-warning',
+iconBg:'bg-warning-soft',
+iconColor:'text-warning',
+button:'bg-warning hover:bg-yellow-700 text-white',
+buttonCurrent:'bg-warning text-warning cursor-not-allowed',
+buttonDowngrade:'bg-surface border border-warning text-warning hover:bg-red-50 hover:text-red-600',
+check:'text-warning',
   },
 }
 
@@ -233,35 +233,35 @@ export default function PricingPage() {
   const upgraded = searchParams.get('upgraded') === 'true'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 sm:py-12 px-4">
+<div className="min-h-screen bg-surface-secondary py-8 sm:py-12 px-4">
       <div className="max-w-5xl mx-auto">
         {verifying && (
-          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl flex items-center gap-3">
-            <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-            <span className="text-blue-800 dark:text-blue-200">{t('pricing.verifyingPayment') || 'Verifying your payment...'}</span>
+<div className="mb-6 p-4 bg-accent-soft border border-accent rounded-xl flex items-center gap-3">
+<Loader2 className="w-5 h-5 animate-spin text-accent"/>
+<span className="text-accent">{t('pricing.verifyingPayment')||'Verifying your payment...'}</span>
           </div>
         )}
 
         {upgraded && (
-          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl">
-            <p className="text-green-800 dark:text-green-200 font-medium">{t('pricing.upgradeSuccess') || 'Your plan has been upgraded successfully!'}</p>
+<div className="mb-6 p-4 bg-success-soft border border-success rounded-xl">
+<p className="text-success font-medium">{t('pricing.upgradeSuccess')||'Your plan has been upgraded successfully!'}</p>
           </div>
         )}
         <div className="text-center mb-12">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+<h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             {t('pricing.title') || 'Choose Your Plan'}
           </h1>
-          <p className="mt-3 text-base sm:text-lg text-gray-600 dark:text-gray-400">
+<p className="mt-3 text-base sm:text-lg text-muted">
             {t('pricing.subtitle') || 'Scale your business with the right tools'}
           </p>
 
-          <div className="mt-6 inline-flex items-center gap-3 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+<div className="mt-6 inline-flex items-center gap-3 bg-surface-tertiary rounded-xl p-1">
             <button
               onClick={() => setBillingPeriod('monthly')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 billingPeriod === 'monthly'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+?'bg-surface text-foreground shadow-sm'
+:'text-muted text-foreground'
               }`}
             >
               {t('pricing.monthly') || 'Monthly'}
@@ -270,12 +270,12 @@ export default function PricingPage() {
               onClick={() => setBillingPeriod('yearly')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all relative ${
                 billingPeriod === 'yearly'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+?'bg-surface text-foreground shadow-sm'
+:'text-muted text-foreground'
               }`}
             >
               {t('pricing.yearly') || 'Yearly'}
-              <span className="absolute -top-2 -right-4 text-[10px] font-bold text-green-600 dark:text-green-400">
+<span className="absolute -top-2 -right-4 text-[10px] font-bold text-success">
                 {t('pricing.save') || 'Save 17%'}
               </span>
             </button>
@@ -309,17 +309,17 @@ export default function PricingPage() {
               <div
                 key={tier.id}
                 className={`relative rounded-2xl border-2 ${colors.border} ${colors.bg} p-4 sm:p-6 flex flex-col ${
-                  tier.popular ? 'ring-2 ring-primary-500 shadow-xl md:scale-105' : 'shadow-md'
+tier.popular ?'ring-2 ring-primary-500 shadow-xl md:scale-105':'shadow-md'
                 }`}
               >
                 {tier.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+<div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-white text-xs font-bold px-3 py-1 rounded-full">
                     {t('pricing.mostPopular') || 'Most Popular'}
                   </div>
                 )}
 
                 {isCurrent && (
-                  <div className="absolute -top-3 right-4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+<div className="absolute -top-3 right-4 bg-success text-white text-xs font-bold px-3 py-1 rounded-full">
                     {t('pricing.current') || 'Current'}
                   </div>
                 )}
@@ -328,12 +328,12 @@ export default function PricingPage() {
                   <Icon className={`w-6 h-6 ${colors.iconColor}`} />
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{tier.name}</h3>
+<h3 className="text-xl font-bold text-foreground">{tier.name}</h3>
                 <div className="mt-2 mb-6">
-                  <span className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white">{tier.price > 0 ? `${tier.price.toLocaleString()} ج.م` : (t('pricing.free') || 'Free')}</span>
-                  <span className="text-gray-500 dark:text-gray-400">{tier.period}</span>
+<span className="text-2xl sm:text-4xl font-bold text-foreground">{tier.price>0 ?`${tier.price.toLocaleString()}ج.م`:(t('pricing.free')||'Free')}</span>
+<span className="text-muted">{tier.period}</span>
                   {tier.monthlyEquiv && billingPeriod === 'yearly' && (
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+<p className="text-xs text-success mt-1">
                       ({tier.monthlyEquiv.toLocaleString()} ج.م/{t('pricing.perMonth') || 'mo'})
                     </p>
                   )}
@@ -345,9 +345,9 @@ export default function PricingPage() {
                       {feature.included ? (
                         <Check className={`w-4 h-4 ${colors.check}`} />
                       ) : (
-                        <X className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+<X className="w-4 h-4 text-foreground"/>
                       )}
-                      <span className={`text-xs sm:text-sm ${feature.included ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+<span className={`text-xs sm:text-sm ${feature.included ?'text-foreground':'text-muted'}`}>
                         {feature.text}
                       </span>
                     </li>
@@ -368,10 +368,10 @@ export default function PricingPage() {
         </div>
 
         <div className="mt-12 text-center">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+<h2 className="text-xl font-bold text-foreground mb-4">
             {t('pricing.paymentMethodsTitle') || 'Accepted Payment Methods'}
           </h2>
-          <div className="flex flex-wrap justify-center gap-6 text-gray-600 dark:text-gray-400">
+<div className="flex flex-wrap justify-center gap-6 text-muted">
             <div className="flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
               <span>{t('pricing.visaMastercard') || 'Visa / Mastercard'}</span>
@@ -393,7 +393,7 @@ export default function PricingPage() {
               <span>{t('pricing.fawry') || 'Fawry'}</span>
             </div>
           </div>
-          <p className="mt-4 text-sm text-gray-500 dark:text-gray-500">
+<p className="mt-4 text-sm text-muted">
             {t('pricing.allPricesEGP') || 'All prices are in Egyptian Pounds (EGP)'}
           </p>
         </div>
@@ -402,22 +402,22 @@ export default function PricingPage() {
       {/* Payment Modal */}
       {showPayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { setShowPayment(null); setProcessing(false) }}>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
+<div className="bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 p-6 relative"onClick={(e)=>e.stopPropagation()}>
             <button
               onClick={() => { setShowPayment(null); setProcessing(false) }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+className="absolute top-4 right-4 text-muted text-foreground"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+<h2 className="text-lg font-semibold text-foreground mb-1">
               {t('pricing.payFor') || 'Pay for'} {showPayment.name}
             </h2>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+<p className="text-2xl font-bold text-foreground mb-1">
               {showPayment.price.toLocaleString()} ج.م{showPayment.period}
             </p>
             {billingPeriod === 'yearly' && showPayment.monthlyEquiv && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
+<p className="text-xs text-muted mb-6">
                 ({showPayment.monthlyEquiv.toLocaleString()} ج.م/{t('pricing.perMonth') || 'mo'})
               </p>
             )}
@@ -429,7 +429,7 @@ export default function PricingPage() {
               <button
                 onClick={handlePaymob}
                 disabled={processing}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-accent hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
               >
                 {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
                 {t('pricing.payWithCard') || 'Pay with Card / Wallet / Fawry'}
@@ -438,14 +438,14 @@ export default function PricingPage() {
               <button
                 onClick={handleStripe}
                 disabled={processing}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-[#635bff] hover:bg-[#5046e4] text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-[#635bff] hover:bg-[#5046e4] text-white rounded-lg font-medium transition-colors disabled:opacity-50"
               >
                 {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
                 {t('pricing.payWithStripe') || 'Pay with Stripe (International)'}
               </button>
             </div>
 
-            <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
+<p className="text-xs text-muted text-center mt-4">
               {t('pricing.securePayment') || 'Secure payment processed by Paymob & Stripe'}
             </p>
           </div>
@@ -455,39 +455,39 @@ export default function PricingPage() {
       {/* Downgrade Confirmation Modal */}
       {showDowngradeConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowDowngradeConfirm(null)}>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 relative" onClick={(e) => e.stopPropagation()}>
+<div className="bg-surface rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 relative"onClick={(e)=>e.stopPropagation()}>
             <button
               onClick={() => setShowDowngradeConfirm(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+className="absolute top-4 right-4 text-muted text-foreground"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-4">
-                <ArrowDown className="w-6 h-6 text-orange-500" />
+<div className="w-12 h-12 rounded-full bg-warning-soft flex items-center justify-center mx-auto mb-4">
+<ArrowDown className="w-6 h-6 text-warning"/>
               </div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+<h2 className="text-lg font-semibold text-foreground mb-2">
                 {t('pricing.downgradeTitle') || 'Downgrade Plan?'}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+<p className="text-sm text-muted mb-2">
                 {t('pricing.downgradeConfirm') || 'You will be moved to'} <strong>{showDowngradeConfirm.name}</strong>
               </p>
-              <p className="text-sm text-orange-600 dark:text-orange-400 mb-6">
+<p className="text-sm text-warning mb-6">
                 {t('pricing.downgradeWarning') || 'Your product/user limits will be reduced. Existing data will not be deleted.'}
               </p>
 
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDowngradeConfirm(null)}
-                  className="flex-1 py-2.5 rounded-lg font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+className="flex-1 py-2.5 rounded-lg font-medium bg-surface-tertiary text-foreground bg-surface-hover transition-colors"
                 >
                   {t('pricing.cancel') || 'Cancel'}
                 </button>
                 <button
                   onClick={handleDowngrade}
                   disabled={downgrading}
-                  className="flex-1 py-2.5 rounded-lg font-medium bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+className="flex-1 py-2.5 rounded-lg font-medium bg-danger hover:bg-red-700 text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {downgrading && <Loader2 className="w-4 h-4 animate-spin" />}
                   {t('pricing.confirmDowngrade') || 'Downgrade'}
