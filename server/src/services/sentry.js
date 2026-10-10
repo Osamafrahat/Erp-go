@@ -19,7 +19,13 @@ export function initSentry() {
   try {
     Sentry.init({
       dsn,
-      environment: process.env.NODE_ENV || 'development',
+      // NODE_ENV is not set in the Fly image; without a fallback, every
+      // production event would be mislabelled "development". SENTRY_ENV wins
+      // if ever set explicitly, then NODE_ENV, then the Fly platform marker.
+      environment:
+        process.env.SENTRY_ENV ||
+        process.env.NODE_ENV ||
+        (process.env.FLY_APP_ID ? 'production' : 'development'),
       tracesSampleRate: 0,
       sendDefaultPii: false,
     })

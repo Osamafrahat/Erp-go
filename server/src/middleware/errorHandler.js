@@ -3,6 +3,12 @@ import { captureException } from '../services/sentry.js'
 export function errorHandler(err, req, res, next) {
   console.error('Error:', err.message || err)
 
+  // capture500Responses (mounted before the routes) watches for 5xx JSON
+  // responses; flag this request so failures arriving via next(err) are
+  // reported once — here, as the real exception, not the response wrapper.
+  res.locals = res.locals || {}
+  res.locals.sentryReported = true
+
   // Report only unexpected failures. 4xx responses are part of normal
   // operation, and reporting them would bury real faults in noise.
   const reportedStatus = err.statusCode || 500

@@ -8,6 +8,7 @@ import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
 import { errorHandler } from './middleware/errorHandler.js'
+import { capture500Responses } from './middleware/capture500.js'
 import { activityLogger } from './middleware/activityLogger.js'
 import { loginLimiter } from './middleware/loginLimiter.js'
 import { authRouter } from './routes/auth.js'
@@ -58,7 +59,7 @@ import cashShiftsRouter from './routes/cashShifts.js'
 import creditSalesRouter from './routes/creditSales.js'
 import productBatchesRouter from './routes/productBatches.js'
 import purchaseOrdersRouter from './routes/purchaseOrders.js'
-import { initSentry } from './services/sentry.js'
+import { initSentry, flushSentry } from './services/sentry.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -125,6 +126,10 @@ app.use(cors(corsOptions))
 
 app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true, limit: '5mb' }))
+
+// Catch 5xx responses that routes answer themselves instead of handing to
+// the error handler — without this, most server failures never reach Sentry.
+app.use(capture500Responses)
 
 // Every request, not just those under /api/. Until this existed only /api/
 // was limited, so a hit to / or any other unrouted path fell through to
@@ -260,6 +265,16 @@ process.on('unhandledRejection', (reason, promise) => {
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err)
 })
+
+// Fly stops machines with SIGTERM during restarts and deploys. Give
+// in-flight Sentry events a moment to leave the box first — without this,
+// an error captured moments before shutdown is silently dropped.
+for (const signal of ['SIGTERM', 'SIGINT']) {
+  process.once(signal, async () => {
+    await flushSentry(2000)
+    process.exit(0)
+  })
+}
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, '0.0.0.0', () => {
