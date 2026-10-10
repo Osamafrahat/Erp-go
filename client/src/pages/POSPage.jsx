@@ -12,7 +12,9 @@ import Cart from '../components/pos/Cart'
 import PaymentModal from '../components/pos/PaymentModal'
 import BarcodeScanner from '../components/pos/BarcodeScanner'
 import ReceiptModal from '../components/pos/ReceiptModal'
-import { Search, Zap, User, Wrench, CreditCard, WifiOff, Pause, Play, X } from 'lucide-react'
+import ShortcutsHelp from '../components/pos/ShortcutsHelp'
+import usePosShortcuts from '../hooks/usePosShortcuts'
+import { Search, Zap, User, Wrench, CreditCard, WifiOff, Pause, Play, X, Keyboard } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 export default function POSPage() {
@@ -40,13 +42,17 @@ export default function POSPage() {
   const [cashBoxBalance, setCashBoxBalance] = useState('')
   const [cashBoxNotes, setCashBoxNotes] = useState('')
   const [cashBoxSubmitting, setCashBoxSubmitting] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
+  // -1 = no cart row selected; ↑/↓ move it, +/-/Del act on it.
+  const [selectedRow, setSelectedRow] = useState(-1)
   const searchInputRef = useRef(null)
   const barcodeInputRef = useRef(null)
   const barcodeTimeoutRef = useRef(null)
+  const clearCartConfirmRef = useRef(0)
 
   const { products, categories, setProducts, setCategories, setLoading, setError } = useProductStore()
   const { addItem, items, getTotal } = useCartStore()
-  const { settings, t, toastSuccess, toastError } = useAppStore()
+  const { settings, t, toastSuccess, toastError, toastInfo } = useAppStore()
   const { currentUser } = useUserStore()
   const { isOnline, cacheData, loadCachedData, queueOrder } = useOfflineStore()
   const navigate = useNavigate()
@@ -304,6 +310,94 @@ export default function POSPage() {
     setHeldTransactions(prev => prev.filter(h => h.id !== held.id))
   }
 
+  // ---- Keyboard shortcuts (mapping lives in lib/posShortcuts.js) ----
+  const modalOpen = showPayment || showReceipt || showScanner || showCashBoxModal || showCloseShiftModal || showHelp
+
+  // Esc: close the topmost window; with nothing open, clear the search and
+  // snap focus back to the barcode field — the cashier's "undo my last
+  // keystrokes" key.
+  const handleEscape = () => {
+    if (showHelp) { setShowHelp(false); return }
+    if (showPayment) { setShowPayment(false); return }
+    if (showReceipt) { setShowReceipt(false); setLastOrder(null); return }
+    if (showScanner) { setShowScanner(false); return }
+    if (showCashBoxModal) { setShowCashBoxModal(false); return }
+    if (showCloseShiftModal) { setShowCloseShiftModal(false); return }
+    if (showHeld) { setShowHeld(false); return }
+    if (showCashBoxPanel) { setShowCashBoxPanel(false); return }
+    setSearchQuery('')
+    setSelectedCategory(null)
+    if (barcodeInputRef.current) barcodeInputRef.current.value = ''
+    barcodeInputRef.current?.focus()
+  }
+
+  // F8 is destructive, so it takes two presses within 1.5s.
+  const handleClearCartRequest = () => {
+    if (items.length === 0) return
+    const now = Date.now()
+    if (now - clearCartConfirmRef.current < 1500) {
+      clearCartConfirmRef.current = 0
+      useCartStore.getState().clearCart()
+      setSelectedRow(-1)
+      toastSuccess(t('pos.cartCleared') || 'Cart cleared')
+    } else {
+      clearCartConfirmRef.current = now
+      toastInfo(t('pos.cartClearConfirm') || 'Press F8 again to clear the cart')
+    }
+  }
+
+  const moveRow = (delta) => {
+    const n = items.length
+    if (n === 0) return
+    setSelectedRow((prev) => {
+      if (prev < 0) return delta > 0 ? 0 : n - 1
+      return Math.min(n - 1, Math.max(0, prev + delta))
+    })
+  }
+
+  const bumpRowQty = (delta) => {
+    const item = items[selectedRow]
+    if (!item) return
+    useCartStore.getState().updateQuantity(item.product.id, item.quantity + delta, item.product._type, item.sellMode)
+  }
+
+  const removeSelectedRow = () => {
+    const item = items[selectedRow]
+    if (!item) return
+    useCartStore.getState().removeItem(item.product.id, item.product._type, item.sellMode)
+  }
+
+  // Keep the selection inside the cart when items leave it (sale completed,
+  // row deleted, held order recalled...).
+  useEffect(() => {
+    setSelectedRow((prev) => (prev >= items.length ? items.length - 1 : prev))
+  }, [items.length])
+
+  usePosShortcuts(
+    {
+      escape: handleEscape,
+      help: () => setShowHelp((v) => !v),
+      focusBarcode: () => barcodeInputRef.current?.focus(),
+      focusSearch: () => {
+        searchInputRef.current?.focus()
+        searchInputRef.current?.select()
+      },
+      held: () => setShowHeld((v) => !v),
+      clearCart: handleClearCartRequest,
+      scanner: () => setShowScanner(true),
+      hold: handleHold,
+      tabProducts: () => setActiveTab('products'),
+      tabServices: () => setActiveTab('services'),
+      tabSubscriptions: () => setActiveTab('subscriptions'),
+      rowUp: () => moveRow(-1),
+      rowDown: () => moveRow(1),
+      qtyUp: () => bumpRowQty(1),
+      qtyDown: () => bumpRowQty(-1),
+      removeRow: removeSelectedRow,
+    },
+    () => ({ modalOpen })
+  )
+
   // Held orders are same-day, so time alone is what tells two rows apart.
   const formatHeldTime = (iso) => {
     try {
@@ -517,6 +611,15 @@ className="px-2.5 shrink-0 text-foreground hover:text-red-500 transition-colors"
               )}
             </div>
           )}
+          <button
+            type="button"
+            onClick={() => setShowHelp(true)}
+            title={t('pos.shortcutHelp') || 'Keyboard shortcuts'}
+            className="px-3 py-3 bg-surface border border-border text-muted rounded-lg hover:bg-surface-hover hover:text-foreground flex items-center gap-1.5 shrink-0 transition-colors"
+          >
+            <Keyboard className="w-5 h-5" />
+            <span className="hidden md:inline text-xs font-bold font-mono">F1</span>
+          </button>
         </div>
 
         {/* Products / Services / Subscriptions Tabs */}
@@ -665,7 +768,7 @@ className="w-full px-3 py-2 text-sm rounded-lg border-2 border-dashed border-acc
         </div>
 
         <div className="flex-1">
-          <Cart onCheckout={() => {
+          <Cart selectedRow={selectedRow} onCheckout={() => {
             // No box of my own open -> offer to open one. Another cashier
             // being on the floor is irrelevant to this decision.
             if (!activeShift) {
@@ -676,6 +779,9 @@ className="w-full px-3 py-2 text-sm rounded-lg border-2 border-dashed border-acc
           }} />
         </div>
       </div>
+
+      {/* Keyboard shortcuts help (F1) */}
+      {showHelp && <ShortcutsHelp onClose={() => setShowHelp(false)} />}
 
       {/* Payment Modal */}
       {showPayment && (

@@ -5,7 +5,7 @@ import { promotionsApi } from '../../lib/api'
 import { formatCurrency } from '../../lib/utils'
 import { Trash2, Plus, Minus, Tag, ShoppingBag, X, Wrench } from 'lucide-react'
 
-export default memo(function Cart({ onCheckout }) {
+export default memo(function Cart({ onCheckout, selectedRow = -1 }) {
   const { items, removeItem, updateQuantity, clearCart, getSubtotal, getProductSubtotal, getNonProductSubtotal, getDiscount, getTax, getTotal, promoCode, promoDiscount, applyPromo, removePromo } = useCartStore()
   const { settings, t, toastError } = useAppStore()
   const [promoInput, setPromoInput] = useState('')
@@ -22,6 +22,14 @@ export default memo(function Cart({ onCheckout }) {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [items.length, onCheckout])
+
+  // Keyboard row selection (POSPage drives selectedRow with arrow keys):
+  // keep the highlighted row in view as the cashier walks the cart.
+  useEffect(() => {
+    if (selectedRow < 0) return
+    const el = document.querySelector(`[data-cart-row="${selectedRow}"]`)
+    el?.scrollIntoView({ block: 'nearest' })
+  }, [selectedRow])
 
   const handleApplyPromo = async () => {
     if (!promoInput.trim()) return
@@ -103,10 +111,12 @@ className="text-sm text-danger hover:text-red-600 flex items-center gap-1 p-2 -m
           </div>
         ) : (
           <div className="space-y-3">
-            {items.map((item) => (
+            {items.map((item, i) => (
               <div
                 key={`${item.product.id}-${item.sellMode || 'default'}`}
-className="flex gap-3 p-3 bg-surface-secondary rounded-lg"
+                data-cart-row={i}
+                aria-current={i === selectedRow ? 'true' : undefined}
+                className={`flex gap-3 p-3 rounded-lg transition-colors ${i === selectedRow ? 'bg-accent-soft ring-2 ring-accent' : 'bg-surface-secondary'}`}
               >
                 {/* Product Image */}
 <div className="w-12 h-12 rounded-lg bg-surface-tertiary flex items-center justify-center flex-shrink-0">
