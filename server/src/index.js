@@ -70,6 +70,12 @@ initSentry()
 
 app.set('trust proxy', 1)
 
+// Must precede every route — including the Stripe webhook mounted below,
+// which is deliberately registered ahead of the body parsers and answers
+// 500s itself. Catches 5xx responses that routes handle without calling
+// next(err); without this, most server failures never reach Sentry.
+app.use(capture500Responses)
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const clientDist = path.join(__dirname, '../../client/dist')
@@ -126,10 +132,6 @@ app.use(cors(corsOptions))
 
 app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true, limit: '5mb' }))
-
-// Catch 5xx responses that routes answer themselves instead of handing to
-// the error handler — without this, most server failures never reach Sentry.
-app.use(capture500Responses)
 
 // Every request, not just those under /api/. Until this existed only /api/
 // was limited, so a hit to / or any other unrouted path fell through to
