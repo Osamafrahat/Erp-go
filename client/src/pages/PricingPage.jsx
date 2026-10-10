@@ -118,8 +118,12 @@ check:'text-warning',
 }
 
 export default function PricingPage() {
-  const { t } = useAppStore()
-  const { currentUser, refreshUser } = useUserStore()
+  const t = useAppStore((s) => s.t)
+  // Narrow selectors: SessionTimeout updates `lastActivity` on every
+  // mousemove/click; whole-store subscriptions re-rendered this page (and the
+  // open payment modal) on every pointer move.
+  const currentUser = useUserStore((s) => s.currentUser)
+  const refreshUser = useUserStore((s) => s.refreshUser)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [showPayment, setShowPayment] = useState(null)

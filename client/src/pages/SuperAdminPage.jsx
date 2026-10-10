@@ -36,10 +36,21 @@ className="flex-1 bg-accent rounded-t min-w-[4px] transition-all"
 }
 
 export default function SuperAdminPage() {
-  const { t } = useAppStore()
-  const { currentUser } = useUserStore()
+  // Narrow selector: SessionTimeout writes `lastActivity` on every
+  // mousemove/click, so subscribing to the whole store re-rendered this page
+  // (and every tab) on every pointer move.
+  const t = useAppStore((s) => s.t)
+  const currentUser = useUserStore((s) => s.currentUser)
   const [tab, setTab] = useState('dashboard')
   const [toast, setToast] = useState(null)
+  // useCallback: child tabs keep `showToast` in their fetch-effect deps, so an
+  // unstable identity refired those effects on every parent render (infinite
+  // refetch/loading loop on the Wallet Transfers tab). Declared before the
+  // role-guard return below (rules of hooks require unconditional order).
+  const showToast = useCallback((msg, type = 'success') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 3000)
+  }, [])
 
   if (currentUser?.role !== 'SUPER_ADMIN') {
     return (
@@ -49,11 +60,6 @@ export default function SuperAdminPage() {
         <p className="text-sm">{t('admin.roleRequired') || 'Super Admin role required'}</p>
       </div>
     )
-  }
-
-  const showToast = (msg, type = 'success') => {
-    setToast({ msg, type })
-    setTimeout(() => setToast(null), 3000)
   }
 
   const tabs = [
