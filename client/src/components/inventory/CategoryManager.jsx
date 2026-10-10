@@ -61,32 +61,32 @@ export default function CategoryManager({ categories, onClose, onRefresh }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
+<div className="bg-surface rounded-2xl w-full max-w-lg mx-4 shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">{t('inventory.manageCategories')}</h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+className="p-2 rounded-lg bg-surface-hover"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Add Category Form */}
-        <form onSubmit={handleCreate} className="p-4 border-b border-gray-200 dark:border-gray-700">
+<form onSubmit={handleCreate}className="p-4 border-b border-border">
           <div className="flex gap-2">
             <input
               type="text"
               value={newCategory.name}
               onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
               placeholder={t('inventory.newCategoryName')}
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="flex-1 px-4 py-2 rounded-lg border border-border bg-surface"
             />
             <button
               type="submit"
               disabled={loading || !newCategory.name.trim()}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700 bg-surface-tertiary disabled:cursor-not-allowed flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               {t('common.add')}
@@ -97,7 +97,7 @@ export default function CategoryManager({ categories, onClose, onRefresh }) {
         {/* Categories List */}
         <div className="p-4 max-h-96 overflow-auto">
           {categories.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+<div className="text-center py-8 text-muted">
               <Tag className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>{t('inventory.noCategories')}</p>
             </div>
@@ -106,7 +106,7 @@ export default function CategoryManager({ categories, onClose, onRefresh }) {
               {categories.map((category) => (
                 <div
                   key={category.id}
-                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+className="flex items-center gap-3 p-3 bg-surface-secondary rounded-lg"
                 >
                   {editingCategory?.id === category.id ? (
                     <>
@@ -114,42 +114,42 @@ export default function CategoryManager({ categories, onClose, onRefresh }) {
                         type="text"
                         value={editingCategory.name}
                         onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                        className="flex-1 px-3 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800"
+className="flex-1 px-3 py-1 rounded border border-border bg-surface"
                         autoFocus
                       />
                       <button
                         onClick={() => handleUpdate(category.id)}
                         disabled={loading}
-                        className="p-1 text-green-600 hover:text-green-700"
+className="p-1 text-success hover:text-green-700"
                       >
                         <Check className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setEditingCategory(null)}
-                        className="p-1 text-gray-400 hover:text-gray-600"
+className="p-1 text-muted text-foreground"
                       >
                         <X className="w-4 h-4" />
                       </button>
                     </>
                   ) : (
                     <>
-                      <Tag className="w-5 h-5 text-gray-400" />
+<Tag className="w-5 h-5 text-muted"/>
                       <div className="flex-1">
                         <p className="font-medium">{category.name}</p>
                         {category.description && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{category.description}</p>
+<p className="text-sm text-muted">{category.description}</p>
                         )}
                       </div>
                       <button
                         onClick={() => setEditingCategory(category)}
-                        className="p-1 text-gray-400 hover:text-primary-600"
+className="p-1 text-muted hover:text-primary-600"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setDeleteTarget(category.id)}
                         disabled={loading}
-                        className="p-1 text-gray-400 hover:text-red-600"
+className="p-1 text-muted hover:text-red-600"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -162,10 +162,10 @@ export default function CategoryManager({ categories, onClose, onRefresh }) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+<div className="p-4 border-t border-border">
           <button
             onClick={onClose}
-            className="w-full py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+className="w-full py-2 bg-surface-tertiary rounded-lg bg-surface-hover"
           >
             {t('inventory.done')}
           </button>

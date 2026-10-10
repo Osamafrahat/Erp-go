@@ -153,12 +153,12 @@ export default function BarcodePrinter({ product, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md mx-4 shadow-2xl">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+<div className="bg-surface rounded-2xl w-full max-w-md mx-4 shadow-2xl">
+<div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold">{t('barcode.printBarcode')}</h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+className="p-2 rounded-lg bg-surface-hover"
           >
             <X className="w-5 h-5" />
           </button>
@@ -166,14 +166,14 @@ export default function BarcodePrinter({ product, onClose }) {
 
         <div className="p-4 space-y-4">
           {/* Product Info */}
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+<div className="bg-surface-secondary rounded-lg p-3">
             <p className="font-medium">{product?.name || t('barcode.unknownProduct')}</p>
-            <p className="text-sm text-gray-500">{t('barcode.barcode')}: {barcodeValue}</p>
-            <p className="text-sm text-gray-500">{t('barcode.price')}: ${product?.price?.toFixed(2) || '0.00'}</p>
+<p className="text-sm text-muted">{t('barcode.barcode')}:{barcodeValue}</p>
+<p className="text-sm text-muted">{t('barcode.price')}: ${product?.price?.toFixed(2)||'0.00'}</p>
           </div>
 
           {/* Preview */}
-          <div ref={printRef} className="flex justify-center p-4 bg-white border border-gray-200 rounded-lg">
+<div ref={printRef}className="flex justify-center p-4 bg-surface border border-border rounded-lg">
             <BarcodeSVG
               value={barcodeValue}
               width={200}
@@ -185,7 +185,7 @@ export default function BarcodePrinter({ product, onClose }) {
           {/* Options */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('barcode.quantity')}
               </label>
               <input
@@ -194,11 +194,11 @@ export default function BarcodePrinter({ product, onClose }) {
                 onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                 min="1"
                 max="100"
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-3 py-2 rounded-lg border border-border bg-surface"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<label className="block text-sm font-medium text-foreground mb-1">
                 {t('barcode.labelWidth')}
               </label>
               <input
@@ -207,7 +207,7 @@ export default function BarcodePrinter({ product, onClose }) {
                 onChange={(e) => setLabelWidth(parseInt(e.target.value) || 50)}
                 min="20"
                 max="100"
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+className="w-full px-3 py-2 rounded-lg border border-border bg-surface"
               />
             </div>
           </div>
@@ -227,14 +227,14 @@ export default function BarcodePrinter({ product, onClose }) {
           <div className="flex justify-end gap-3 pt-4">
             <button
               onClick={handleDownload}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+className="flex items-center gap-2 px-4 py-2 text-foreground bg-surface-tertiary rounded-lg bg-surface-hover"
             >
               <Download className="w-4 h-4" />
               {t('barcode.download')}
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700"
             >
               <Printer className="w-4 h-4" />
               {t('barcode.print')}
