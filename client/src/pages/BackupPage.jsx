@@ -256,7 +256,7 @@ export default function BackupPage() {
     <div className="space-y-6">
       {message && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 transition-all duration-300 ${
-          message.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+message.type==='success'?'bg-success text-white':'bg-danger text-white'
         }`}>
           {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           {message.text}
@@ -264,33 +264,33 @@ export default function BackupPage() {
       )}
 
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+<h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <HardDrive className="w-7 h-7" />
           {t('backup.title')}
         </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('backup.subtitle')}</p>
+<p className="text-sm text-muted mt-1">{t('backup.subtitle')}</p>
       </div>
 
       {/* Auto-Backup Status */}
       <div className={`rounded-2xl border p-6 shadow-sm ${
         autoStatus?.enabled
-          ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800'
-          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+?'bg-success-soft border-success'
+:'bg-surface border-border'
       }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-              autoStatus?.enabled ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700'
+autoStatus?.enabled ?'bg-success-soft':'bg-surface-tertiary'
             }`}>
-              {autoStatus?.enabled ? <Zap className="w-6 h-6 text-green-600 dark:text-green-400" /> : <ZapOff className="w-6 h-6 text-gray-400" />}
+{autoStatus?.enabled ?<Zap className="w-6 h-6 text-success"/>:<ZapOff className="w-6 h-6 text-muted"/>}
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-white">{t('backup.autoBackup')}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+<h3 className="font-bold text-foreground">{t('backup.autoBackup')}</h3>
+<p className="text-sm text-muted">
                 {autoStatus?.enabled ? t('backup.autoRunsDaily') : t('backup.autoDisabled')}
               </p>
               {autoStatus?.lastBackupTime && (
-                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+<p className="text-xs text-muted mt-1 flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
                   {t('backup.lastBackup')}: {formatDate(autoStatus.lastBackupTime)}
                 </p>
@@ -302,8 +302,8 @@ export default function BackupPage() {
             disabled={togglingAuto}
             className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all ${
               autoStatus?.enabled
-                ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50'
-                : 'bg-green-600 hover:bg-green-700 text-white'
+?'bg-danger-soft text-danger-soft-foreground hover:bg-red-200'
+:'bg-success hover:bg-green-700 text-white'
             } disabled:opacity-50`}
           >
             {togglingAuto ? <RefreshCw className="w-4 h-4 animate-spin" /> : autoStatus?.enabled ? <ZapOff className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
@@ -314,21 +314,21 @@ export default function BackupPage() {
 
       {/* Local Backup Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+<div className="bg-surface rounded-2xl border border-border p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <Database className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+<div className="w-12 h-12 rounded-xl bg-accent-soft flex items-center justify-center">
+<Database className="w-6 h-6 text-accent"/>
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-white">{t('backup.jsonBackup')}</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t('backup.jsonDesc')}</p>
+<h3 className="font-bold text-foreground">{t('backup.jsonBackup')}</h3>
+<p className="text-xs text-muted">{t('backup.jsonDesc')}</p>
             </div>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => createBackup('json')}
               disabled={creating === 'json'}
-              className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+className="flex-1 px-4 py-3 bg-accent hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
             >
               {creating === 'json' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               {creating === 'json' ? t('backup.creating') : t('backup.createJson')}
@@ -336,7 +336,7 @@ export default function BackupPage() {
             <button
               onClick={() => uploadToCloud('json')}
               disabled={uploadingCloud === 'json'}
-              className="px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+className="px-4 py-3 bg-accent hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
               title={t('backup.uploadToCloud')}
             >
               {uploadingCloud === 'json' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Cloud className="w-4 h-4" />}
@@ -344,21 +344,21 @@ export default function BackupPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+<div className="bg-surface rounded-2xl border border-border p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-              <FileText className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+<div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+<FileText className="w-6 h-6 text-purple-600 dark:text-purple-400"/>
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-white">{t('backup.sqlBackup')}</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t('backup.sqlDesc')}</p>
+<h3 className="font-bold text-foreground">{t('backup.sqlBackup')}</h3>
+<p className="text-xs text-muted">{t('backup.sqlDesc')}</p>
             </div>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => createBackup('sql')}
               disabled={creating === 'sql'}
-              className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
             >
               {creating === 'sql' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               {creating === 'sql' ? t('backup.creating') : t('backup.createSql')}
@@ -366,7 +366,7 @@ export default function BackupPage() {
             <button
               onClick={() => uploadToCloud('sql')}
               disabled={uploadingCloud === 'sql'}
-              className="px-4 py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+className="px-4 py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
               title={t('backup.uploadToCloud')}
             >
               {uploadingCloud === 'sql' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Cloud className="w-4 h-4" />}
@@ -376,9 +376,9 @@ export default function BackupPage() {
       </div>
 
       {/* Local Backups List */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+<div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+<div className="px-6 py-4 border-b border-border flex items-center justify-between">
+<h3 className="font-bold text-foreground flex items-center gap-2">
             <Clock className="w-5 h-5" />
             {t('backup.existingBackups')} ({backups.length})
           </h3>
@@ -387,49 +387,49 @@ export default function BackupPage() {
               <button
                 onClick={downloadAllBackups}
                 disabled={downloadingAll}
-                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50"
+className="px-3 py-1.5 bg-surface-tertiary bg-surface-hover rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50"
               >
                 {downloadingAll ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <DownloadCloud className="w-3.5 h-3.5" />}
                 {t('backup.downloadAll')}
               </button>
             )}
-            <button onClick={loadBackups} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+<button onClick={loadBackups}className="p-2 rounded-lg bg-surface-hover transition-colors">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-gray-500">
+<div className="p-8 text-center text-muted">
             <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
             {t('backup.loading') || 'Loading...'}
           </div>
         ) : backups.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+<div className="p-8 text-center text-muted">
             <Database className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p>{t('backup.noBackups')}</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+<div className="divide-y divide-border">
             {backups.map((backup) => (
-              <div key={backup.name} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+<div key={backup.name}className="px-6 py-4 flex items-center gap-4 bg-surface-hover transition-colors">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  backup.type === 'json' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-purple-100 dark:bg-purple-900/30'
+backup.type==='json'?'bg-accent-soft':'bg-purple-100 dark:bg-purple-900/30'
                 }`}>
-                  {backup.type === 'json' ? <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" /> : <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+{backup.type==='json'?<Database className="w-5 h-5 text-accent"/>:<FileText className="w-5 h-5 text-purple-600 dark:text-purple-400"/>}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 dark:text-white truncate">{backup.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(backup.created)} • {formatSize(backup.size)}</p>
+<p className="font-medium text-foreground truncate">{backup.name}</p>
+<p className="text-xs text-muted">{formatDate(backup.created)}•{formatSize(backup.size)}</p>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <button onClick={() => downloadBackup(backup.name)} className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors" title={t('backup.download')}>
+<button onClick={()=>downloadBackup(backup.name)}className="p-2 rounded-lg hover:bg-blue-100 text-accent transition-colors"title={t('backup.download')}>
                     <Download className="w-4 h-4" />
                   </button>
-                  <button onClick={() => restoreBackup(backup.name)} disabled={restoring === backup.name} className="p-2 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 transition-colors disabled:opacity-50" title={t('backup.restore')}>
+<button onClick={()=>restoreBackup(backup.name)}disabled={restoring===backup.name}className="p-2 rounded-lg hover:bg-green-100 text-success transition-colors disabled:opacity-50"title={t('backup.restore')}>
                     {restoring === backup.name ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                   </button>
-                  <button onClick={() => deleteBackupFile(backup.name)} disabled={deleting === backup.name} className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors disabled:opacity-50" title={t('backup.delete')}>
+<button onClick={()=>deleteBackupFile(backup.name)}disabled={deleting===backup.name}className="p-2 rounded-lg hover:bg-red-100 text-danger transition-colors disabled:opacity-50"title={t('backup.delete')}>
                     {deleting === backup.name ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   </button>
                 </div>
@@ -440,45 +440,45 @@ export default function BackupPage() {
       </div>
 
       {/* Cloud Backups List */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Cloud className="w-5 h-5 text-blue-500" />
+<div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+<div className="px-6 py-4 border-b border-border flex items-center justify-between">
+<h3 className="font-bold text-foreground flex items-center gap-2">
+<Cloud className="w-5 h-5 text-accent"/>
             {t('backup.cloudBackups')} ({cloudBackups.length})
           </h3>
-          <button onClick={loadCloudBackups} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+<button onClick={loadCloudBackups}className="p-2 rounded-lg bg-surface-hover transition-colors">
             <RefreshCw className={`w-4 h-4 ${cloudLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
         {cloudLoading ? (
-          <div className="p-8 text-center text-gray-500">
+<div className="p-8 text-center text-muted">
             <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
             {t('backup.loading') || 'Loading...'}
           </div>
         ) : cloudBackups.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+<div className="p-8 text-center text-muted">
             <CloudOff className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p>{t('backup.noCloudBackups')}</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+<div className="divide-y divide-border">
             {cloudBackups.map((backup) => (
-              <div key={backup.name} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+<div key={backup.name}className="px-6 py-4 flex items-center gap-4 bg-surface-hover transition-colors">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  backup.type === 'json' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-purple-100 dark:bg-purple-900/30'
+backup.type==='json'?'bg-accent-soft':'bg-purple-100 dark:bg-purple-900/30'
                 }`}>
-                  {backup.type === 'json' ? <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" /> : <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+{backup.type==='json'?<Database className="w-5 h-5 text-accent"/>:<FileText className="w-5 h-5 text-purple-600 dark:text-purple-400"/>}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 dark:text-white truncate">{backup.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(backup.created)} • {formatSize(backup.size)}</p>
+<p className="font-medium text-foreground truncate">{backup.name}</p>
+<p className="text-xs text-muted">{formatDate(backup.created)}•{formatSize(backup.size)}</p>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <button onClick={() => downloadCloudBackup(backup.name)} className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors" title={t('backup.download')}>
+<button onClick={()=>downloadCloudBackup(backup.name)}className="p-2 rounded-lg hover:bg-blue-100 text-accent transition-colors"title={t('backup.download')}>
                     <Download className="w-4 h-4" />
                   </button>
-                  <button onClick={() => deleteCloudBackupFile(backup.name)} disabled={deletingCloud === backup.name} className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors disabled:opacity-50" title={t('backup.delete')}>
+<button onClick={()=>deleteCloudBackupFile(backup.name)}disabled={deletingCloud===backup.name}className="p-2 rounded-lg hover:bg-red-100 text-danger transition-colors disabled:opacity-50"title={t('backup.delete')}>
                     {deletingCloud === backup.name ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   </button>
                 </div>

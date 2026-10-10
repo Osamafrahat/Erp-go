@@ -51,7 +51,7 @@ export default function ReportsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
       </div>
     )
   }
@@ -68,7 +68,7 @@ export default function ReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('reports.title')}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{t('reports.subtitle')}</p>
+<p className="text-muted">{t('reports.subtitle')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {dateRanges.map((range) => (
@@ -77,8 +77,8 @@ export default function ReportsPage() {
               onClick={() => setDateRange(range.key)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 dateRange === range.key
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+?'bg-accent text-white'
+:'bg-surface-tertiary text-foreground bg-surface-hover'
               }`}
             >
               {range.label}
@@ -88,15 +88,15 @@ export default function ReportsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit overflow-x-auto">
+<div className="flex gap-1 p-1 bg-surface-tertiary rounded-lg w-fit overflow-x-auto">
         {tabs.map(({ key, icon: Icon, label }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === key
-                ? 'bg-white dark:bg-gray-600 shadow-sm'
-                : 'text-gray-600 dark:text-gray-400'
+?'bg-surface shadow-sm'
+:'text-muted'
             }`}
           >
             <Icon className="w-4 h-4 inline mr-2" />
@@ -109,53 +109,53 @@ export default function ReportsPage() {
       {activeTab === 'sales' && salesData && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                  <TrendingUp className="w-5 h-5 text-primary-600" />
+<div className="p-2 bg-accent-soft rounded-lg">
+<TrendingUp className="w-5 h-5 text-accent"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.totalSales')}</p>
+<p className="text-sm text-muted">{t('reports.totalSales')}</p>
                   <p className="text-xl font-bold">{formatCurrency(salesData.totalSales)}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <BarChart3 className="w-5 h-5 text-green-600" />
+<div className="p-2 bg-success-soft rounded-lg">
+<BarChart3 className="w-5 h-5 text-success"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.orders')}</p>
+<p className="text-sm text-muted">{t('reports.orders')}</p>
                   <p className="text-xl font-bold">{salesData.totalOrders}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                  <TrendingUp className="w-5 h-5 text-amber-600" />
+<div className="p-2 bg-warning-soft rounded-lg">
+<TrendingUp className="w-5 h-5 text-warning"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.avgOrder')}</p>
+<p className="text-sm text-muted">{t('reports.avgOrder')}</p>
                   <p className="text-xl font-bold">{formatCurrency(salesData.avgOrderValue)}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                  <Package className="w-5 h-5 text-purple-600" />
+<div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+<Package className="w-5 h-5 text-purple-600"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.itemsSold')}</p>
+<p className="text-sm text-muted">{t('reports.itemsSold')}</p>
                   <p className="text-xl font-bold">{salesData.itemsSold}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+<div className="bg-surface rounded-xl border border-border p-6">
             <h3 className="text-lg font-semibold mb-4">{t('reports.salesTrend')}</h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -170,15 +170,15 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+<div className="bg-surface rounded-xl border border-border p-6">
             <h3 className="text-lg font-semibold mb-4">{t('reports.topSellingProducts')}</h3>
             <div className="space-y-3">
               {salesData.topProducts?.map((product, index) => (
                 <div key={product.id} className="flex items-center gap-4">
-                  <span className="text-lg font-bold text-gray-400 w-8">{index + 1}</span>
+<span className="text-lg font-bold text-muted w-8">{index + 1}</span>
                   <div className="flex-1">
                     <p className="font-medium">{product.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{product.quantitySold} {t('reports.sold')}</p>
+<p className="text-sm text-muted">{product.quantitySold}{t('reports.sold')}</p>
                   </div>
                   <p className="font-semibold">{formatCurrency(product.revenue)}</p>
                 </div>
@@ -192,46 +192,46 @@ export default function ReportsPage() {
       {activeTab === 'stock' && stockData && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                  <Package className="w-5 h-5 text-primary-600" />
+<div className="p-2 bg-accent-soft rounded-lg">
+<Package className="w-5 h-5 text-accent"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.totalProducts')}</p>
+<p className="text-sm text-muted">{t('reports.totalProducts')}</p>
                   <p className="text-xl font-bold">{stockData.totalProducts}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+<div className="p-2 bg-warning-soft rounded-lg">
+<AlertTriangle className="w-5 h-5 text-warning"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.lowStockItems')}</p>
-                  <p className="text-xl font-bold text-amber-600">{stockData.lowStockCount}</p>
+<p className="text-sm text-muted">{t('reports.lowStockItems')}</p>
+<p className="text-xl font-bold text-warning">{stockData.lowStockCount}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
+<div className="p-2 bg-accent-soft rounded-lg">
+<TrendingUp className="w-5 h-5 text-accent"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.stockValue') || 'Stock Value (Sell)'}</p>
+<p className="text-sm text-muted">{t('reports.stockValue')||'Stock Value(Sell)'}</p>
                   <p className="text-xl font-bold">{formatCurrency(stockData.totalValue)}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                  <DollarSign className="w-5 h-5 text-red-600" />
+<div className="p-2 bg-danger-soft rounded-lg">
+<DollarSign className="w-5 h-5 text-danger"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.totalCost') || 'Total Cost'}</p>
+<p className="text-sm text-muted">{t('reports.totalCost')||'Total Cost'}</p>
                   <p className="text-xl font-bold">{formatCurrency(stockData.totalCost)}</p>
                 </div>
               </div>
@@ -239,7 +239,7 @@ export default function ReportsPage() {
           </div>
 
           {/* Potential Profit Card */}
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-5 text-white">
+<div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-5 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-80">{t('reports.potentialProfit') || 'Potential Profit'}</p>
@@ -250,19 +250,19 @@ export default function ReportsPage() {
           </div>
 
           {stockData.lowStockProducts?.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-amber-200 dark:border-amber-800 p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-amber-600">
+<div className="bg-surface rounded-xl border border-warning p-6">
+<h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-warning">
                 <AlertTriangle className="w-5 h-5" />
                 {t('reports.lowStockAlert')}
               </h3>
               <div className="space-y-3">
                 {stockData.lowStockProducts.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+<div key={product.id}className="flex items-center justify-between p-3 bg-warning-soft rounded-lg">
                     <div>
                       <p className="font-medium">{product.name}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.threshold')}: {product.low_stock_threshold}</p>
+<p className="text-sm text-muted">{t('reports.threshold')}:{product.low_stock_threshold}</p>
                     </div>
-                    <span className="text-lg font-bold text-amber-600">{product.stock_quantity} {t('reports.left')}</span>
+<span className="text-lg font-bold text-warning">{product.stock_quantity}{t('reports.left')}</span>
                   </div>
                 ))}
               </div>
@@ -271,12 +271,12 @@ export default function ReportsPage() {
 
           {/* Top Products by Cost */}
           {stockData.topByValue?.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+<div className="bg-surface rounded-xl border border-border p-6">
               <h3 className="text-lg font-semibold mb-4">{t('reports.topByCost') || 'Top Products by Cost'}</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
+<tr className="border-b border-border">
                       <th className="text-left py-2 font-semibold">#</th>
                       <th className="text-left py-2 font-semibold">{t('print.productName')}</th>
                       <th className="text-right py-2 font-semibold">{t('print.qty')}</th>
@@ -288,14 +288,14 @@ export default function ReportsPage() {
                   </thead>
                   <tbody>
                     {stockData.topByValue.map((p, i) => (
-                      <tr key={p.id} className="border-b border-gray-100 dark:border-gray-800">
-                        <td className="py-2 text-gray-400">{i + 1}</td>
+<tr key={p.id}className="border-b border-border">
+<td className="py-2 text-muted">{i + 1}</td>
                         <td className="py-2 font-medium">{p.name}</td>
                         <td className="py-2 text-right">{p.stock}</td>
                         <td className="py-2 text-right">{formatCurrency(p.costPrice)}</td>
                         <td className="py-2 text-right">{formatCurrency(p.sellPrice)}</td>
-                        <td className="py-2 text-right font-semibold text-red-600">{formatCurrency(p.totalCost)}</td>
-                        <td className="py-2 text-right font-semibold text-green-600">{formatCurrency(p.totalValue)}</td>
+<td className="py-2 text-right font-semibold text-danger">{formatCurrency(p.totalCost)}</td>
+<td className="py-2 text-right font-semibold text-success">{formatCurrency(p.totalValue)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -304,7 +304,7 @@ export default function ReportsPage() {
             </div>
           )}
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+<div className="bg-surface rounded-xl border border-border p-6">
             <h3 className="text-lg font-semibold mb-4">{t('reports.stockByCategory')}</h3>
             {stockData.categoryBreakdown?.length > 0 ? (
               <div>
@@ -335,16 +335,16 @@ export default function ReportsPage() {
                     return (
                       <div key={index} className="flex items-center gap-1.5 text-xs">
                         <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                        <span className="text-gray-600 dark:text-gray-400">{entry.name}</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{pct}%</span>
-                        <span className="text-gray-400 dark:text-gray-500">({entry.value})</span>
+<span className="text-muted">{entry.name}</span>
+<span className="font-medium text-foreground">{pct}%</span>
+<span className="text-muted">({entry.value})</span>
                       </div>
                     )
                   })}
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">{t('noData') || 'No data'}</p>
+<p className="text-sm text-muted text-center py-8">{t('noData')||'No data'}</p>
             )}
           </div>
         </div>
@@ -354,31 +354,31 @@ export default function ReportsPage() {
       {activeTab === 'expenses' && expenseData && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                  <Receipt className="w-5 h-5 text-red-600" />
+<div className="p-2 bg-danger-soft rounded-lg">
+<Receipt className="w-5 h-5 text-danger"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.totalExpenses') || 'Total Expenses'}</p>
-                  <p className="text-xl font-bold text-red-600">{formatCurrency(expenseData.totalExpenses)}</p>
+<p className="text-sm text-muted">{t('reports.totalExpenses')||'Total Expenses'}</p>
+<p className="text-xl font-bold text-danger">{formatCurrency(expenseData.totalExpenses)}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  <Receipt className="w-5 h-5 text-gray-600" />
+<div className="p-2 bg-surface-tertiary rounded-lg">
+<Receipt className="w-5 h-5 text-muted"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.expenseCount') || 'Number of Expenses'}</p>
+<p className="text-sm text-muted">{t('reports.expenseCount')||'Number of Expenses'}</p>
                   <p className="text-xl font-bold">{expenseData.expenseCount}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+<div className="bg-surface rounded-xl border border-border p-6">
             <h3 className="text-lg font-semibold mb-4">{t('reports.expenseTrend') || 'Expense Trend'}</h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -394,7 +394,7 @@ export default function ReportsPage() {
           </div>
 
           {expenseData.categoryBreakdown?.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+<div className="bg-surface rounded-xl border border-border p-6">
               <h3 className="text-lg font-semibold mb-4">{t('reports.expensesByCategory') || 'Expenses by Category'}</h3>
               <div className="space-y-3">
                 {expenseData.categoryBreakdown.map((cat, index) => (
@@ -402,7 +402,7 @@ export default function ReportsPage() {
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                     <span className="flex-1 font-medium">{cat.name}</span>
                     <span className="font-bold">{formatCurrency(cat.total)}</span>
-                    <span className="text-sm text-gray-400">{((cat.total / expenseData.totalExpenses) * 100).toFixed(1)}%</span>
+<span className="text-sm text-muted">{((cat.total / expenseData.totalExpenses)* 100).toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
@@ -415,36 +415,36 @@ export default function ReportsPage() {
       {activeTab === 'profit' && profitData && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
+<div className="p-2 bg-success-soft rounded-lg">
+<TrendingUp className="w-5 h-5 text-success"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.totalRevenue') || 'Total Revenue'}</p>
-                  <p className="text-xl font-bold text-green-600">{formatCurrency(profitData.totalRevenue)}</p>
+<p className="text-sm text-muted">{t('reports.totalRevenue')||'Total Revenue'}</p>
+<p className="text-xl font-bold text-success">{formatCurrency(profitData.totalRevenue)}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                  <TrendingDown className="w-5 h-5 text-red-600" />
+<div className="p-2 bg-danger-soft rounded-lg">
+<TrendingDown className="w-5 h-5 text-danger"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.totalExpenses') || 'Total Expenses'}</p>
-                  <p className="text-xl font-bold text-red-600">{formatCurrency(profitData.totalExpenses)}</p>
+<p className="text-sm text-muted">{t('reports.totalExpenses')||'Total Expenses'}</p>
+<p className="text-xl font-bold text-danger">{formatCurrency(profitData.totalExpenses)}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<div className="bg-surface rounded-xl border border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+<div className="p-2 bg-warning-soft rounded-lg">
+<AlertTriangle className="w-5 h-5 text-warning"/>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('reports.totalRefunds') || 'Total Refunds'}</p>
-                  <p className="text-xl font-bold text-amber-600">{formatCurrency(profitData.totalRefunds)}</p>
+<p className="text-sm text-muted">{t('reports.totalRefunds')||'Total Refunds'}</p>
+<p className="text-xl font-bold text-warning">{formatCurrency(profitData.totalRefunds)}</p>
                 </div>
               </div>
             </div>
@@ -452,7 +452,7 @@ export default function ReportsPage() {
 
           {/* Net Revenue & Gross Profit */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-5 text-white">
+<div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-5 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-80">{t('reports.netRevenue') || 'Net Revenue'}</p>
@@ -461,7 +461,7 @@ export default function ReportsPage() {
                 <Wallet className="w-10 h-10 opacity-50" />
               </div>
             </div>
-            <div className={`bg-gradient-to-r ${profitData.grossProfit >= 0 ? 'from-green-500 to-emerald-600' : 'from-red-500 to-red-600'} rounded-xl p-5 text-white`}>
+<div className={`bg-gradient-to-r ${profitData.grossProfit>=0 ?'from-green-500 to-emerald-600':'from-red-500 to-red-600'}rounded-xl p-5 text-white`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-80">{t('reports.grossProfit') || 'Gross Profit'}</p>
@@ -474,30 +474,30 @@ export default function ReportsPage() {
           </div>
 
           {/* Summary Table */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+<div className="bg-surface rounded-xl border border-border p-6">
             <h3 className="text-lg font-semibold mb-4">{t('reports.summary') || 'Summary'}</h3>
             <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <tbody>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
+<tr className="border-b border-border">
                   <td className="py-3 font-medium">{t('reports.totalRevenue') || 'Total Revenue'} ({profitData.orderCount} {t('reports.orders')?.toLowerCase() || 'orders'})</td>
-                  <td className="py-3 text-right font-bold text-green-600">{formatCurrency(profitData.totalRevenue)}</td>
+<td className="py-3 text-right font-bold text-success">{formatCurrency(profitData.totalRevenue)}</td>
                 </tr>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
+<tr className="border-b border-border">
                   <td className="py-3 font-medium">- {t('reports.totalRefunds') || 'Total Refunds'} ({profitData.refundCount})</td>
-                  <td className="py-3 text-right font-bold text-amber-600">{formatCurrency(profitData.totalRefunds)}</td>
+<td className="py-3 text-right font-bold text-warning">{formatCurrency(profitData.totalRefunds)}</td>
                 </tr>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
+<tr className="border-b border-border">
                   <td className="py-3 font-semibold">{t('reports.netRevenue') || 'Net Revenue'}</td>
                   <td className="py-3 text-right font-bold">{formatCurrency(profitData.netRevenue)}</td>
                 </tr>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
+<tr className="border-b border-border">
                   <td className="py-3 font-medium">- {t('reports.totalExpenses') || 'Total Expenses'} ({profitData.expenseCount})</td>
-                  <td className="py-3 text-right font-bold text-red-600">{formatCurrency(profitData.totalExpenses)}</td>
+<td className="py-3 text-right font-bold text-danger">{formatCurrency(profitData.totalExpenses)}</td>
                 </tr>
-                <tr className="bg-gray-50 dark:bg-gray-700/50">
+<tr className="bg-surface-secondary">
                   <td className="py-3 text-lg font-bold">{t('reports.grossProfit') || 'Gross Profit'}</td>
-                  <td className={`py-3 text-right text-lg font-bold ${profitData.grossProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+<td className={`py-3 text-right text-lg font-bold ${profitData.grossProfit>=0 ?'text-success':'text-danger'}`}>
                     {formatCurrency(profitData.grossProfit)}
                   </td>
                 </tr>
