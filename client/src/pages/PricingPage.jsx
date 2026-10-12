@@ -8,6 +8,17 @@ import api from '../lib/api'
 
 const TIER_ORDER = { free: 0, pro: 1, enterprise: 2 }
 
+// A confirmed transfer acknowledgement is remembered per request id so the
+// "Payment confirmed" screen is shown exactly once; afterwards the modal
+// returns to the payment form, ready for the next upgrade.
+const acknowledgedKey = (id) => `wallet_confirmed_ack_${id}`
+const isAcknowledged = (id) => {
+  try { return !!localStorage.getItem(acknowledgedKey(id)) } catch { return false }
+}
+const acknowledge = (id) => {
+  try { localStorage.setItem(acknowledgedKey(id), '1') } catch { /* private mode */ }
+}
+
 function fmt(v) { return v === -1 || v === Infinity || v === null ? '∞' : v?.toLocaleString() }
 
 function getTiers(t, plans = [], billingPeriod = 'monthly') {
@@ -162,7 +173,16 @@ export default function PricingPage() {
     setWalletShot(null)
     setWalletNote('')
     setWalletRequest(null)
-    walletApi.getStatus().then(({ data }) => setWalletRequest(data?.request || null)).catch(() => {})
+    walletApi.getStatus().then(({ data }) => {
+      const req = data?.request || null
+      // A confirmed request that the user already dismissed must not block
+      // the form — it has served its one-time purpose.
+      if (req?.status === 'confirmed' && isAcknowledged(req.id)) {
+        setWalletRequest(null)
+      } else {
+        setWalletRequest(req)
+      }
+    }).catch(() => {})
   }, [showPayment])
 
   // Receiving numbers come from the server (WALLET_CONFIG), never hardcoded
@@ -560,7 +580,11 @@ className="absolute top-4 right-4 text-muted text-foreground"
                       {t('pricing.walletConfirmed') || 'Payment confirmed — your plan is active'}
                     </h3>
                     <button
-                      onClick={() => { setShowPayment(null); setProcessing(false) }}
+                      onClick={() => {
+                        if (walletRequest?.id) acknowledge(walletRequest.id)
+                        setShowPayment(null)
+                        setProcessing(false)
+                      }}
                       className="mt-2 px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium"
                     >
                       {t('common.close') || 'Close'}
