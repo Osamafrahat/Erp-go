@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUserStore } from '../stores/userStore'
 import { useAppStore } from '../stores/appStore'
@@ -6,21 +6,39 @@ import { AlertTriangle, Clock } from 'lucide-react'
 
 const WARNING_TIME = 5 * 60 * 1000 // Show warning 5 minutes before timeout
 const CHECK_INTERVAL = 30 * 1000 // Check every 30 seconds
+// Store-write throttle: mousemove fires ~60-120x/s while the cursor moves,
+// but lastActivity only needs second-granularity for a 30-minute timeout.
+// Writing the store at most once per 15s stops the activity listener from
+// re-rendering every whole-store subscriber (Layout wraps every page) on
+// every pointer move — that re-render storm made heavy tables (e.g. Wallet
+// Transfers) visibly flash/refresh while the cursor moved over them.
+const ACTIVITY_WRITE_INTERVAL = 15 * 1000
 
 export default function SessionTimeout() {
-  const { isAuthenticated, lastActivity, logout, updateActivity, checkSessionTimeout, mustChangePassword } = useUserStore()
-  const { t } = useAppStore()
+  // Narrow selectors: lastActivity changes constantly; a whole-store
+  // subscription re-rendered this component on every mousemove.
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
+  const lastActivity = useUserStore((s) => s.lastActivity)
+  const logout = useUserStore((s) => s.logout)
+  const updateActivity = useUserStore((s) => s.updateActivity)
+  const checkSessionTimeout = useUserStore((s) => s.checkSessionTimeout)
+  const mustChangePassword = useUserStore((s) => s.mustChangePassword)
+  const t = useAppStore((s) => s.t)
   const navigate = useNavigate()
   const [showWarning, setShowWarning] = useState(false)
   const [remainingTime, setRemainingTime] = useState(0)
   const [loggingOut, setLoggingOut] = useState(false)
+  const lastWriteRef = useRef(0)
 
-  // Track user activity
+  // Track user activity (throttled store write)
   const handleActivity = useCallback(() => {
-    if (isAuthenticated) {
+    if (!isAuthenticated) return
+    const now = Date.now()
+    if (now - lastWriteRef.current >= ACTIVITY_WRITE_INTERVAL) {
+      lastWriteRef.current = now
       updateActivity()
-      setShowWarning(false)
     }
+    setShowWarning(false)
   }, [isAuthenticated, updateActivity])
 
   // Set up activity listeners

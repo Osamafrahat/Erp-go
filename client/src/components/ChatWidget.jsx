@@ -8,7 +8,7 @@ import ConfirmModal from './ConfirmModal'
 
 export default function ChatWidget() {
   const { t } = useAppStore()
-  const { currentUser } = useUserStore()
+  const currentUser = useUserStore((s) => s.currentUser)
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')

@@ -54,7 +54,18 @@ export default function Layout({ children }) {
   const navigate = useNavigate()
   const { theme, toggleTheme, sidebarOpen, toggleSidebar, language, setLanguage, t, settings } = useAppStore()
   const { getItemCount } = useCartStore()
-  const { currentUser, logout, canAccess, hasPermission, subscriptionTier, subscriptionStatus, trialEndsAt, isTrial } = useUserStore()
+  // Narrow selectors: the whole-store subscription re-rendered Layout (and
+  // every page it wraps) on each session-activity store write — i.e. on
+  // every mousemove — which made heavy tables visibly flash/refresh while
+  // the cursor moved.
+  const currentUser = useUserStore((s) => s.currentUser)
+  const logout = useUserStore((s) => s.logout)
+  const canAccess = useUserStore((s) => s.canAccess)
+  const hasPermission = useUserStore((s) => s.hasPermission)
+  const subscriptionTier = useUserStore((s) => s.subscriptionTier)
+  const subscriptionStatus = useUserStore((s) => s.subscriptionStatus)
+  const trialEndsAt = useUserStore((s) => s.trialEndsAt)
+  const isTrial = useUserStore((s) => s.isTrial)
   const { isOnline, pendingCount, lastSyncTime, isSyncing, syncProgress, init: initOffline, syncPendingOrders, retryFailed } = useOfflineStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
