@@ -46,7 +46,13 @@ api.interceptors.response.use(
       }
     } catch { /* ignore */ }
 
-    if ((status === 401 || status === 403) && !isLoginPage && !skipRedirect && !mustChangePw) {
+    // Session death = 401 (missing/invalid/rotated token) or any response the
+    // server tagged `sessionExpired` (e.g. deactivated account's 403). A plain
+    // 403 is a PERMISSION failure (requireManager/requireSuperAdmin) — the
+    // user's session is fine and must NOT be destroyed; the calling code
+    // surfaces the error instead.
+    const isSessionDeath = status === 401 || (status === 403 && sessionExpired)
+    if (isSessionDeath && !isLoginPage && !skipRedirect && !mustChangePw) {
       const upgradeRequired = error.response?.data?.upgradeRequired
       if (upgradeRequired) {
         window.dispatchEvent(new CustomEvent('plan-limit-reached', {

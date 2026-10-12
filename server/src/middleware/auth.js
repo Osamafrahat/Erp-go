@@ -72,7 +72,11 @@ export async function authenticateToken(req, res, next) {
     req.user = decoded
     next()
   } catch (err) {
-    return res.status(403).json({ error: 'Invalid or expired token' })
+    // Invalid/expired JWT is an authentication failure (the session is dead),
+    // not an authorization one. 401 + sessionExpired lets the client wipe the
+    // stale token, while genuine permission 403s (requireManager etc.) must
+    // NOT log the user out.
+    return res.status(401).json({ error: 'Invalid or expired token', sessionExpired: true })
   }
 }
 
