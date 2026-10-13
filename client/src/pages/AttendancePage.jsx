@@ -145,7 +145,7 @@ export default function AttendancePage() {
 {label: t('hr.attendance.halfDay')||'Half Day',value: summary.half_day,bg:'bg-warning-soft',border:'border-l-orange-500',text:'text-warning',icon:'🕐'},
 {label: t('hr.attendance.onLeave')||'On Leave',value: summary.on_leave,bg:'bg-accent-soft',border:'border-l-blue-500',text:'text-accent',icon:'🏖'},
         ].map(item => (
-<div key={item.label}className={`${item.bg}rounded-xl border border-border border-l-4 ${item.border}p-3 text-center`}>
+<div key={item.label}className={`${item.bg} rounded-xl border border-border border-l-4 ${item.border} p-3 text-center`}>
             <div className={`text-2xl font-bold ${item.text}`}>{item.value}</div>
 <div className="text-xs text-muted mt-1 font-medium">{item.label}</div>
           </div>

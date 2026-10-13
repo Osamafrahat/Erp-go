@@ -402,7 +402,7 @@ function TenantsTab({ t, showToast }) {
                       <div className="flex gap-1">
 <button onClick={()=>setDetailTenant(tenant)}className="text-xs p-1.5 rounded-lg bg-surface-secondary text-muted bg-surface-hover"><Eye className="w-3.5 h-3.5"/></button>
 <button onClick={()=>handleImpersonate(tenant.id)}disabled={actionLoading===tenant.id || tenant.subscription_status==='cancelled'}className="text-xs p-1.5 rounded-lg bg-accent-soft text-accent-soft-foreground hover:bg-blue-100 disabled:opacity-50"><LogIn className="w-3.5 h-3.5"/></button>
-<button onClick={()=>handleSuspend(tenant.id,tenant.subscription_status)}disabled={actionLoading===tenant.id}className={`text-xs p-1.5 rounded-lg ${tenant.subscription_status==='active'?'bg-danger-soft text-danger-soft-foreground hover:bg-red-100':'bg-success-soft text-success-soft-foreground hover:bg-green-100'}disabled:opacity-50`}>
+<button onClick={()=>handleSuspend(tenant.id,tenant.subscription_status)}disabled={actionLoading===tenant.id}className={`text-xs p-1.5 rounded-lg ${tenant.subscription_status==='active'?'bg-danger-soft text-danger-soft-foreground hover:bg-red-100':'bg-success-soft text-success-soft-foreground hover:bg-green-100'} disabled:opacity-50`}>
                           {tenant.subscription_status === 'active' ? <AlertTriangle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
                         </button>
 <button onClick={()=>handleDelete(tenant.id,tenant.name)}disabled={actionLoading===tenant.id}className="text-xs p-1.5 rounded-lg bg-danger-soft text-danger-soft-foreground hover:bg-red-100 disabled:opacity-50"><Trash2 className="w-3.5 h-3.5"/></button>

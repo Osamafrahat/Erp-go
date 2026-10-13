@@ -271,7 +271,7 @@ className="p-1.5 sm:p-2 rounded-lg hover:bg-red-50 text-muted hover:text-red-500
                           {currentUser?.role === 'MANAGER' && (
                             <button
                               onClick={() => setDeleteTarget(msg.id)}
-className={`absolute top-1 ${isOwn ?'-left-7 sm:-left-8':'-right-7 sm:-right-8'}opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded-lg bg-surface-hover transition-all`}
+className={`absolute top-1 ${isOwn ?'-left-7 sm:-left-8':'-right-7 sm:-right-8'} opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded-lg bg-surface-hover transition-all`}
                             >
 <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted"/>
                             </button>

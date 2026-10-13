@@ -461,7 +461,7 @@ export default function ReportsPage() {
                 <Wallet className="w-10 h-10 opacity-50" />
               </div>
             </div>
-<div className={`bg-gradient-to-r ${profitData.grossProfit>=0 ?'from-green-500 to-emerald-600':'from-red-500 to-red-600'}rounded-xl p-5 text-white`}>
+<div className={`bg-gradient-to-r ${profitData.grossProfit>=0 ?'from-green-500 to-emerald-600':'from-red-500 to-red-600'} rounded-xl p-5 text-white`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-80">{t('reports.grossProfit') || 'Gross Profit'}</p>

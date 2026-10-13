@@ -283,7 +283,7 @@ export default function ChatWidget() {
                             {currentUser?.role === 'MANAGER' && (
                               <button
                                 onClick={() => setDeleteTarget(msg.id)}
-className={`absolute top-0 ${isOwn ?'-left-5 sm:-left-6':'-right-5 sm:-right-6'}opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-0.5 rounded bg-surface-hover transition-all`}
+className={`absolute top-0 ${isOwn ?'-left-5 sm:-left-6':'-right-5 sm:-right-6'} opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-0.5 rounded bg-surface-hover transition-all`}
                               >
 <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted"/>
                               </button>

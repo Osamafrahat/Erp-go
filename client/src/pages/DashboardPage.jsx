@@ -383,7 +383,7 @@ function AccountantQuickActions() {
         <Link
           key={action.href}
           to={action.href}
-className={`${action.color}text-white rounded-xl p-4 flex items-center gap-3 transition-colors`}
+className={`${action.color} text-white rounded-xl p-4 flex items-center gap-3 transition-colors`}
         >
           <action.icon className="w-6 h-6" />
           <div>
@@ -548,7 +548,7 @@ color:'bg-warning hover:bg-amber-700',
         <Link
           key={action.href}
           to={action.href}
-className={`${action.color}text-white rounded-xl p-4 flex items-center gap-3 transition-colors`}
+className={`${action.color} text-white rounded-xl p-4 flex items-center gap-3 transition-colors`}
         >
           <action.icon className="w-6 h-6" />
           <div>
