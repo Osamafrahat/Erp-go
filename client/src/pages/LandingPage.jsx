@@ -160,11 +160,9 @@ className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-muted 
             <div className="flex justify-center mb-6 lp-hero-in">
               <img src="/erpgologo.svg" alt="ERP-GO" className="h-16 sm:h-24 lg:h-32 w-auto lp-float" />
             </div>
-<h1 className="lp-hero-in text-3xl sm:text-5xl lg:text-8xl font-extrabold text-foreground tracking-tight leading-[1.1] mb-8"style={{animationDelay:'120ms'}}>
+<h1 className="lp-hero-in lp-gradient-text bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 bg-clip-text text-transparent text-3xl sm:text-5xl lg:text-8xl font-extrabold tracking-tight leading-[1.1] mb-8"style={{animationDelay:'120ms'}}>
               {t('landing.heroTitle') || 'Complete Store'}{' '}
-<span className="lp-gradient-text bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 bg-clip-text text-transparent">
-                {t('landing.heroTitle2') || 'Management System'}
-              </span>
+              {t('landing.heroTitle2') || 'Management System'}
             </h1>
 <p className="lp-hero-in text-lg sm:text-xl text-muted max-w-2xl mx-auto mb-12 leading-relaxed"style={{animationDelay:'240ms'}}>
               {t('landing.heroSubtitle') || 'Professional POS, inventory, HR, and accounting — all in one platform. Manage your store from anywhere.'}
