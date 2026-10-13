@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { superAdminApi } from '../lib/api'
-import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard, Database, Megaphone, Upload, Link2, Image, Wallet, RefreshCw, Loader2 } from 'lucide-react'
+import { Search, Shield, Building2, Users, Package, TrendingUp, AlertTriangle, CheckCircle, Plus, Trash2, LogIn, DollarSign, Edit3, X, Save, Eye, Activity, BarChart3, CreditCard, Megaphone, Upload, Link2, Image, Wallet, RefreshCw, Loader2 } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
 
 const tierColors = {
@@ -238,45 +238,6 @@ if(loading)return<div className="flex items-center justify-center h-40"><div cla
                 {analytics.total_payments > 0 ? Math.round((analytics.successful_payments / analytics.total_payments) * 100) : 0}%
               </span>
             </div>
-          </div>
-        </div>
-      </div>
-
-<div className="bg-warning-soft border border-warning rounded-xl p-5">
-        <div className="flex items-start gap-3">
-<Database className="w-5 h-5 text-warning mt-0.5 shrink-0"/>
-          <div className="flex-1 min-w-0">
-<h3 className="text-sm font-medium text-warning mb-2">{t('admin.migrationRequired')||'Database Migration Required'}</h3>
-<p className="text-xs text-warning mb-3">{t('admin.migrationHint')||'Run this SQL in Supabase SQL Editor(Dashboard → SQL Editor → New Query):'}</p>
-<div className="bg-surface rounded-lg p-3 font-mono text-xs text-foreground overflow-x-auto">
-              <pre>{`ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz;
-ALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;
-
-CREATE TABLE IF NOT EXISTS saved_payment_methods (
-  id SERIAL PRIMARY KEY,
-  tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  provider TEXT NOT NULL DEFAULT 'paymob',
-  card_last_four TEXT,
-  card_brand TEXT,
-  token TEXT NOT NULL,
-  paymob_token_id TEXT,
-  is_default BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Fix old payment amounts stored as cents
-UPDATE tenant_payments SET amount = amount / 100 WHERE amount > 1000;`}</pre>
-            </div>
-            <button
-              onClick={() => {
-                const sql = `ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_expires_at timestamptz;\nALTER TABLE tenants ADD COLUMN IF NOT EXISTS renewal_note text;\n\nCREATE TABLE IF NOT EXISTS saved_payment_methods (\n  id SERIAL PRIMARY KEY,\n  tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,\n  provider TEXT NOT NULL DEFAULT 'paymob',\n  card_last_four TEXT,\n  card_brand TEXT,\n  token TEXT NOT NULL,\n  paymob_token_id TEXT,\n  is_default BOOLEAN DEFAULT true,\n  created_at TIMESTAMPTZ DEFAULT now(),\n  updated_at TIMESTAMPTZ DEFAULT now()\n);\n\n-- Fix old payment amounts stored as cents\nUPDATE tenant_payments SET amount = amount / 100 WHERE amount > 1000;`
-                navigator.clipboard.writeText(sql)
-              }}
-className="mt-2 text-xs bg-warning-soft text-warning-soft-foreground px-3 py-1.5 rounded-lg hover:bg-yellow-200 font-medium"
-            >
-              {t('admin.copySql') || 'Copy SQL'}
-            </button>
           </div>
         </div>
       </div>
