@@ -632,7 +632,7 @@ className="px-2.5 shrink-0 text-foreground hover:text-red-500 transition-colors"
 :'bg-surface-tertiary text-foreground bg-surface-hover'
             }`}
           >
-            {t('pos.allProducts')}
+            {t('pos.productsTab') || 'Products'}
           </button>
           <button
             onClick={() => setActiveTab('services')}
