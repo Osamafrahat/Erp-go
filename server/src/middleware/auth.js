@@ -33,7 +33,7 @@ export async function authenticateToken(req, res, next) {
   const token = authHeader && authHeader.split(' ')[1]
 
   if (!token) {
-    return res.status(401).json({ error: 'Access token required' })
+    return res.status(401).json({ error: 'Access token required', code: 'AUTH_TOKEN_MISSING' })
   }
 
   try {
@@ -48,22 +48,22 @@ export async function authenticateToken(req, res, next) {
 
       // User was deleted
       if (!user) {
-        return res.status(401).json({ error: 'Account not found', sessionExpired: true })
+        return res.status(401).json({ error: 'Account not found', code: 'AUTH_USER_NOT_FOUND', sessionExpired: true })
       }
 
       // Account is deactivated
       if (!user.is_active) {
-        return res.status(403).json({ error: 'Account is deactivated', sessionExpired: true })
+        return res.status(403).json({ error: 'Your account has been deactivated', code: 'AUTH_ACCOUNT_DEACTIVATED', sessionExpired: true })
       }
 
       // Session invalidated (deactivated, deleted, or new login)
       if (decoded.sessionToken && user.session_token && decoded.sessionToken !== user.session_token) {
-        return res.status(401).json({ error: 'Session expired. Another login was detected.', sessionExpired: true })
+        return res.status(401).json({ error: 'Session expired. Another login was detected.', code: 'AUTH_SESSION_ROTATED', sessionExpired: true })
       }
 
       // Session cleared (force logout)
       if (decoded.sessionToken && !user.session_token) {
-        return res.status(401).json({ error: 'Session expired. Account was deactivated.', sessionExpired: true })
+        return res.status(401).json({ error: 'Session expired. Account was deactivated.', code: 'AUTH_SESSION_CLEARED', sessionExpired: true })
       }
     } catch {
       // Graceful fallback if session_token column doesn't exist
@@ -76,7 +76,7 @@ export async function authenticateToken(req, res, next) {
     // not an authorization one. 401 + sessionExpired lets the client wipe the
     // stale token, while genuine permission 403s (requireManager etc.) must
     // NOT log the user out.
-    return res.status(401).json({ error: 'Invalid or expired token', sessionExpired: true })
+    return res.status(401).json({ error: 'Invalid or expired token', code: 'AUTH_TOKEN_INVALID', sessionExpired: true })
   }
 }
 
@@ -98,7 +98,11 @@ export function optionalAuthenticateToken(req, res, next) {
 export function requireRole(...roles) {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({
+        error: 'You do not have permission to perform this action',
+        code: 'PERMISSION_ROLE_REQUIRED',
+        required: roles,
+      })
     }
     next()
   }
@@ -106,7 +110,11 @@ export function requireRole(...roles) {
 
 export function requireManager(req, res, next) {
   if (!req.user || req.user.role !== 'MANAGER') {
-    return res.status(403).json({ error: 'Manager access required' })
+    return res.status(403).json({
+      error: 'This action requires a manager account',
+      code: 'PERMISSION_MANAGER_REQUIRED',
+      required: ['MANAGER'],
+    })
   }
   next()
 }
@@ -139,7 +147,11 @@ export function requirePermission(...permissions) {
       }
       const hasPermission = permissions.some(p => userPermissions?.includes(p))
       if (!hasPermission) {
-        return res.status(403).json({ error: 'Insufficient permissions' })
+        return res.status(403).json({
+          error: 'You do not have permission to perform this action',
+          code: 'PERMISSION_MISSING',
+          required: permissions,
+        })
       }
       next()
     } catch {
@@ -165,7 +177,11 @@ export async function setTenantContext(req, res, next) {
 
 export function requireSuperAdmin(req, res, next) {
   if (!req.user || req.user.role !== 'SUPER_ADMIN') {
-    return res.status(403).json({ error: 'Super admin access required' })
+    return res.status(403).json({
+      error: 'This action requires a platform super admin account',
+      code: 'PERMISSION_SUPER_ADMIN_REQUIRED',
+      required: ['SUPER_ADMIN'],
+    })
   }
   next()
 }

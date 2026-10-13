@@ -2419,6 +2419,13 @@ export const translations = {
     // Chat
     'chat.deleteAll': 'Delete all messages',
     'chat.noMessages': 'No messages yet',
+
+    // API errors (localized by client/src/lib/apiError.js)
+    'error.insufficientPermissions': "You don't have permission to perform this action. Contact your manager if you need access.",
+    'error.managerRequired': 'This action requires a manager account',
+    'error.superAdminRequired': 'This action requires a platform super admin account',
+    'error.tokenRequired': 'You must be logged in to continue',
+    'error.accountDeactivated': 'Your account has been deactivated. Contact your administrator',
   },
   ar: {
     // Dashboard
@@ -4838,6 +4845,13 @@ export const translations = {
     // Chat
     'chat.deleteAll': 'حذف جميع الرسائل',
     'chat.noMessages': 'لا توجد رسائل بعد',
+
+    // API errors (localized by client/src/lib/apiError.js)
+    'error.insufficientPermissions': 'ليس لديك صلاحية لتنفيذ هذا الإجراء. تواصل مع المدير إذا كنت بحاجة إلى صلاحية.',
+    'error.managerRequired': 'هذا الإجراء يتطلب حساب مدير',
+    'error.superAdminRequired': 'هذا الإجراء يتطلب حساب المدير العام للمنصة',
+    'error.tokenRequired': 'يجب تسجيل الدخول للمتابعة',
+    'error.accountDeactivated': 'تم تعطيل حسابك. تواصل مع المسؤول',
   },
 }
 

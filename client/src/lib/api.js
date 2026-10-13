@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { localizeApiError } from './apiError'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -28,6 +29,14 @@ api.interceptors.response.use(
   (error) => {
     if (window.__forcePasswordChangeActive) {
       return Promise.reject(error)
+    }
+
+    // Localize known permission/auth error payloads in place, so every
+    // caller that surfaces `err.response.data.error` (toasts, inline
+    // errors) shows the active language instead of raw server English.
+    const localized = localizeApiError(error.response?.data)
+    if (localized && error.response?.data) {
+      error.response.data.error = localized
     }
 
     const status = error.response?.status
