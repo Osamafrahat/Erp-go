@@ -14,6 +14,7 @@ const CODE_KEYS = {
   PERMISSION_MISSING: 'error.insufficientPermissions',
   PERMISSION_MANAGER_REQUIRED: 'error.managerRequired',
   PERMISSION_SUPER_ADMIN_REQUIRED: 'error.superAdminRequired',
+  PERMISSION_CANNOT_GRANT_ROLE: 'error.cannotGrantRole',
   AUTH_TOKEN_MISSING: 'error.tokenRequired',
   AUTH_ACCOUNT_DEACTIVATED: 'error.accountDeactivated',
 }

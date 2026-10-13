@@ -144,6 +144,18 @@ router.post('/', authenticateToken, requirePermission('employees_edit'), [
 
       const validRole = ['MANAGER','SALES_MANAGER','CASHIER','INVENTORY_CLERK','ACCOUNTANT','HR_MANAGER'].includes(user_role) ? user_role : 'CASHIER'
 
+      // Privilege-escalation guard: employees_edit is also held by HR_MANAGER,
+      // so without this check an HR manager could mint a full-privilege
+      // MANAGER account through the create-user flow. Only MANAGER (or the
+      // platform super admin) may grant the MANAGER role.
+      if (validRole === 'MANAGER' && req.user.role !== 'MANAGER' && req.user.role !== 'SUPER_ADMIN') {
+        return res.status(403).json({
+          error: 'Only managers can create manager accounts',
+          code: 'PERMISSION_CANNOT_GRANT_ROLE',
+          required: ['MANAGER'],
+        })
+      }
+
       // Check username uniqueness per tenant
       const { data: existingUser } = await supabase.from('users').select('id').eq('tenant_id', req.user.tenantId).eq('username', username).single()
       if (existingUser) {

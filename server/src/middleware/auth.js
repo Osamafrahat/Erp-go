@@ -124,8 +124,10 @@ export function requirePermission(...permissions) {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' })
     }
-    // Manager bypasses all permission checks
-    if (req.user.role === 'MANAGER') {
+    // Manager bypasses all permission checks; so does the platform super
+    // admin (their stored permission list is the placeholder ["all"],
+    // not the granular permission tokens).
+    if (req.user.role === 'MANAGER' || req.user.role === 'SUPER_ADMIN') {
       return next()
     }
     try {
@@ -135,7 +137,7 @@ export function requirePermission(...permissions) {
         .eq('id', req.user.id)
         .single()
       if (!user) {
-        return res.status(401).json({ error: 'User not found' })
+        return res.status(401).json({ error: 'User not found', code: 'AUTH_USER_NOT_FOUND' })
       }
       let userPermissions = user.permissions
       if (typeof userPermissions === 'string') {

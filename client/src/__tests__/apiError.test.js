@@ -30,6 +30,12 @@ describe('localizeApiError', () => {
     expect(localizeApiError({ code: 'PERMISSION_SUPER_ADMIN_REQUIRED' })).toContain('المدير العام')
   })
 
+  it('translates the role-grant denial in both languages', () => {
+    expect(localizeApiError({ code: 'PERMISSION_CANNOT_GRANT_ROLE' })).toContain('managers')
+    localStorage.setItem('app_language', 'ar')
+    expect(localizeApiError({ code: 'PERMISSION_CANNOT_GRANT_ROLE' })).toContain('للمديرين')
+  })
+
   it('falls back to legacy English messages when no code is present', () => {
     expect(localizeApiError({ error: 'Insufficient permissions' })).toContain('permission')
     expect(localizeApiError({ error: 'Manager access required' })).toContain('manager')
