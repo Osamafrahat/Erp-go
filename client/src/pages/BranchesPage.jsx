@@ -9,7 +9,8 @@ import { AlertCircle, Archive, ArrowRight, Building2, CheckCircle, Edit2, MapPin
 export default function BranchesPage() {
   const { t } = useAppStore()
   const currentUser = useUserStore((s) => s.currentUser)
-  const isManager = currentUser?.role === 'MANAGER' || currentUser?.role === 'SUPER_ADMIN'
+  // Matches the API: branch mutations are requireManager (strictly MANAGER).
+  const isManager = currentUser?.role === 'MANAGER'
   // Shared with the header switcher: branchStore is the single source of truth
   const branches = useBranchStore((s) => s.branches)
   const currentBranchId = useBranchStore((s) => s.currentBranchId)

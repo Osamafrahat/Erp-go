@@ -168,7 +168,10 @@ export async function setTenantContext(req, res, next) {
     return next()
   }
   try {
-    const { error } = await supabase.rpc('set_current_tenant', { tenant_id: req.user.tenantId })
+    // Key MUST be the SQL parameter name (p_tenant_id): PostgREST only
+    // ignores payload keys while the function is un-overloaded, so a stray
+    // second signature would otherwise break resolution (PGRST202).
+    const { error } = await supabase.rpc('set_current_tenant', { p_tenant_id: req.user.tenantId })
     if (error) {
       console.error('Failed to set tenant context:', error.message)
     }

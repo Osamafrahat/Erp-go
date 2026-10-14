@@ -202,7 +202,9 @@ export default function Layout({ children }) {
   }
   // Branch management: same gate as Users/Activity Log (user_manage permission
   // via routePermissions) plus the platform super admin.
-  if (canAccess('/branches') || currentUser?.role === 'SUPER_ADMIN') {
+  // Branch management is tenant-scoped: MANAGER only (platform SUPER_ADMIN
+  // has no tenant, so the API would reject every mutation with 403).
+  if (canAccess('/branches')) {
     inventoryItems.push({ name: t('nav.branches'), href: '/branches', icon: Building2 })
   }
   if (inventoryItems.length > 0) {
