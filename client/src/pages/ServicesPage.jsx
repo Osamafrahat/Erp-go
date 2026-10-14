@@ -1,4 +1,5 @@
 import ConfirmModal from '../components/ConfirmModal'
+import SearchableSelect from '../components/SearchableSelect'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
@@ -182,12 +183,12 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">{t('services.type') || 'Type'}</label>
-              <select value={form.service_type} onChange={e => setForm({ ...form, service_type: e.target.value })}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface">
-                <option value="maintenance">{t('services.typeMaintenance') || 'Maintenance'}</option>
-                <option value="warranty">{t('services.typeWarranty') || 'Warranty'}</option>
-                <option value="custom">{t('services.typeCustom') || 'Custom'}</option>
-              </select>
+              <SearchableSelect
+                options={[{ value: 'maintenance', label: t('services.typeMaintenance') || 'Maintenance' }, { value: 'warranty', label: t('services.typeWarranty') || 'Warranty' }, { value: 'custom', label: t('services.typeCustom') || 'Custom' }]}
+                value={form.service_type}
+                onChange={(v) => setForm({ ...form, service_type: v })}
+                placeholder={t('common.searchSelect')}
+              />
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">

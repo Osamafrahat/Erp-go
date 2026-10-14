@@ -1,4 +1,5 @@
 import ConfirmModal from '../components/ConfirmModal'
+import SearchableSelect from '../components/SearchableSelect'
 import { useState, useEffect, useCallback } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
@@ -141,11 +142,7 @@ if(loading)return<div className="flex items-center justify-center h-40"><div cla
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-<select value={period}onChange={(e)=>setPeriod(e.target.value)}className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-1.5">
-          <option value="7d">{t('admin.period7d') || '7 Days'}</option>
-          <option value="30d">{t('admin.period30d') || '30 Days'}</option>
-          <option value="90d">{t('admin.period90d') || '90 Days'}</option>
-        </select>
+<SearchableSelect options={[{value:'7d',label:t('admin.period7d')||'7 Days'},{value:'30d',label:t('admin.period30d')||'30 Days'},{value:'90d',label:t('admin.period90d')||'90 Days'}]} value={period} onChange={(v)=>setPeriod(v)} placeholder={t('common.searchSelect')} className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-1.5"/>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -339,18 +336,8 @@ function TenantsTab({ t, showToast }) {
 <input type="text"value={search}onChange={handleSearch}placeholder={t('admin.searchPlaceholder')||'Search...'}className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-surface text-foreground text-sm ring-focus outline-none"/>
           </div>
           <div className="flex gap-2">
-<select value={filterStatus}onChange={(e)=>{setFilterStatus(e.target.value);setPage(1)}}className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-2">
-              <option value="">{t('admin.allStatuses') || 'All Statuses'}</option>
-              <option value="active">{t('billing.active') || 'Active'}</option>
-              <option value="trialing">{t('billing.trial') || 'Trial'}</option>
-              <option value="cancelled">{t('billing.cancelled') || 'Cancelled'}</option>
-            </select>
-<select value={filterTier}onChange={(e)=>{setFilterTier(e.target.value);setPage(1)}}className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-2">
-              <option value="">{t('admin.allTiers') || 'All Tiers'}</option>
-              <option value="free">{t('pricing.free') || 'Free'}</option>
-              <option value="pro">{t('pricing.pro') || 'Pro'}</option>
-              <option value="enterprise">{t('pricing.enterprise') || 'Enterprise'}</option>
-            </select>
+<SearchableSelect options={[{value:'',label:t('admin.allStatuses')||'All Statuses'},{value:'active',label:t('billing.active')||'Active'},{value:'trialing',label:t('billing.trial')||'Trial'},{value:'cancelled',label:t('billing.cancelled')||'Cancelled'}]} value={filterStatus} onChange={(v)=>{setFilterStatus(v);setPage(1)}} placeholder={t('common.searchSelect')} className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-2"/>
+<SearchableSelect options={[{value:'',label:t('admin.allTiers')||'All Tiers'},{value:'free',label:t('pricing.free')||'Free'},{value:'pro',label:t('pricing.pro')||'Pro'},{value:'enterprise',label:t('pricing.enterprise')||'Enterprise'}]} value={filterTier} onChange={(v)=>{setFilterTier(v);setPage(1)}} placeholder={t('common.searchSelect')} className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-2"/>
 <button onClick={()=>setShowCreate(true)}className="flex items-center gap-1.5 px-3 py-2 bg-accent hover:bg-primary-700 text-white rounded-lg text-sm font-medium">
               <Plus className="w-4 h-4" /> {t('admin.createNew') || 'Create'}
             </button>
@@ -380,9 +367,7 @@ function TenantsTab({ t, showToast }) {
 <tr key={tenant.id}className="border-b border-border bg-surface-hover">
 <td className="px-4 py-3"><p className="font-medium text-foreground">{tenant.name}</p><p className="text-xs text-muted">{tenant.slug}</p></td>
                     <td className="px-4 py-3">
-                      <select value={tenant.subscription_tier} onChange={(e) => handleChangeTier(tenant.id, e.target.value)} disabled={actionLoading === tenant.id} className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${tierColors[tenant.subscription_tier] || tierColors.free}`}>
-                        <option value="free">{t('pricing.free') || 'Free'}</option><option value="pro">{t('pricing.pro') || 'Pro'}</option><option value="enterprise">{t('pricing.enterprise') || 'Enterprise'}</option>
-                      </select>
+                      <SearchableSelect options={[{value:'free',label:t('pricing.free')||'Free'},{value:'pro',label:t('pricing.pro')||'Pro'},{value:'enterprise',label:t('pricing.enterprise')||'Enterprise'}]} value={tenant.subscription_tier} onChange={(v) => handleChangeTier(tenant.id, v)} disabled={actionLoading === tenant.id} placeholder={t('common.searchSelect')} className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${tierColors[tenant.subscription_tier] || tierColors.free}`}/>
                     </td>
                     <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[tenant.subscription_status] || statusColors.cancelled}`}>{statusLabels[tenant.subscription_status] || tenant.subscription_status}</span></td>
 <td className="px-4 py-3 text-foreground"><Users className="w-3.5 h-3.5 inline mr-1"/>{tenant.user_count ?? 0}</td>
@@ -468,9 +453,7 @@ function CreateTenantModal({ t, showToast, onClose, onCreated }) {
 <input value={form.adminUsername}onChange={(e)=>setForm({...form,adminUsername: e.target.value})}placeholder={t('admin.adminUsername')||'Admin Username'}className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"required />
 <input value={form.adminEmail}onChange={(e)=>setForm({...form,adminEmail: e.target.value})}placeholder={t('admin.adminEmail')||'Admin Email'}type="email"className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"required />
 <input value={form.adminPassword}onChange={(e)=>setForm({...form,adminPassword: e.target.value})}placeholder={t('admin.adminPassword')||'Admin Password'}type="password"className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"required minLength={8}/>
-<select value={form.tier}onChange={(e)=>setForm({...form,tier: e.target.value})}className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm">
-            <option value="free">{t('pricing.free') || 'Free'}</option><option value="pro">{t('pricing.pro') || 'Pro'}</option><option value="enterprise">{t('pricing.enterprise') || 'Enterprise'}</option>
-          </select>
+<SearchableSelect options={[{value:'free',label:t('pricing.free')||'Free'},{value:'pro',label:t('pricing.pro')||'Pro'},{value:'enterprise',label:t('pricing.enterprise')||'Enterprise'}]} value={form.tier} onChange={(v)=>setForm({...form,tier: v})} placeholder={t('common.searchSelect')} className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"/>
           <div className="flex gap-2 justify-end pt-2">
 <button type="button"onClick={onClose}className="px-4 py-2 text-sm text-foreground bg-surface-hover rounded-lg">{t('common.cancel')||'Cancel'}</button>
 <button type="submit"disabled={loading}className="px-4 py-2 text-sm bg-accent hover:bg-primary-700 text-white rounded-lg disabled:opacity-50">{loading ?'...':(t('common.add')||'Create')}</button>
@@ -1225,26 +1208,8 @@ signed_up:'bg-accent-soft text-accent-soft-foreground',
         </div>
         <div className="flex flex-wrap gap-2">
 <input type="text"value={search}onChange={(e)=>setSearch(e.target.value)}placeholder={t('common.search')||'Search...'}className="text-sm px-3 py-1.5 border border-border rounded-lg bg-surface text-foreground w-40"/>
-<select value={filterEntity}onChange={(e)=>setFilterEntity(e.target.value)}className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-1.5">
-            <option value="">{t('admin.allEntities') || 'All Entities'}</option>
-            <option value="subscription">Subscription</option>
-            <option value="product">Product</option>
-            <option value="order">Order</option>
-            <option value="customer">Customer</option>
-            <option value="user">User</option>
-            <option value="employee">Employee</option>
-            <option value="auth">Auth</option>
-          </select>
-<select value={filterAction}onChange={(e)=>setFilterAction(e.target.value)}className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-1.5">
-            <option value="">{t('admin.allActions') || 'All Actions'}</option>
-            <option value="created">{t('admin.actionCreated') || 'Created'}</option>
-            <option value="updated">{t('admin.actionUpdated') || 'Updated'}</option>
-            <option value="deleted">{t('admin.actionDeleted') || 'Deleted'}</option>
-            <option value="upgraded">{t('admin.actionUpgraded') || 'Upgraded'}</option>
-            <option value="downgraded">{t('admin.actionDowngraded') || 'Downgraded'}</option>
-            <option value="expired">{t('admin.actionExpired') || 'Expired'}</option>
-            <option value="logged_in">{t('admin.actionLogin') || 'Login'}</option>
-          </select>
+<SearchableSelect options={[{value:'',label:t('admin.allEntities')||'All Entities'},{value:'subscription',label:'Subscription'},{value:'product',label:'Product'},{value:'order',label:'Order'},{value:'customer',label:'Customer'},{value:'user',label:'User'},{value:'employee',label:'Employee'},{value:'auth',label:'Auth'}]} value={filterEntity} onChange={(v)=>setFilterEntity(v)} placeholder={t('common.searchSelect')} className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-1.5"/>
+<SearchableSelect options={[{value:'',label:t('admin.allActions')||'All Actions'},{value:'created',label:t('admin.actionCreated')||'Created'},{value:'updated',label:t('admin.actionUpdated')||'Updated'},{value:'deleted',label:t('admin.actionDeleted')||'Deleted'},{value:'upgraded',label:t('admin.actionUpgraded')||'Upgraded'},{value:'downgraded',label:t('admin.actionDowngraded')||'Downgraded'},{value:'expired',label:t('admin.actionExpired')||'Expired'},{value:'logged_in',label:t('admin.actionLogin')||'Login'}]} value={filterAction} onChange={(v)=>setFilterAction(v)} placeholder={t('common.searchSelect')} className="text-sm border border-border rounded-lg bg-surface text-foreground px-3 py-1.5"/>
         </div>
       </div>
       {loading ? (

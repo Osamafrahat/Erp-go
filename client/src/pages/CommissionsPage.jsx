@@ -3,6 +3,7 @@ import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { commissionsApi, employeesApi } from '../lib/api'
 import { AlertTriangle, Award, Calculator, Calendar, CheckCircle, Clock, DollarSign, Loader2, Package, Search, ShoppingCart, TrendingUp, UserCheck, Users } from 'lucide-react'
+import SearchableSelect from '../components/SearchableSelect'
 
 
 
@@ -264,16 +265,16 @@ className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-blue-700 flex item
                     </button>
                   ))}
                 </div>
-                <select
+                <SearchableSelect
+                  options={[
+                    { value: '', label: t('allEmployees') || 'All Employees' },
+                    ...employees.map(emp => ({ value: String(emp.id), label: emp.name })),
+                  ]}
                   value={employeeFilter}
-                  onChange={(e) => setEmployeeFilter(e.target.value)}
-className="px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm ring-focus outline-none"
-                >
-                  <option value="">{t('allEmployees') || 'All Employees'}</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.name}</option>
-                  ))}
-                </select>
+                  onChange={(v) => setEmployeeFilter(v)}
+                  placeholder={t('common.searchSelect')}
+                  className="px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm ring-focus outline-none"
+                />
                 <div className="relative flex-1 max-w-xs">
 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted"/>
                   <input

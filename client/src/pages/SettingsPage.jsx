@@ -1,4 +1,5 @@
 import { Save, Store, Percent, Receipt, AlertTriangle, Globe, Star, Upload, X, MapPin, Navigation } from 'lucide-react'
+import SearchableSelect from '../components/SearchableSelect'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { settingsApi } from '../lib/api'
@@ -578,16 +579,16 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
 <label className="block text-sm font-medium text-foreground mb-1">
                 {t('settings.etaAutoSubmit') || 'Auto-submit receipts to ETA'}
               </label>
-              <select
-                name="eta_auto_submit"
+              <SearchableSelect
+                options={[
+                  { value: 'disabled', label: t('settings.etaDisabled') || 'Disabled' },
+                  { value: 'enabled', label: t('settings.etaEnabled') || 'Enabled (submit on every sale)' },
+                  { value: 'manual', label: t('settings.etaManual') || 'Manual (submit from invoice)' },
+                ]}
                 value={formData.eta_auto_submit || 'disabled'}
-                onChange={handleChange}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-              >
-                <option value="disabled">{t('settings.etaDisabled') || 'Disabled'}</option>
-                <option value="enabled">{t('settings.etaEnabled') || 'Enabled (submit on every sale)'}</option>
-                <option value="manual">{t('settings.etaManual') || 'Manual (submit from invoice)'}</option>
-              </select>
+                onChange={(v) => setFormData(prev => ({ ...prev, eta_auto_submit: v }))}
+                placeholder={t('common.searchSelect')}
+              />
             </div>
           </div>
         </div>

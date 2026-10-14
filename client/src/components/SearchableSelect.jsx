@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { Search, X, ChevronDown } from 'lucide-react'
 import { useAppStore } from '../stores/appStore'
 
-export default function SearchableSelect({ options = [], value, onChange, placeholder, labelKey = 'label', valueKey = 'value', renderOption, disabled }) {
+export default function SearchableSelect({ options = [], value, onChange, placeholder, labelKey = 'label', valueKey = 'value', renderOption, disabled, className = '' }) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [highlightIndex, setHighlightIndex] = useState(0)
@@ -67,7 +67,7 @@ export default function SearchableSelect({ options = [], value, onChange, placeh
         role="combobox"
         aria-expanded={open}
         onClick={() => { if (!disabled) setOpen(!open) }}
-className={`w-full flex items-center justify-between px-3 py-2 border border-border rounded-lg bg-surface text-sm text-left transition
+className={`flex items-center justify-between text-left transition ${className || 'w-full px-3 py-2 border border-border rounded-lg bg-surface text-sm'}
 ${disabled ?'opacity-50 cursor-not-allowed':'cursor-pointer border-secondary'}
 ${open ?'border-accent ring-1 ring-primary-500':''}
 ${selected ?'text-foreground':'text-muted'}`}

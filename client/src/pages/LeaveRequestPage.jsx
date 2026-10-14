@@ -2,6 +2,7 @@ import { Calendar, Plus, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { leaveApi } from '../lib/api'
+import SearchableSelect from '../components/SearchableSelect'
 
 const STATUS_COLORS = {
 pending:'bg-warning-soft text-warning-soft-foreground',
@@ -187,17 +188,18 @@ const barColor=pct>=80 ?'bg-danger': pct>=50 ?'bg-warning':'bg-success'
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
 <label className="block text-sm font-medium text-foreground mb-1">{t('hr.leave.type')||'Leave Type'}*</label>
-                <select
+                <SearchableSelect
+                  options={[
+                    { value: '', label: t('hr.leave.selectType') || 'Select type...' },
+                    ...leaveTypes.map(lt => ({
+                      value: String(lt.id),
+                      label: `${lt.name} (${lt.days_per_year} ${t('hr.leave.daysYear') || 'days/year'})`,
+                    })),
+                  ]}
                   value={form.leave_type_id}
-                  onChange={e => setForm(f => ({ ...f, leave_type_id: e.target.value }))}
-className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm"
-                  required
-                >
-                  <option value="">{t('hr.leave.selectType') || 'Select type...'}</option>
-                  {leaveTypes.map(lt => (
-                    <option key={lt.id} value={lt.id}>{lt.name} ({lt.days_per_year} {t('hr.leave.daysYear') || 'days/year'})</option>
-                  ))}
-                </select>
+                  onChange={(v) => setForm(f => ({ ...f, leave_type_id: v }))}
+                  placeholder={t('common.searchSelect')}
+                />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>

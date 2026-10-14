@@ -1,4 +1,5 @@
 import { X, RefreshCw, Plus, Trash2 } from 'lucide-react'
+import SearchableSelect from '../../components/SearchableSelect'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../../stores/appStore'
 import { generateSKU } from '../../lib/utils'
@@ -185,34 +186,30 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
 <label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.category')}
               </label>
-              <select
-                name="category_id"
+              <SearchableSelect
+                options={[
+                  { value: '', label: t('inventory.selectCategory') },
+                  ...categories.map(cat => ({ value: String(cat.id), label: cat.name })),
+                ]}
                 value={formData.category_id}
-                onChange={handleChange}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-              >
-                <option value="">{t('inventory.selectCategory')}</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+                onChange={(v) => setFormData(prev => ({ ...prev, category_id: v }))}
+                placeholder={t('common.searchSelect')}
+              />
             </div>
 
             <div>
 <label className="block text-sm font-medium text-foreground mb-1">
                 {t('inventory.supplier')}
               </label>
-              <select
-                name="supplier_id"
+              <SearchableSelect
+                options={[
+                  { value: '', label: t('inventory.selectSupplier') },
+                  ...(suppliers || []).map(sup => ({ value: String(sup.id), label: sup.name })),
+                ]}
                 value={formData.supplier_id}
-                onChange={handleChange}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-              >
-                <option value="">{t('inventory.selectSupplier')}</option>
-                {(suppliers || []).map(sup => (
-                  <option key={sup.id} value={sup.id}>{sup.name}</option>
-                ))}
-              </select>
+                onChange={(v) => setFormData(prev => ({ ...prev, supplier_id: v }))}
+                placeholder={t('common.searchSelect')}
+              />
             </div>
 
             <div>
@@ -344,18 +341,18 @@ className="flex items-center gap-1 text-sm text-accent hover:text-primary-700"
 <label className="block text-sm font-medium text-foreground mb-1">
               {t('inventory.unitOfMeasure')}
             </label>
-            <select
-              name="unit_of_measure"
+            <SearchableSelect
+              options={[
+                { value: 'quantity', label: t('inventory.unitQuantity') },
+                { value: 'kilo', label: t('inventory.unitKilo') },
+                { value: 'liter', label: t('inventory.unitLiter') },
+                { value: 'meter', label: t('inventory.unitMeter') },
+                { value: 'box', label: t('inventory.unitBox') },
+              ]}
               value={formData.unit_of_measure}
-              onChange={handleChange}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-            >
-              <option value="quantity">{t('inventory.unitQuantity')}</option>
-              <option value="kilo">{t('inventory.unitKilo')}</option>
-              <option value="liter">{t('inventory.unitLiter')}</option>
-              <option value="meter">{t('inventory.unitMeter')}</option>
-              <option value="box">{t('inventory.unitBox')}</option>
-            </select>
+              onChange={(v) => setFormData(prev => ({ ...prev, unit_of_measure: v }))}
+              placeholder={t('common.searchSelect')}
+            />
           </div>
 
           {/* Pieces per Box (only when unit = box) */}

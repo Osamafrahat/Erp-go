@@ -1463,6 +1463,7 @@ export const translations = {
     'common.notes': 'Notes',
     'common.view': 'View',
     'common.noResults': 'No results found',
+    'common.searchSelect': 'Search or select...',
     'common.notAvailable': 'N/A',
 
     // Months
@@ -3984,6 +3985,7 @@ export const translations = {
     'common.notes': 'ملاحظات',
     'common.view': 'عرض',
     'common.noResults': 'لا توجد نتائج',
+    'common.searchSelect': 'ابحث أو اختر...',
     'common.notAvailable': 'غير متاح',
 
     // Months (Arabic)

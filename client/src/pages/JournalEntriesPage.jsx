@@ -1,4 +1,5 @@
 import ConfirmModal from '../components/ConfirmModal'
+import SearchableSelect from '../components/SearchableSelect'
 import { Plus, Search, Eye, RotateCcw, Save, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
@@ -149,10 +150,9 @@ export default function JournalEntriesPage() {
               </div>
               {formData.lines.map((line, i) => (
                 <div key={i} className="grid grid-cols-12 gap-2">
-<select value={line.accountId}onChange={e=>updateLine(i,'accountId',e.target.value)}className="col-span-4 px-3 py-2 rounded-lg border border-border bg-surface-secondary text-sm outline-none">
-                    <option value="">{t('accounting.selectAccount') || 'Select...'}</option>
-                    {accounts.map(a => <option key={a.id} value={a.id}>{a.code} - {getAccountName(a)}</option>)}
-                  </select>
+<div className="col-span-4">
+<SearchableSelect options={[{value:'',label:t('accounting.selectAccount')||'Select...'},...accounts.map(a=>({value:String(a.id),label:`${a.code} - ${getAccountName(a)}`}))]}value={line.accountId}onChange={(v)=>updateLine(i,'accountId',v)}placeholder={t('common.searchSelect')}className="px-3 py-2 rounded-lg border border-border bg-surface-secondary text-sm outline-none"/>
+                </div>
 <input type="number"value={line.debit}onChange={e=>updateLine(i,'debit',e.target.value)}placeholder="0"className="col-span-2 px-3 py-2 rounded-lg border border-border bg-surface-secondary text-sm text-end outline-none"/>
 <input type="number"value={line.credit}onChange={e=>updateLine(i,'credit',e.target.value)}placeholder="0"className="col-span-2 px-3 py-2 rounded-lg border border-border bg-surface-secondary text-sm text-end outline-none"/>
 <input value={line.description}onChange={e=>updateLine(i,'description',e.target.value)}className="col-span-3 px-3 py-2 rounded-lg border border-border bg-surface-secondary text-sm outline-none"/>
@@ -171,7 +171,7 @@ export default function JournalEntriesPage() {
 <span className={`font-medium ${Math.abs(totalDebit - totalCredit)>0.01 ?'text-danger':'text-success'}`}>
                   {t('accounting.credit') || 'Credit'}: {totalCredit.toFixed(2)}
                 </span>
-{isBalanced &&<span className="text-success font-bold">✓ Balanced</span>}
+{isBalanced &&<span className="text-success font-bold">âœ“ Balanced</span>}
               </div>
               <div className="flex gap-3">
 <button onClick={handleSubmit}disabled={!isBalanced}className="px-5 py-2.5 bg-accent hover:bg-primary-700 disabled:opacity-50 text-white rounded-xl font-medium flex items-center gap-2">

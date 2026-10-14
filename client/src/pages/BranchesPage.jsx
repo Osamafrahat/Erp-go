@@ -1,4 +1,5 @@
 import ConfirmModal from '../components/ConfirmModal'
+import SearchableSelect from '../components/SearchableSelect'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
@@ -147,8 +148,7 @@ export default function BranchesPage() {
   }
 
   // ---- Transfer form helpers ----
-  const handleFromChange = (e) => {
-    const value = e.target.value
+  const handleFromChange = (value) => {
     setTransferForm((f) => ({
       ...f,
       from_branch_id: value,
@@ -401,29 +401,27 @@ export default function BranchesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">{t('transfers.from')}</label>
-              <select
+              <SearchableSelect
+                options={[
+                  { value: '', label: t('branches.branch') },
+                  ...activeBranches.map((b) => ({ value: String(b.id), label: b.name })),
+                ]}
                 value={transferForm.from_branch_id}
-                onChange={handleFromChange}
-                className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-              >
-                <option value="">{t('branches.branch')}</option>
-                {activeBranches.map((b) => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
+                onChange={(v) => handleFromChange(v)}
+                placeholder={t('common.searchSelect')}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">{t('transfers.to')}</label>
-              <select
+              <SearchableSelect
+                options={[
+                  { value: '', label: t('branches.branch') },
+                  ...toOptions.map((b) => ({ value: String(b.id), label: b.name })),
+                ]}
                 value={transferForm.to_branch_id}
-                onChange={(e) => setTransferForm((f) => ({ ...f, to_branch_id: e.target.value }))}
-                className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-              >
-                <option value="">{t('branches.branch')}</option>
-                {toOptions.map((b) => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
+                onChange={(v) => setTransferForm((f) => ({ ...f, to_branch_id: v }))}
+                placeholder={t('common.searchSelect')}
+              />
             </div>
           </div>
 
@@ -443,18 +441,21 @@ export default function BranchesPage() {
               return (
                 <div key={idx} className="mb-3">
                   <div className="flex gap-2">
-                    <select
-                      value={item.product_id}
-                      onChange={(e) => handleItemChange(idx, 'product_id', e.target.value)}
-                      className="flex-1 px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm outline-none"
-                    >
-                      <option value="">{t('transfers.selectProduct')}</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}{p.sku ? ` (${p.sku})` : ''}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex-1">
+                      <SearchableSelect
+                        options={[
+                          { value: '', label: t('transfers.selectProduct') },
+                          ...products.map((p) => ({
+                            value: String(p.id),
+                            label: `${p.name}${p.sku ? ` (${p.sku})` : ''}`,
+                          })),
+                        ]}
+                        value={item.product_id}
+                        onChange={(v) => handleItemChange(idx, 'product_id', v)}
+                        placeholder={t('common.searchSelect')}
+                        className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm outline-none"
+                      />
+                    </div>
                     <input
                       type="number"
                       min="1"
@@ -658,16 +659,15 @@ function BranchForm({ branch, saving, onSave, onClose }) {
             <label className="block text-sm font-medium text-foreground mb-1">
               {t('branches.type')} *
             </label>
-            <select
-              name="type"
+            <SearchableSelect
+              options={[
+                { value: 'store', label: t('branches.typeStore') },
+                { value: 'warehouse', label: t('branches.typeWarehouse') },
+              ]}
               value={formData.type}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-            >
-              <option value="store">{t('branches.typeStore')}</option>
-              <option value="warehouse">{t('branches.typeWarehouse')}</option>
-            </select>
+              onChange={(v) => setFormData((prev) => ({ ...prev, type: v }))}
+              placeholder={t('common.searchSelect')}
+            />
           </div>
 
           <div>

@@ -1,4 +1,5 @@
 import ConfirmModal from '../components/ConfirmModal'
+import SearchableSelect from '../components/SearchableSelect'
 import { DollarSign, Plus, Search, Trash2, Save, X, ArrowUpRight, ArrowDownRight, Pencil } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
@@ -132,11 +133,7 @@ export default function PaymentsPage() {
 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"/>
 <input type="text"value={search}onChange={e=>setSearch(e.target.value)}placeholder={t('common.search')||'Search...'}className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface ring-focus outline-none"/>
         </div>
-<select value={filterType}onChange={e=>setFilterType(e.target.value)}className="px-4 py-2.5 rounded-xl border border-border bg-surface outline-none ring-focus">
-          <option value="">{t('accounting.allTypes')}</option>
-          <option value="inbound">{t('accounting.inbound')}</option>
-          <option value="outbound">{t('accounting.outbound')}</option>
-        </select>
+<SearchableSelect options={[{value:'',label:t('accounting.allTypes')},{value:'inbound',label:t('accounting.inbound')},{value:'outbound',label:t('accounting.outbound')}]}value={filterType}onChange={(v)=>setFilterType(v)}placeholder={t('common.searchSelect')}className="px-4 py-2.5 rounded-xl border border-border bg-surface outline-none ring-focus"/>
       </div>
 
       {/* Form Modal */}
@@ -145,33 +142,25 @@ export default function PaymentsPage() {
 <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4">
             <h3 className="text-lg font-bold">{editingId ? (t('accounting.editPayment') || 'Edit Payment') : (t('accounting.newPayment') || 'New Payment')}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-<select value={formData.payment_type}onChange={e=>setFormData({...formData,payment_type: e.target.value,partner_type:'',partner_id:''})}className="px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus">
-                <option value="inbound">{t('accounting.inbound')} ({t('accounting.received')})</option>
-                <option value="outbound">{t('accounting.outbound')} ({t('accounting.paid')})</option>
-              </select>
-<select value={formData.method}onChange={e=>setFormData({...formData,method: e.target.value})}className="px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus">
-                <option value="cash">{t('accounting.cash')}</option>
-                <option value="bank_transfer">{t('accounting.bankTransfer')}</option>
-                <option value="card">{t('accounting.card')}</option>
-                <option value="check">{t('accounting.check')}</option>
-              </select>
+<SearchableSelect options={[{value:'inbound',label:`${t('accounting.inbound')} (${t('accounting.received')})`},{value:'outbound',label:`${t('accounting.outbound')} (${t('accounting.paid')})`}]}value={formData.payment_type}onChange={(v)=>setFormData({...formData,payment_type:v,partner_type:'',partner_id:''})}placeholder={t('common.searchSelect')}className="px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"/>
+<SearchableSelect options={[{value:'cash',label:t('accounting.cash')},{value:'bank_transfer',label:t('accounting.bankTransfer')},{value:'card',label:t('accounting.card')},{value:'check',label:t('accounting.check')}]}value={formData.method}onChange={(v)=>setFormData({...formData,method:v})}placeholder={t('common.searchSelect')}className="px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"/>
             </div>
 
             {/* Partner Selection */}
             {formData.payment_type === 'outbound' && (
-              <select
+              <SearchableSelect
+                options={[
+                  { value: ':', label: t('accounting.selectSupplier') || 'Select supplier...' },
+                  ...suppliers.map(s => ({ value: `supplier:${s.id}`, label: s.name })),
+                ]}
                 value={`${formData.partner_type}:${formData.partner_id}`}
-                onChange={e => {
-                  const [type, id] = e.target.value.split(':')
+                onChange={(v) => {
+                  const [type, id] = v.split(':')
                   setFormData({ ...formData, partner_type: type, partner_id: id })
                 }}
+                placeholder={t('common.searchSelect')}
 className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"
-              >
-                <option value=":">{t('accounting.selectSupplier') || 'Select supplier...'}</option>
-                {suppliers.map(s => (
-                  <option key={s.id} value={`supplier:${s.id}`}>{s.name}</option>
-                ))}
-              </select>
+              />
             )}
 <input type="number"value={formData.amount}onChange={e=>setFormData({...formData,amount: e.target.value})}placeholder={`${t('accounting.amount')}(EGP)`}className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus text-lg font-bold"/>
 <input type="date"value={formData.payment_date}onChange={e=>setFormData({...formData,payment_date: e.target.value})}className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"/>

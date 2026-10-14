@@ -394,17 +394,15 @@ className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-surface tex
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
 <label className="block text-sm font-medium text-foreground mb-1">{t('supplier')||'Supplier'}*</label>
-                  <select
+                  <SearchableSelect
+                    options={[
+                      { value: '', label: t('selectSupplier') || 'Select supplier...' },
+                      ...suppliers.map((s) => ({ value: String(s.id), label: s.name })),
+                    ]}
                     value={form.supplier_id}
-                    onChange={(e) => setForm({ ...form, supplier_id: e.target.value })}
-className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
-                    required
-                  >
-                    <option value="">{t('selectSupplier') || 'Select supplier...'}</option>
-                    {suppliers.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
+                    onChange={(v) => setForm({ ...form, supplier_id: v })}
+                    placeholder={t('common.searchSelect')}
+                  />
                 </div>
                 <div>
 <label className="block text-sm font-medium text-foreground mb-1">{t('expectedDate')||'Expected Date'}</label>
@@ -434,16 +432,18 @@ className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-fore
 <label className="block text-sm font-medium text-foreground mb-2">{t('items')||'Items'}</label>
                 {form.items.map((item, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
-                    <select
-                      value={item.product_id}
-                      onChange={(e) => handleItemChange(idx, 'product_id', e.target.value)}
-className="flex-1 px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm outline-none"
-                    >
-                      <option value="">{t('selectProduct') || 'Product...'}</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </select>
+                    <div className="flex-1">
+                      <SearchableSelect
+                        options={[
+                          { value: '', label: t('selectProduct') || 'Product...' },
+                          ...products.map((p) => ({ value: String(p.id), label: p.name })),
+                        ]}
+                        value={item.product_id}
+                        onChange={(v) => handleItemChange(idx, 'product_id', v)}
+                        placeholder={t('common.searchSelect')}
+                        className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm outline-none"
+                      />
+                    </div>
                     <input
                       type="number"
                       min="1"

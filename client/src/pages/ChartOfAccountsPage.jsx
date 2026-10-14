@@ -3,6 +3,7 @@ import { Plus, Search, Edit2, Trash2, Save, X, RefreshCw, Landmark } from 'lucid
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import api, { accountsApi } from '../lib/api'
+import SearchableSelect from '../components/SearchableSelect'
 
 export default function ChartOfAccountsPage() {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -164,12 +165,7 @@ expense:{label: t('accounting.expenseType')||'Expense',color:'bg-warning-soft te
 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"/>
 <input type="text"value={search}onChange={(e)=>setSearch(e.target.value)}placeholder={t('common.search')}className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface ring-focus outline-none"/>
         </div>
-<select value={filterType}onChange={(e)=>setFilterType(e.target.value)}className="px-4 py-2.5 rounded-xl border border-border bg-surface ring-focus outline-none">
-          <option value="">{t('accounting.allTypes')}</option>
-          {Object.entries(ACCOUNT_TYPES).map(([key, val]) => (
-            <option key={key} value={key}>{val.label}</option>
-          ))}
-        </select>
+<SearchableSelect options={[{value:'',label:t('accounting.allTypes')},...Object.entries(ACCOUNT_TYPES).map(([key,val])=>({value:key,label:val.label}))]}value={filterType}onChange={(v)=>setFilterType(v)}placeholder={t('common.searchSelect')}className="px-4 py-2.5 rounded-xl border border-border bg-surface ring-focus outline-none"/>
       </div>
 
       {showForm && (
@@ -178,11 +174,7 @@ expense:{label: t('accounting.expenseType')||'Expense',color:'bg-warning-soft te
             <h3 className="text-lg font-bold">{editingId ? t('accounting.editAccount') : t('accounting.addAccount')}</h3>
 <input value={formData.code}onChange={e=>setFormData({...formData,code: e.target.value})}placeholder={t('accounting.code')}className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"/>
 <input value={formData.name}onChange={e=>setFormData({...formData,name: e.target.value})}placeholder={t('accounting.name')}className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"/>
-<select value={formData.account_type}onChange={e=>setFormData({...formData,account_type: e.target.value})}className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus">
-              {Object.entries(ACCOUNT_TYPES).map(([key, val]) => (
-                <option key={key} value={key}>{val.label}</option>
-              ))}
-            </select>
+<SearchableSelect options={Object.entries(ACCOUNT_TYPES).map(([key,val])=>({value:key,label:val.label}))}value={formData.account_type}onChange={(v)=>setFormData({...formData,account_type:v})}placeholder={t('common.searchSelect')}className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"/>
 <textarea value={formData.description}onChange={e=>setFormData({...formData,description: e.target.value})}placeholder={t('common.description')}rows={2}className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"/>
             <div className="flex gap-3">
 <button onClick={handleSubmit}className="flex-1 px-4 py-2.5 bg-accent hover:bg-primary-700 text-white rounded-xl font-medium flex items-center justify-center gap-2">

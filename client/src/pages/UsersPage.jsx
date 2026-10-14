@@ -476,33 +476,33 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
 <label className="block text-sm font-medium text-foreground mb-1">
               {t('users.role')} *
             </label>
-            <select
-              name="role"
+            <SearchableSelect
+              options={Object.entries(ROLES).map(([key, role]) => ({
+                value: key,
+                label: language === 'ar' ? role.nameAr : role.name,
+              }))}
               value={formData.role}
-              onChange={handleChange}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-            >
-              {Object.entries(ROLES).map(([key, role]) => (
-                <option key={key} value={key}>{language === 'ar' ? role.nameAr : role.name}</option>
-              ))}
-            </select>
+              onChange={(v) => setFormData(prev => ({ ...prev, role: v, permissions: ROLES[v]?.permissions || [] }))}
+              placeholder={t('common.searchSelect')}
+            />
           </div>
 
           <div>
 <label className="block text-sm font-medium text-foreground mb-1">
               {t('users.employee')}
             </label>
-            <select
-              name="employeeId"
+            <SearchableSelect
+              options={[
+                { value: '', label: t('users.noEmployee') },
+                ...employees.filter(e => e.is_active).map(emp => ({
+                  value: String(emp.id),
+                  label: `${emp.name} - ${emp.role}`,
+                })),
+              ]}
               value={formData.employeeId}
-              onChange={handleChange}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-            >
-              <option value="">{t('users.noEmployee')}</option>
-              {employees.filter(e => e.is_active).map(emp => (
-                <option key={emp.id} value={emp.id}>{emp.name} - {emp.role}</option>
-              ))}
-            </select>
+              onChange={(v) => setFormData(prev => ({ ...prev, employeeId: v }))}
+              placeholder={t('common.searchSelect')}
+            />
           </div>
 
           <div>

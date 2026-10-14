@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { activitiesApi } from '../lib/api'
 import { Activity, Search, User, ShoppingCart, Package, Truck, Tag, DollarSign, RotateCcw, Users, ClipboardList } from 'lucide-react'
+import SearchableSelect from '../components/SearchableSelect'
 
 const ACTION_ICONS = {
 created:{icon:'➕',color:'text-success-soft-foreground bg-success-soft'},
@@ -167,24 +168,20 @@ export default function ActivitiesPage() {
 className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-surface"
             />
           </div>
-          <select
+          <SearchableSelect
+            options={ACTION_OPTIONS.map(opt => ({ value: opt.value, label: label(opt.labelEn, opt.labelAr) }))}
             value={actionFilter}
-            onChange={(e) => { setActionFilter(e.target.value); setPagination(prev => ({ ...prev, page: 1 })) }}
-className="px-4 py-2 rounded-lg border border-border bg-surface"
-          >
-            {ACTION_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{label(opt.labelEn, opt.labelAr)}</option>
-            ))}
-          </select>
-          <select
+            onChange={(v) => { setActionFilter(v); setPagination(prev => ({ ...prev, page: 1 })) }}
+            placeholder={t('common.searchSelect')}
+            className="px-4 py-2 rounded-lg border border-border bg-surface"
+          />
+          <SearchableSelect
+            options={ENTITY_OPTIONS.map(opt => ({ value: opt.value, label: label(opt.labelEn, opt.labelAr) }))}
             value={entityFilter}
-            onChange={(e) => { setEntityFilter(e.target.value); setPagination(prev => ({ ...prev, page: 1 })) }}
-className="px-4 py-2 rounded-lg border border-border bg-surface"
-          >
-            {ENTITY_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{label(opt.labelEn, opt.labelAr)}</option>
-            ))}
-          </select>
+            onChange={(v) => { setEntityFilter(v); setPagination(prev => ({ ...prev, page: 1 })) }}
+            placeholder={t('common.searchSelect')}
+            className="px-4 py-2 rounded-lg border border-border bg-surface"
+          />
           <button
             type="submit"
 className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-primary-700"

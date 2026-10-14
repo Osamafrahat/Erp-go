@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
 import { expensesApi } from '../lib/api'
+import SearchableSelect from '../components/SearchableSelect'
 
 const EXPENSE_CATEGORIES = [
   'Rent',
@@ -211,16 +212,16 @@ className="px-3 py-1.5 text-sm rounded-lg border border-border bg-surface"
 className="px-3 py-1.5 text-sm rounded-lg border border-border bg-surface"
           />
         </div>
-        <select
+        <SearchableSelect
+          options={[
+            { value: '', label: t('expenses.allCategories') },
+            ...EXPENSE_CATEGORIES.map(cat => ({ value: cat, label: t('expense.' + cat.toLowerCase()) || cat })),
+          ]}
           value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-className="px-3 py-1.5 text-sm rounded-lg border border-border bg-surface"
-        >
-          <option value="">{t('expenses.allCategories')}</option>
-          {EXPENSE_CATEGORIES.map(cat => (
-            <option key={cat} value={cat}>{t('expense.' + cat.toLowerCase()) || cat}</option>
-          ))}
-        </select>
+          onChange={(v) => setCategoryFilter(v)}
+          placeholder={t('common.searchSelect')}
+          className="px-3 py-1.5 text-sm rounded-lg border border-border bg-surface"
+        />
       </div>
 
       {/* Expenses List */}
@@ -358,17 +359,12 @@ className="p-2 rounded-lg bg-surface-hover"
 <label className="block text-sm font-medium text-foreground mb-1">
                 {t('expenses.category')} *
               </label>
-              <select
-                name="category"
+              <SearchableSelect
+                options={EXPENSE_CATEGORIES.map(cat => ({ value: cat, label: t('expense.' + cat.toLowerCase()) || cat }))}
                 value={formData.category}
-                onChange={handleChange}
-                required
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-              >
-                {EXPENSE_CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{t('expense.' + cat.toLowerCase()) || cat}</option>
-                ))}
-              </select>
+                onChange={(v) => setFormData(prev => ({ ...prev, category: v }))}
+                placeholder={t('common.searchSelect')}
+              />
             </div>
             <div>
 <label className="block text-sm font-medium text-foreground mb-1">
@@ -404,17 +400,17 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
 <label className="block text-sm font-medium text-foreground mb-1">
                 {t('accounting.method')}
               </label>
-              <select
-                name="method"
+              <SearchableSelect
+                options={[
+                  { value: 'cash', label: t('accounting.methodCash') || 'Cash' },
+                  { value: 'bank_transfer', label: t('accounting.methodBankTransfer') || 'Bank Transfer' },
+                  { value: 'card', label: t('accounting.methodCard') || 'Card' },
+                  { value: 'check', label: t('accounting.methodCheck') || 'Check' },
+                ]}
                 value={formData.method}
-                onChange={handleChange}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-              >
-                <option value="cash">{t('accounting.methodCash') || 'Cash'}</option>
-                <option value="bank_transfer">{t('accounting.methodBankTransfer') || 'Bank Transfer'}</option>
-                <option value="card">{t('accounting.methodCard') || 'Card'}</option>
-                <option value="check">{t('accounting.methodCheck') || 'Check'}</option>
-              </select>
+                onChange={(v) => setFormData(prev => ({ ...prev, method: v }))}
+                placeholder={t('common.searchSelect')}
+              />
             </div>
           </div>
 

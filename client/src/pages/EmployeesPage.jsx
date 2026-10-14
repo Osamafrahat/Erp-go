@@ -392,17 +392,12 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
 <label className="block text-sm font-medium text-foreground mb-1">
               {t('employees.role')} *
             </label>
-            <select
-              name="role"
+            <SearchableSelect
+              options={USER_ROLES(t)}
               value={formData.role}
-              onChange={handleChange}
-              required
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-            >
-              {USER_ROLES(t).map(role => (
-                <option key={role.value} value={role.value}>{role.label}</option>
-              ))}
-            </select>
+              onChange={(v) => setFormData(prev => ({ ...prev, role: v }))}
+              placeholder={t('common.searchSelect')}
+            />
             {!employee && (
 <p className="text-xs text-muted mt-1">
                 {t('employees.roleHint') || 'This role determines the user login permissions.'}

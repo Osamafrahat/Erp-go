@@ -162,20 +162,20 @@ export default function AttendancePage() {
 }}className="p-2 bg-surface-hover rounded-lg transition">
 <ChevronLeft className="w-5 h-5 text-muted"/>
           </button>
-          <select
+          <SearchableSelect
+            options={months.map(m => ({ value: String(m.value), label: m.label }))}
             value={selectedMonth}
-            onChange={e => setSelectedMonth(parseInt(e.target.value))}
-className="px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-foreground"
-          >
-            {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-          </select>
-          <select
+            onChange={(v) => setSelectedMonth(parseInt(v))}
+            placeholder={t('common.searchSelect')}
+            className="px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-foreground"
+          />
+          <SearchableSelect
+            options={[2024, 2025, 2026, 2027, 2028].map(y => ({ value: String(y), label: String(y) }))}
             value={selectedYear}
-            onChange={e => setSelectedYear(parseInt(e.target.value))}
-className="px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-foreground"
-          >
-            {[2024, 2025, 2026, 2027, 2028].map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
+            onChange={(v) => setSelectedYear(parseInt(v))}
+            placeholder={t('common.searchSelect')}
+            className="px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-foreground"
+          />
           <button onClick={() => {
             if (selectedMonth === 12) { setSelectedMonth(1); setSelectedYear(y => y + 1) }
             else setSelectedMonth(m => m + 1)
@@ -246,14 +246,18 @@ className="px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-f
               </div>
               <div>
 <label className="block text-sm font-medium text-foreground mb-1">{t('hr.attendance.status')||'Status'}</label>
-                <select value={addStatus} onChange={e => setAddStatus(e.target.value)}
-className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm">
-                  <option value="present">{t('hr.attendance.status.present') || 'Present'}</option>
-                  <option value="absent">{t('hr.attendance.status.absent') || 'Absent'}</option>
-                  <option value="late">{t('hr.attendance.status.late') || 'Late'}</option>
-                  <option value="half_day">{t('hr.attendance.status.half_day') || 'Half Day'}</option>
-                  <option value="on_leave">{t('hr.attendance.status.on_leave') || 'On Leave'}</option>
-                </select>
+                <SearchableSelect
+                  options={[
+                    { value: 'present', label: t('hr.attendance.status.present') || 'Present' },
+                    { value: 'absent', label: t('hr.attendance.status.absent') || 'Absent' },
+                    { value: 'late', label: t('hr.attendance.status.late') || 'Late' },
+                    { value: 'half_day', label: t('hr.attendance.status.half_day') || 'Half Day' },
+                    { value: 'on_leave', label: t('hr.attendance.status.on_leave') || 'On Leave' },
+                  ]}
+                  value={addStatus}
+                  onChange={(v) => setAddStatus(v)}
+                  placeholder={t('common.searchSelect')}
+                />
               </div>
               <div>
 <label className="block text-sm font-medium text-foreground mb-1">{t('common.notes')||'Notes'}</label>

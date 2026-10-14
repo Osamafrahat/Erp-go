@@ -1,4 +1,5 @@
 import ConfirmModal from '../components/ConfirmModal'
+import SearchableSelect from '../components/SearchableSelect'
 import { X, Plus, Edit2, Trash2, RefreshCw, Ban, CreditCard, User } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
@@ -221,7 +222,7 @@ className="p-1.5 text-muted hover:text-red-600 rounded-lg"><Trash2 className="w-
 }
 
 function SubscriptionForm({ subscription, plans, customers, onSave, onClose }) {
-  const { t } = useAppStore()
+  const { t, toastError } = useAppStore()
   const today = new Date().toISOString().split('T')[0]
   const [form, setForm] = useState({
     customer_id: subscription?.customer_id || '',
@@ -247,6 +248,7 @@ function SubscriptionForm({ subscription, plans, customers, onSave, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!form.customer_id) return toastError(t('services.selectCustomer') || 'Select customer')
     await onSave({
       ...form,
       billing_amount: parseFloat(form.billing_amount) || 0,
@@ -265,19 +267,21 @@ function SubscriptionForm({ subscription, plans, customers, onSave, onClose }) {
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">{t('services.customer') || 'Customer'} *</label>
-            <select value={form.customer_id} onChange={e => setForm({ ...form, customer_id: e.target.value })} required
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface">
-              <option value="">{t('services.selectCustomer') || 'Select customer'}</option>
-              {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            <SearchableSelect
+              options={[{ value: '', label: t('services.selectCustomer') || 'Select customer' }, ...customers.map(c => ({ value: String(c.id), label: c.name }))]}
+              value={form.customer_id}
+              onChange={(v) => setForm({ ...form, customer_id: v })}
+              placeholder={t('common.searchSelect')}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">{t('services.plan') || 'Plan'} *</label>
-            <select value={form.plan_id} onChange={e => handlePlanChange(e.target.value)} required
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface">
-              <option value="">{t('services.selectPlan') || 'Select plan'}</option>
-              {plans.map(p => <option key={p.id} value={p.id}>{p.name} - {p.price?.toLocaleString()} {t('common.currency') || 'EGP'} ({p.billing_cycle})</option>)}
-            </select>
+            <SearchableSelect
+              options={[{ value: '', label: t('services.selectPlan') || 'Select plan' }, ...plans.map(p => ({ value: String(p.id), label: `${p.name} - ${p.price?.toLocaleString()} ${t('common.currency') || 'EGP'} (${p.billing_cycle})` }))]}
+              value={form.plan_id}
+              onChange={(v) => handlePlanChange(v)}
+              placeholder={t('common.searchSelect')}
+            />
             {selectedPlan && (
 <p className="text-xs text-muted mt-1">
                 {selectedPlan.duration_months} {t('services.months') || 'months'} | {selectedPlan.billing_cycle}
@@ -380,12 +384,12 @@ className="px-3 py-1.5 text-sm bg-accent text-white rounded-lg hover:bg-primary-
                 <input type="number" step="0.01" min="0.01" placeholder={t('services.amount') || 'Amount'} value={form.amount}
                   onChange={e => setForm({ ...form, amount: e.target.value })} required
 className="px-3 py-2 rounded-lg border border-border bg-surface text-sm"/>
-                <select value={form.payment_method} onChange={e => setForm({ ...form, payment_method: e.target.value })}
-className="px-3 py-2 rounded-lg border border-border bg-surface text-sm">
-                  <option value="cash">{t('payments.cash') || 'Cash'}</option>
-                  <option value="card">{t('payments.card') || 'Card'}</option>
-                  <option value="bank">{t('payments.bank') || 'Bank Transfer'}</option>
-                </select>
+                <SearchableSelect
+                  options={[{ value: 'cash', label: t('payments.cash') || 'Cash' }, { value: 'card', label: t('payments.card') || 'Card' }, { value: 'bank', label: t('payments.bank') || 'Bank Transfer' }]}
+                  value={form.payment_method}
+                  onChange={(v) => setForm({ ...form, payment_method: v })}
+                  placeholder={t('common.searchSelect')}
+                />
               </div>
               <button type="submit" disabled={recording}
 className="w-full px-3 py-2 bg-accent text-white rounded-lg text-sm hover:bg-primary-700 disabled:opacity-50">

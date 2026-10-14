@@ -3,6 +3,7 @@ import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { creditSalesApi } from '../lib/api'
 import { AlertTriangle, CheckCircle, Clock, CreditCard, DollarSign, Loader2, Search, User, Wallet, X } from 'lucide-react'
+import SearchableSelect from '../components/SearchableSelect'
 
 
 
@@ -354,17 +355,18 @@ className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-fore
               </div>
               <div>
 <label className="block text-sm font-medium text-foreground mb-1">{t('method')||'Payment Method'}</label>
-                <select
+                <SearchableSelect
+                  options={[
+                    { value: 'cash', label: t('cash') || 'Cash' },
+                    { value: 'card', label: t('card') || 'Card' },
+                    { value: 'transfer', label: t('transfer') || 'Bank Transfer' },
+                    { value: 'check', label: t('check') || 'Check' },
+                    { value: 'other', label: t('other') || 'Other' },
+                  ]}
                   value={paymentForm.method}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
-className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
-                >
-                  <option value="cash">{t('cash') || 'Cash'}</option>
-                  <option value="card">{t('card') || 'Card'}</option>
-                  <option value="transfer">{t('transfer') || 'Bank Transfer'}</option>
-                  <option value="check">{t('check') || 'Check'}</option>
-                  <option value="other">{t('other') || 'Other'}</option>
-                </select>
+                  onChange={(v) => setPaymentForm({ ...paymentForm, method: v })}
+                  placeholder={t('common.searchSelect')}
+                />
               </div>
               <div>
 <label className="block text-sm font-medium text-foreground mb-1">{t('reference')||'Reference'}</label>

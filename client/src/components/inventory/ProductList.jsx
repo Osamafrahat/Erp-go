@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../../stores/appStore'
 import { formatCurrency } from '../../lib/utils'
 import { suppliersApi, stockApi } from '../../lib/api'
+import SearchableSelect from '../../components/SearchableSelect'
 
 export default function ProductList({ products, canEdit, onEdit, onDelete, onPrintBarcode, onRefresh }) {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -251,16 +252,16 @@ className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface t
             {/* Supplier Selection */}
             <div>
 <label className="block text-sm font-medium text-foreground mb-1">{t('inventory.supplier')||'Supplier'}</label>
-              <select
+              <SearchableSelect
+                options={[
+                  { value: '', label: t('inventory.noSupplier') || 'No Supplier' },
+                  ...suppliers.map(s => ({ value: String(s.id), label: s.name })),
+                ]}
                 value={receiveSupplierId}
-                onChange={e => setReceiveSupplierId(e.target.value)}
-className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"
-              >
-                <option value="">{t('inventory.noSupplier') || 'No Supplier'}</option>
-                {suppliers.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
+                onChange={(v) => setReceiveSupplierId(v)}
+                placeholder={t('common.searchSelect')}
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"
+              />
               {receiveSupplierId && receiveStockProduct.supplier_id && parseInt(receiveSupplierId) !== receiveStockProduct.supplier_id && (
 <p className="text-xs text-warning mt-1 flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3" />

@@ -1,4 +1,5 @@
 import ConfirmModal from '../components/ConfirmModal'
+import SearchableSelect from '../components/SearchableSelect'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
@@ -542,16 +543,13 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               {t('customers.phone')}
             </label>
             <div className="flex gap-2">
-              <select
-                name="countryCode"
+              <SearchableSelect
+                options={countryCodes.map(c => ({ value: c.code, label: `${c.flag} ${c.code}` }))}
                 value={formData.countryCode}
-                onChange={handleChange}
-className="w-32 px-3 py-2 rounded-lg border border-border bg-surface text-sm"
-              >
-                {countryCodes.map(c => (
-                  <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
-                ))}
-              </select>
+                onChange={(v) => setFormData(prev => ({ ...prev, countryCode: v }))}
+                placeholder={t('common.searchSelect')}
+                className="w-32 px-3 py-2 rounded-lg border border-border bg-surface text-sm"
+              />
               <input
                 type="tel"
                 name="phone"

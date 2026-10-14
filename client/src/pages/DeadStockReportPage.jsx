@@ -3,6 +3,7 @@ import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { deadStockApi } from '../lib/api'
 import { AlertTriangle, Calendar, Filter, Loader2, Package, Trash2, TrendingDown } from 'lucide-react'
+import SearchableSelect from '../components/SearchableSelect'
 
 
 
@@ -141,16 +142,16 @@ className="px-3 py-2 border border-border rounded-lg bg-surface text-foreground 
             </div>
             <div className="flex items-center gap-2 ml-auto">
 <Filter className="h-4 w-4 text-muted"/>
-              <select
+              <SearchableSelect
+                options={[
+                  { value: 'all', label: t('allCategories') || 'All Categories' },
+                  ...categories.map((cat) => ({ value: cat, label: cat })),
+                ]}
                 value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-className="px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm ring-focus outline-none"
-              >
-                <option value="all">{t('allCategories') || 'All Categories'}</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+                onChange={(v) => setCategoryFilter(v)}
+                placeholder={t('common.searchSelect')}
+                className="px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm ring-focus outline-none"
+              />
             </div>
           </div>
         </div>

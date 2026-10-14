@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { promotionsApi } from '../lib/api'
 import { formatCurrency, formatDate } from '../lib/utils'
+import SearchableSelect from '../components/SearchableSelect'
 
 export default function PromotionsPage() {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -355,15 +356,16 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface font-mono
 <label className="block text-sm font-medium text-foreground mb-1">
                 {t('promotions.discountType')}
               </label>
-              <select
-                name="type"
+              <SearchableSelect
+                options={[
+                  { value: 'percentage', label: `${t('promotions.percentage')} (%)` },
+                  { value: 'fixed', label: `${t('promotions.fixed')} (ج.م)` },
+                ]}
                 value={formData.type}
-                onChange={handleChange}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-              >
-                <option value="percentage">{t('promotions.percentage')} (%)</option>
-                <option value="fixed">{t('promotions.fixed')} (ج.م)</option>
-              </select>
+                onChange={(v) => setFormData(prev => ({ ...prev, type: v }))}
+                placeholder={t('common.searchSelect')}
+                className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
+              />
             </div>
             <div>
 <label className="block text-sm font-medium text-foreground mb-1">

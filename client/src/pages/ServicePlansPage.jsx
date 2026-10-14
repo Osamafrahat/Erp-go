@@ -1,4 +1,5 @@
 import ConfirmModal from '../components/ConfirmModal'
+import SearchableSelect from '../components/SearchableSelect'
 import { X, Plus, Edit2, Trash2, CreditCard, Repeat } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
@@ -176,12 +177,12 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"/>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">{t('services.billingCycle') || 'Billing Cycle'}</label>
-              <select value={form.billing_cycle} onChange={e => setForm({ ...form, billing_cycle: e.target.value })}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface">
-                <option value="monthly">{t('services.monthly') || 'Monthly'}</option>
-                <option value="annual">{t('services.annual') || 'Annual'}</option>
-                <option value="one_time">{t('services.oneTime') || 'One Time'}</option>
-              </select>
+              <SearchableSelect
+                options={[{ value: 'monthly', label: t('services.monthly') || 'Monthly' }, { value: 'annual', label: t('services.annual') || 'Annual' }, { value: 'one_time', label: t('services.oneTime') || 'One Time' }]}
+                value={form.billing_cycle}
+                onChange={(v) => setForm({ ...form, billing_cycle: v })}
+                placeholder={t('common.searchSelect')}
+              />
             </div>
           </div>
           <div>
