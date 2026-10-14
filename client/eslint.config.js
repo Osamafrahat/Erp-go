@@ -39,6 +39,10 @@ export default [
       // JSX references are real references: without this, every component
       // only ever rendered as <Tag /> is reported as an unused variable.
       'react/jsx-uses-vars': 'error',
+      // no-undef cannot see JSX tags at all, so an unimported <Tag /> ships
+      // as a runtime ReferenceError that no other gate catches (this has now
+      // bitten this codebase twice: Calendar/Star, then ArrowRight).
+      'react/jsx-no-undef': 'error',
 
       // Unused imports are autofixable (eslint --fix drops them); unused
       // variables stay visible as warnings. `^_` marks deliberate silence.

@@ -3,9 +3,21 @@ import { useAppStore } from '../../stores/appStore'
 import { customersApi, emailApi, healthApi } from '../../lib/api'
 import { formatCurrency } from '../../lib/utils'
 import {
+  AlertCircle,
+  Check,
+  CheckCircle,
+  DollarSign,
+  ExternalLink,
+  Loader2,
   Mail,
   MessageCircle,
+  Percent,
+  RefreshCw,
+  Send,
+  User,
   Users,
+  X,
+  XIcon,
 } from 'lucide-react'
 
 function generateWhatsAppLink(phone, message) {

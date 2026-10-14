@@ -8,24 +8,26 @@ import { formatCurrency } from '../lib/utils'
 import ClockWidget from '../components/attendance/ClockWidget'
 import BannerCarousel from '../components/BannerCarousel'
 import {
-  ShoppingCart,
-  Package,
-  BarChart3,
-  Truck,
-  Tag,
-  Users,
-  TrendingUp,
+  // Calendar and Star were once referenced below (HR Manager dashboard)
+  // without being imported, which threw a ReferenceError and blanked the
+  // page for any user with the HR_MANAGER role. react/jsx-no-undef now
+  // makes that class of bug a build-blocking lint error.
   AlertTriangle,
-  DollarSign,
-  ShoppingBag,
-  ClipboardList,
+  ArrowRight,
+  BarChart3,
   BookOpen,
-  Receipt,
-  // Calendar and Star were referenced below (HR Manager dashboard, ~line 263)
-  // but never imported, which threw a ReferenceError and blanked the page for
-  // any user with the HR_MANAGER role.
   Calendar,
+  ClipboardList,
+  DollarSign,
+  Package,
+  Receipt,
+  ShoppingBag,
+  ShoppingCart,
   Star,
+  Tag,
+  TrendingUp,
+  Truck,
+  Users,
 } from 'lucide-react'
 
 export default function DashboardPage() {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { commissionsApi, employeesApi } from '../lib/api'
+import { AlertTriangle, Award, Calculator, Calendar, CheckCircle, Clock, DollarSign, Loader2, Package, Search, ShoppingCart, TrendingUp, UserCheck, Users } from 'lucide-react'
 
 
 

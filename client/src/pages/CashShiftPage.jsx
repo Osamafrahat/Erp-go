@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { cashShiftsApi } from '../lib/api'
+import { AlertTriangle, BarChart3, Clock, History, Loader2, Plus, TrendingDown, TrendingUp, X } from 'lucide-react'
 
 
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { deadStockApi } from '../lib/api'
+import { AlertTriangle, Calendar, Filter, Loader2, Package, Trash2, TrendingDown } from 'lucide-react'
 
 
 

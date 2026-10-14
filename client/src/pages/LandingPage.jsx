@@ -2,9 +2,21 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import {
-  ShoppingCart, Package, Users, BarChart3, UserCheck, Zap, Shield, Globe, Star, Store,
+  ArrowRight,
+  BarChart3,
+  Database,
+  Globe,
   Headphones,
-  Database, MessageCircle, Timer
+  MessageCircle,
+  Package,
+  Shield,
+  ShoppingCart,
+  Star,
+  Store,
+  Timer,
+  UserCheck,
+  Users,
+  Zap,
 } from 'lucide-react'
 
 function FeatureCard({ icon: Icon, title, desc, color, gradient }) {
