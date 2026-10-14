@@ -4,6 +4,7 @@ import supabase from '../db/supabase.js'
 import { authenticateToken, requireManager } from '../middleware/auth.js'
 import { logActivity } from '../middleware/activityLogger.js'
 import { planEntitlements } from '../services/planLimits.js'
+import { notifySubscriptionActivated } from '../services/lifecycleEmails.js'
 
 const router = Router()
 
@@ -351,6 +352,13 @@ router.post('/webhook', async (req, res) => {
 
         if (updateErr) console.error('[Paymob] Webhook update error:', updateErr.message)
         else console.log(`[Paymob] Webhook: tenant ${tenantId} upgraded to ${plan.tier}`)
+
+        // Activation confirmation email — best-effort, never blocks the webhook.
+        if (!updateErr) {
+          notifySubscriptionActivated(tenantId, plan.tier, expiresAt.toISOString()).catch((e) =>
+            console.error('[Paymob] activation email failed:', e.message)
+          )
+        }
 
         // Log subscription tier change
         if (currentTenant && plan.tier !== currentTenant.subscription_tier) {

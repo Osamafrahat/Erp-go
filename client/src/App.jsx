@@ -11,6 +11,8 @@ import { useUserStore } from './stores/userStore'
 
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const POSPage = lazy(() => import('./pages/POSPage'))
 const InventoryPage = lazy(() => import('./pages/InventoryPage'))
@@ -107,6 +109,12 @@ function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={
                   isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+                } />
+                <Route path="/forgot-password" element={
+                  isAuthenticated ? <Navigate to="/dashboard" replace /> : <ForgotPasswordPage />
+                } />
+                <Route path="/reset-password" element={
+                  isAuthenticated ? <Navigate to="/dashboard" replace /> : <ResetPasswordPage />
                 } />
                 <Route path="/signup" element={
                   isAuthenticated ? <Navigate to="/dashboard" replace /> : <SignupPage />

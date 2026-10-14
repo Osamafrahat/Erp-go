@@ -107,6 +107,11 @@ export default function LoginPage() {
                     required
                   />
                 </InputGroup>
+                <div className="mt-2 text-end">
+                  <Link to="/forgot-password" className="text-xs text-accent hover:underline">
+                    {t('auth.forgot.link')}
+                  </Link>
+                </div>
               </div>
 
               <Button type="submit" variant="primary" size="lg" fullWidth isDisabled={loading}>

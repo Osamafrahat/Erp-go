@@ -2,7 +2,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import api from '../lib/api'
-import { AlertCircle, Calendar, CheckCircle, Clock, Cloud, CloudOff, Database, Download, DownloadCloud, FileText, HardDrive, RefreshCw, Trash2, Upload, Zap, ZapOff } from 'lucide-react'
+import { AlertCircle, Calendar, CheckCircle, Clock, Cloud, CloudOff, Database, Download, DownloadCloud, FileText, HardDrive, RefreshCw, RotateCcw, Trash2, Upload, Zap, ZapOff } from 'lucide-react'
 
 
 
@@ -141,6 +141,30 @@ export default function BackupPage() {
           setConfirmModal({ open: false, title: '', message: '', type: 'danger', onConfirm: null })
         } catch (err) {
           showMessage('error', t('backup.restoreFailed'))
+          setConfirmModal(m => ({ ...m, loading: false }))
+        } finally {
+          setRestoring(null)
+        }
+      }
+    })
+  }
+
+  const restoreCloudBackup = async (filename) => {
+    setConfirmModal({
+      open: true,
+      title: t('backup.cloudRestore'),
+      message: t('backup.cloudRestoreConfirm').replace('{file}', filename),
+      type: 'warning',
+      loading: false,
+      onConfirm: async () => {
+        setConfirmModal(m => ({ ...m, loading: true }))
+        try {
+          setRestoring(filename)
+          const res = await api.post('/backup/cloud/restore', { filename })
+          showMessage('success', t('backup.restored').replace('{rows}', res.data.restoredRows))
+          setConfirmModal({ open: false, title: '', message: '', type: 'danger', onConfirm: null })
+        } catch (err) {
+          showMessage('error', t('backup.cloudRestoreFailed'))
           setConfirmModal(m => ({ ...m, loading: false }))
         } finally {
           setRestoring(null)
@@ -461,6 +485,11 @@ backup.type==='json'?'bg-accent-soft':'bg-purple-100 dark:bg-purple-900/30'
 <p className="text-xs text-muted">{formatDate(backup.created)}•{formatSize(backup.size)}</p>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
+{backup.type==='json'&&(
+                  <button onClick={()=>restoreCloudBackup(backup.name)}disabled={restoring===backup.name}className="p-2 rounded-lg hover:bg-amber-100 text-warning transition-colors disabled:opacity-50"title={t('backup.cloudRestore')}>
+                    {restoring === backup.name ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                  </button>
+                )}
 <button onClick={()=>downloadCloudBackup(backup.name)}className="p-2 rounded-lg hover:bg-blue-100 text-accent transition-colors"title={t('backup.download')}>
                     <Download className="w-4 h-4" />
                   </button>

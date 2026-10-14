@@ -267,6 +267,42 @@ router.get('/cloud/download/:filename', async (req, res) => {
   }
 })
 
+// Restore a tenant's data from a JSON backup stored in cloud storage:
+// download it back into the local json dir, then run the same tenant-scoped
+// restore as the local-file endpoint. SQL-format cloud files are not
+// restorable here (they are archive-only); the ownership check plus the
+// JSON-only restriction keeps a tenant strictly inside its own data.
+router.post('/cloud/restore', async (req, res) => {
+  try {
+    const scope = resolveTenantScope(req, res)
+    if (!scope.ok) return
+
+    const { filename } = req.body
+    if (!filename || !isValidBackupFilename(filename)) {
+      return res.status(400).json({ error: 'Invalid filename' })
+    }
+    if (!assertOwnsBackupFile(req, filename)) {
+      return res.status(404).json({ error: 'Backup not found' })
+    }
+    if (!filename.endsWith('.json')) {
+      return res.status(400).json({ error: 'Only JSON cloud backups can be restored. Download the SQL file and run it manually.' })
+    }
+
+    const data = await downloadFromCloud(filename)
+    const buffer = Buffer.from(await data.arrayBuffer())
+    const jsonPath = path.join(BACKUP_DIR, 'json', filename)
+    await fs.mkdir(path.dirname(jsonPath), { recursive: true })
+    await fs.writeFile(jsonPath, buffer)
+
+    log(req, { action: 'restored', entity_type: 'cloud_backup', entity_name: filename })
+    const result = await restoreFromJson(jsonPath, scope.tenantId)
+    res.json({ message: 'Database restored from cloud backup', ...result })
+  } catch (err) {
+    console.error('Cloud restore error:', err.message || err)
+    res.status(500).json({ error: 'Failed to restore from cloud backup' })
+  }
+})
+
 router.delete('/cloud/:filename', async (req, res) => {
   try {
     if (!isValidBackupFilename(req.params.filename)) {

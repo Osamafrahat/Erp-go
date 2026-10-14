@@ -5,6 +5,7 @@ import supabase from '../db/supabase.js'
 import { authenticateToken, requireManager, requireSuperAdmin } from '../middleware/auth.js'
 import { logActivity } from '../middleware/activityLogger.js'
 import { planEntitlements } from '../services/planLimits.js'
+import { notifySubscriptionActivated } from '../services/lifecycleEmails.js'
 import {
   getWalletMethods,
   isValidWalletTypeId,
@@ -331,6 +332,11 @@ walletAdminRouter.post('/:id/confirm', validId, async (req, res) => {
       } catch (auditErr) {
         console.error('[Wallet] confirm audit error:', auditErr.message)
       }
+
+      // Activation confirmation email — best-effort after a successful apply.
+      notifySubscriptionActivated(claimed.tenant_id, claimed.plan_slug, expiresAt.toISOString()).catch((e) =>
+        console.error('[Wallet] activation email failed:', e.message)
+      )
 
       console.log(`[Wallet] request ${id} confirmed by superadmin ${req.user.id} → tenant ${claimed.tenant_id} = ${claimed.plan_slug}`)
       res.json({ success: true, request: claimed })

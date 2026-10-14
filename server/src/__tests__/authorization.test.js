@@ -248,10 +248,14 @@ describe('route guard inventory', () => {
   // Mutations reachable without ANY guard (by file + path).
   // paymob's webhook is called by Paymob's servers with an HMAC signature —
   // a JWT is impossible there; authenticity is verified inside the handler.
+  // Password recovery is deliberately public (the requester has no session);
+  // abuse is capped by the loginLimiter mount and tokens are single-use.
   const PUBLIC_ALLOWLIST = [
     ['auth.js', '/login'],
     ['auth.js', '/signup'],
     ['auth.js', '/bootstrap-superadmin'],
+    ['auth.js', '/forgot-password'],
+    ['auth.js', '/reset-password'],
     ['paymob.js', '/webhook'],
   ]
 

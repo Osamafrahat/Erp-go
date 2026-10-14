@@ -159,6 +159,7 @@ app.use('/api/', limiter)
 
 app.use('/api/auth/login', loginLimiter)
 app.use('/api/auth/change-password', loginLimiter)
+app.use('/api/auth/forgot-password', loginLimiter)
 
 app.disable('x-powered-by')
 

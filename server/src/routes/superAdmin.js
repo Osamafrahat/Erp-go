@@ -5,6 +5,7 @@ import { authenticateToken, requireSuperAdmin, generateToken } from '../middlewa
 import { body, validationResult } from 'express-validator'
 import { logActivity } from '../middleware/activityLogger.js'
 import { sanitizeSearch } from '../helpers/search.js'
+import { sendWelcomeEmail } from '../services/emailService.js'
 
 const router = Router()
 
@@ -197,6 +198,11 @@ router.post('/tenants', [
         must_change_password: true,
       })
     if (userError) throw userError
+
+    // Onboarding email to the new admin — fire-and-forget.
+    sendWelcomeEmail({ to: adminEmail, name: adminFullName, storeName: name, trial: tier === 'free' }).catch((err) =>
+      console.error('[EMAIL] Welcome failed:', err.message)
+    )
 
     res.status(201).json({ tenant, message: 'Tenant and admin user created. Admin must change password on first login.' })
   } catch (err) {

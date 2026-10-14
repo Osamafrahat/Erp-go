@@ -106,6 +106,153 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;')
 }
 
+// Shared chrome for transactional emails (password reset, welcome,
+// activation). Bilingual: the app supports AR + EN and the server does not
+// store a per-user language, so both are stacked with the Arabic block
+// first, matching the product's default.
+function transactionalShell({ titleEn, titleAr, bodyEn, bodyAr }) {
+  return `
+    <!DOCTYPE html>
+    <html lang="ar">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 28px 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 22px; }
+        .content { padding: 28px 30px; color: #333; line-height: 1.8; }
+        .btn { display: inline-block; background: #667eea; color: white !important; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; margin: 16px 0; }
+        .divider { border: 0; border-top: 1px solid #eee; margin: 22px 0; }
+        .muted { color: #888; font-size: 13px; word-break: break-all; }
+        .footer { background: #f8f9fa; padding: 18px 30px; text-align: center; color: #999; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header"><h1>${escapeHtml(titleAr)}</h1><p style="margin:6px 0 0;opacity:.85">${escapeHtml(titleEn)}</p></div>
+        <div class="content" dir="rtl">${bodyAr}</div>
+        <hr class="divider">
+        <div class="content" dir="ltr" style="padding-top:0">${bodyEn}</div>
+        <div class="footer">© ${new Date().getFullYear()}</div>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+export async function sendPasswordResetEmail({ to, name, resetUrl }) {
+  const client = getResendClient()
+  if (!client) throw new Error('RESEND_API_KEY not configured')
+  const safeName = escapeHtml(name || '')
+  const safeUrl = escapeHtml(resetUrl)
+
+  const html = transactionalShell({
+    titleAr: 'إعادة تعيين كلمة المرور',
+    titleEn: 'Reset your password',
+    bodyAr: `
+      <p>مرحباً ${safeName}،</p>
+      <p>تلقينا طلباً لإعادة تعيين كلمة المرور لحسابك. اضغط الزر بالأسفل للمتابعة (صالح لمدة 30 دقيقة):</p>
+      <p style="text-align:center"><a class="btn" href="${safeUrl}">إعادة تعيين كلمة المرور</a></p>
+      <p class="muted">إذا لم تطلب هذا، تجاهل هذه الرسالة — لن يتغير شيء بحسابك.</p>
+    `,
+    bodyEn: `
+      <p>Hi ${safeName},</p>
+      <p>We received a request to reset your password. Click the button below to continue (valid for 30 minutes):</p>
+      <p style="text-align:center"><a class="btn" href="${safeUrl}">Reset password</a></p>
+      <p class="muted">If you didn't request this, ignore this message — nothing about your account changes.</p>
+      <p class="muted">${safeUrl}</p>
+    `,
+  })
+
+  const from = process.env.SMTP_FROM || 'onboarding@resend.dev'
+  const { data, error } = await client.emails.send({
+    from,
+    to,
+    subject: 'إعادة تعيين كلمة المرور / Reset your password',
+    html,
+  })
+  if (error) throw new Error(error.message)
+  console.log('[EMAIL] Password reset sent:', data?.id)
+  return data
+}
+
+export async function sendWelcomeEmail({ to, name, storeName, trial = true }) {
+  const client = getResendClient()
+  if (!client) throw new Error('RESEND_API_KEY not configured')
+  const safeName = escapeHtml(name || '')
+  const safeStore = escapeHtml(storeName || '')
+
+  const html = transactionalShell({
+    titleAr: `مرحباً بك في المتجر ${safeStore}`,
+    titleEn: `Welcome to ${safeStore}`,
+    bodyAr: `
+      <p>أهلاً ${safeName}! تم إنشاء حسابك بنجاح${trial ? ' وبدأ تجربتك المجانية' : ''}.</p>
+      <p>للبدء:</p>
+      <ul>
+        <li>أضف منتجاتك من صفحة المخزون</li>
+        <li>افتح شاشة البيع (POS) وابدأ البيع</li>
+        <li>راجع تقاريرك اليومية من لوحة التحكم</li>
+      </ul>
+    `,
+    bodyEn: `
+      <p>Hi ${safeName}! Your account is ready${trial ? ' and your free trial has started' : ''}.</p>
+      <p>To get started:</p>
+      <ul>
+        <li>Add your products from the Inventory page</li>
+        <li>Open the POS screen and make your first sale</li>
+        <li>Track your daily numbers from the Dashboard</li>
+      </ul>
+    `,
+  })
+
+  const from = process.env.SMTP_FROM || 'onboarding@resend.dev'
+  const { data, error } = await client.emails.send({
+    from,
+    to,
+    subject: `مرحباً بك في ${safeStore} / Welcome to ${safeStore}`,
+    html,
+  })
+  if (error) throw new Error(error.message)
+  console.log('[EMAIL] Welcome sent:', data?.id)
+  return data
+}
+
+export async function sendSubscriptionActivatedEmail({ to, name, storeName, planName, expiresAt }) {
+  const client = getResendClient()
+  if (!client) throw new Error('RESEND_API_KEY not configured')
+  const safeName = escapeHtml(name || '')
+  const safeStore = escapeHtml(storeName || '')
+  const safePlan = escapeHtml(planName || '')
+  const until = expiresAt ? new Date(expiresAt).toLocaleDateString('ar-EG') : ''
+
+  const html = transactionalShell({
+    titleAr: 'تم تفعيل اشتراكك',
+    titleEn: 'Your subscription is active',
+    bodyAr: `
+      <p>مرحباً ${safeName}،</p>
+      <p>تم تأكيد دفعتك وتفعيل باقة <strong>${safePlan}</strong> لمتجر ${safeStore}${until ? ` حتى ${until}` : ''}.</p>
+      <p>كل الميزات المدفوعة متاحة الآن في حسابك.</p>
+    `,
+    bodyEn: `
+      <p>Hi ${safeName},</p>
+      <p>Your payment was confirmed and the <strong>${safePlan}</strong> plan is now active for ${safeStore}${until ? ` until ${until}` : ''}.</p>
+      <p>All paid features are now unlocked in your account.</p>
+    `,
+  })
+
+  const from = process.env.SMTP_FROM || 'onboarding@resend.dev'
+  const { data, error } = await client.emails.send({
+    from,
+    to,
+    subject: `تم تفعيل الاشتراك / Subscription activated - ${safeStore}`,
+    html,
+  })
+  if (error) throw new Error(error.message)
+  console.log('[EMAIL] Activation sent:', data?.id)
+  return data
+}
+
 export async function sendCustomEmail({ recipients, subject, message, storeName }) {
   const client = getResendClient()
   if (!client) throw new Error('RESEND_API_KEY not configured')

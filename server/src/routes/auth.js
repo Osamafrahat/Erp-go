@@ -6,6 +6,8 @@ import { body, validationResult } from 'express-validator'
 import { generateToken, generateSessionToken, authenticateToken } from '../middleware/auth.js'
 import { logActivity } from '../middleware/activityLogger.js'
 import supabase from '../db/supabase.js'
+import { issueResetToken, consumeResetToken } from '../services/passwordReset.js'
+import { sendWelcomeEmail } from '../services/emailService.js'
 
 const router = Router()
 
@@ -210,6 +212,11 @@ router.post('/signup', [
     }
 
     await seedTenantData(tenant.id, storeName)
+
+    // Onboarding email: fire-and-forget, never blocks or fails signup.
+    sendWelcomeEmail({ to: email, name: fullName, storeName, trial: true }).catch((err) =>
+      console.error('[EMAIL] Welcome failed:', err.message)
+    )
 
     const token = generateToken({ ...user, session_token: newSessionToken })
 
@@ -466,6 +473,63 @@ router.post('/change-password', authenticateToken, [
     res.json({ message: 'Password updated successfully' })
   } catch (err) {
     console.error('Change password error:', err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// Self-service password recovery. The response is deliberately identical for
+// known and unknown emails so the endpoint cannot enumerate accounts; the
+// limiter (mounted in index.js) caps per-IP abuse.
+router.post('/forgot-password', [
+  body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req)
+    // Invalid input still gets the generic 200: a 400 would confirm that only
+    // well-formed addresses can exist in the system.
+    if (!errors.isEmpty()) return res.json({ message: 'If that email is registered, a reset link has been sent' })
+
+    const { email } = req.body
+    await issueResetToken(email).catch((err) => {
+      console.error('[PASSWORD_RESET] issue error:', err.message)
+    })
+    res.json({ message: 'If that email is registered, a reset link has been sent' })
+  } catch (err) {
+    console.error('Forgot password error:', err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+router.post('/reset-password', [
+  body('token').trim().notEmpty().withMessage('Reset token is required'),
+  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
+    .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
+    .matches(/[0-9]/).withMessage('Password must contain at least one number'),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ error: errors.array()[0].msg, code: 'AUTH_PASSWORD_WEAK' })
+    }
+
+    const { token, password } = req.body
+    const result = await consumeResetToken(token, password)
+    if (!result.ok) {
+      return res.status(400).json({ error: 'This reset link is invalid or has expired. Please request a new one.', code: 'AUTH_RESET_TOKEN_INVALID' })
+    }
+
+    logActivity({
+      user_id: result.userId,
+      action: 'password_reset',
+      entity_type: 'auth',
+      entity_name: 'self-service reset',
+      ip_address: req.ip || req.connection?.remoteAddress,
+    }).catch(() => {})
+
+    res.json({ message: 'Password has been reset. You can now sign in.' })
+  } catch (err) {
+    console.error('Reset password error:', err)
     res.status(500).json({ error: 'Internal server error' })
   }
 })
