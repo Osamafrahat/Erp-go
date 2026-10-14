@@ -41,17 +41,26 @@ export const useBranchStore = create((set, get) => ({
       const res = await branchesApi.getAll()
       const branches = res.data?.data || []
       const effective = res.data?.effective_branch_id ?? null
-      let currentBranchId = get().currentBranchId
-      const selected = branches.find((b) => b.id === currentBranchId)
-      // Adopt what the server actually resolved when we have no selection,
-      // or when the persisted one is stale (archived / not in this tenant).
-      if (currentBranchId == null || !selected || selected.is_active === false) {
-        currentBranchId = effective
-        // Persist the correction so the next page load starts with a header
-        // the server agrees with instead of re-correcting every time.
-        if (currentBranchId != null) {
-          localStorage.setItem(BRANCH_STORAGE_KEY, String(currentBranchId))
-        }
+      // The server resolves the effective branch from the x-branch-id we
+      // sent (switchable roles) or from the user's pinned home branch
+      // (everyone else) — so it is the source of truth for what to SHOW.
+      // Always adopting it fixes pinned employees on shared browsers: a
+      // stale 'erp-selected-branch' left by another user's session must not
+      // survive a fresh login. When the server reports nothing
+      // (platform/tenant-less session) keep the local value only if it still
+      // names an active branch in this list.
+      let currentBranchId = effective
+      if (currentBranchId == null) {
+        const local = get().currentBranchId
+        currentBranchId =
+          branches.find((b) => b.id === local && b.is_active !== false)?.id ?? null
+      }
+      // Persist the correction so the next page load starts with a header
+      // the server agrees with instead of re-correcting every time.
+      if (currentBranchId != null) {
+        localStorage.setItem(BRANCH_STORAGE_KEY, String(currentBranchId))
+      } else {
+        localStorage.removeItem(BRANCH_STORAGE_KEY)
       }
       setBranchHeader(currentBranchId)
       set({ branches, currentBranchId, loaded: true, loading: false })
@@ -77,5 +86,15 @@ export const useBranchStore = create((set, get) => ({
     } finally {
       window.location.reload()
     }
+  },
+
+  // Drop everything branch-scoped for the CURRENT session: called on logout
+  // so a different user logging in on the same browser never inherits the
+  // previous user's selected branch (localStorage survives reloads) or the
+  // loaded branch list of the old tenant.
+  resetSession: () => {
+    localStorage.removeItem(BRANCH_STORAGE_KEY)
+    setBranchHeader(null)
+    set({ branches: [], currentBranchId: null, loaded: false, loading: false })
   },
 }))

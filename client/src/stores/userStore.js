@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { authApi, usersApi } from '../lib/api'
+import { useBranchStore } from './branchStore'
 
 // Permission definitions
 export const PERMISSIONS = {
@@ -237,6 +238,9 @@ export const useUserStore = create(
         localStorage.removeItem('user-storage')
         localStorage.removeItem('cart-storage')
         localStorage.removeItem('tenant_id')
+        // Branch selection is per-session: the persisted 'erp-selected-branch'
+        // would otherwise leak into the next user's login on this browser.
+        useBranchStore.getState().resetSession()
         set({
           currentUser: null,
           isAuthenticated: false,

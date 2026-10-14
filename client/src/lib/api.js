@@ -87,6 +87,10 @@ api.interceptors.response.use(
       localStorage.removeItem('user-storage')
       localStorage.removeItem('cart-storage')
       localStorage.removeItem('tenant_id')
+      // Per-session branch selection must not outlive the dead session —
+      // the hard navigation below would otherwise rehydrate it for whoever
+      // logs in next on this browser.
+      localStorage.removeItem('erp-selected-branch')
       if (sessionExpired) {
         window.location.href = '/login?expired=1'
       } else {
