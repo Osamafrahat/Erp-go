@@ -1,4 +1,4 @@
-import { supabase } from '../db/supabase.js'
+import supabase from '../db/supabase.js'
 import { sendSubscriptionActivatedEmail } from './emailService.js'
 
 /**

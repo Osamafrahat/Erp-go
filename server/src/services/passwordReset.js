@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
-import { supabase } from '../db/supabase.js'
+import supabase from '../db/supabase.js'
 import { sendPasswordResetEmail } from './emailService.js'
 
 // Self-service password recovery. Tokens are 32 random bytes, stored only as

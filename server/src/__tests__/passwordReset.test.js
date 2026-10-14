@@ -19,8 +19,9 @@ const fromSpy = jest.fn((table) => {
 const sendPasswordResetEmail = jest.fn(() => Promise.resolve({ data: { id: 'mail-1' } }))
 
 jest.unstable_mockModule('../db/supabase.js', () => ({
+  // Mirrors the real module's surface exactly: supabase is DEFAULT-only.
+  // A superset mock here once let a bad named import pass CI and crash prod.
   default: { from: fromSpy },
-  supabase: { from: fromSpy },
   supabaseStorage: { from: fromSpy },
   withTimeout: (p) => p,
 }))
