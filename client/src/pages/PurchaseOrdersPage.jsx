@@ -3,6 +3,7 @@ import { useAppStore } from '../stores/appStore'
 import { useBranchStore } from '../stores/branchStore'
 import { formatCurrency } from '../lib/utils'
 import { purchaseOrdersApi, suppliersApi, productsApi } from '../lib/api'
+import SearchableSelect from '../components/SearchableSelect'
 import { CheckCircle, Eye, FileText, Loader2, Package, Plus, Search, Send, ShoppingCart, Trash2, Truck, X } from 'lucide-react'
 
 
@@ -418,16 +419,15 @@ className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-fore
 
               <div>
 <label className="block text-sm font-medium text-foreground mb-1">{t('branches.destinationBranch')}</label>
-                <select
+                <SearchableSelect
+                  options={[
+                    { value: '', label: t('branches.useCurrent') },
+                    ...branches.filter((b) => b.is_active).map((b) => ({ value: b.id, label: b.name })),
+                  ]}
                   value={form.branch_id}
-                  onChange={(e) => setForm({ ...form, branch_id: e.target.value })}
-className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
-                >
-                  <option value="">{t('branches.useCurrent')}</option>
-                  {branches.filter((b) => b.is_active).map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
+                  onChange={(v) => setForm({ ...form, branch_id: String(v ?? '') })}
+                  placeholder={t('branches.selectBranch')}
+                />
               </div>
 
               <div>

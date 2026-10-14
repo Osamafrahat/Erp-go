@@ -1,4 +1,5 @@
 import ConfirmModal from '../components/ConfirmModal'
+import SearchableSelect from '../components/SearchableSelect'
 import { X, Plus, Edit2, Trash2, UserCheck, User, Phone, Mail, Calendar, DollarSign, Shield, Building2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
@@ -469,17 +470,15 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
 <label className="block text-sm font-medium text-foreground mb-1">
               {t('branches.branch')}
             </label>
-            <select
-              name="branch_id"
+            <SearchableSelect
+              options={[
+                { value: '', label: t('branches.useCurrent') },
+                ...branches.filter((b) => b.is_active).map((b) => ({ value: b.id, label: b.name })),
+              ]}
               value={formData.branch_id}
-              onChange={handleChange}
-className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
-            >
-              <option value="">{t('branches.useCurrent')}</option>
-              {branches.filter((b) => b.is_active).map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
+              onChange={(v) => setFormData((prev) => ({ ...prev, branch_id: String(v ?? '') }))}
+              placeholder={t('branches.selectBranch')}
+            />
           </div>
 
           <div>
