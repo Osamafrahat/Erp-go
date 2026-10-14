@@ -1,9 +1,9 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { X, Plus, Edit2, Trash2, RefreshCw, Ban, CreditCard, User } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
 import { subscriptionsApi, servicesApi, servicePlansApi, customersApi } from '../lib/api'
-import { X, Plus, Edit2, Trash2, RefreshCw, Ban, CreditCard, Calendar, User, Search } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 const STATUS_STYLES = {
 active:'bg-success-soft text-success-soft-foreground',
@@ -20,7 +20,7 @@ const STATUS_LABEL_KEYS = {
 }
 
 export default function SubscriptionsPage() {
-  const { t, language, toastSuccess, toastError } = useAppStore()
+  const { t, toastSuccess, toastError } = useAppStore()
   const { hasPermission } = useUserStore()
   const canEdit = hasPermission(PERMISSIONS.SERVICES_EDIT)
   const [subscriptions, setSubscriptions] = useState([])
@@ -37,6 +37,7 @@ export default function SubscriptionsPage() {
   const [cancelTarget, setCancelTarget] = useState(null)
   const [renewTarget, setRenewTarget] = useState(null)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   useEffect(() => { fetchData() }, [filterStatus])
 
   const fetchData = async () => {
@@ -219,7 +220,7 @@ className="p-1.5 text-muted hover:text-red-600 rounded-lg"><Trash2 className="w-
   )
 }
 
-function SubscriptionForm({ subscription, services, plans, customers, onSave, onClose }) {
+function SubscriptionForm({ subscription, plans, customers, onSave, onClose }) {
   const { t } = useAppStore()
   const today = new Date().toISOString().split('T')[0]
   const [form, setForm] = useState({

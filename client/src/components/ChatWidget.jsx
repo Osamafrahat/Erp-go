@@ -1,10 +1,10 @@
+import ConfirmModal from './ConfirmModal'
+import { MessageCircle, Send, Trash2, X, Minimize2, Wifi, WifiOff } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import api from '../lib/api'
 import supabase from '../lib/supabase'
-import { MessageCircle, Send, Trash2, X, Minimize2, Wifi, WifiOff } from 'lucide-react'
-import ConfirmModal from './ConfirmModal'
 
 export default function ChatWidget() {
   const { t } = useAppStore()

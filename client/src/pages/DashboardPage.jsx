@@ -1,3 +1,4 @@
+import { Card, Spinner } from '@heroui/react'
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
@@ -15,7 +16,6 @@ import {
   Users,
   TrendingUp,
   AlertTriangle,
-  ArrowRight,
   DollarSign,
   ShoppingBag,
   ClipboardList,
@@ -27,7 +27,6 @@ import {
   Calendar,
   Star,
 } from 'lucide-react'
-import { Card, Spinner } from '@heroui/react'
 
 export default function DashboardPage() {
   const { currentUser, hasPermission } = useUserStore()
@@ -57,6 +56,7 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchDashboardData()
     bannersApi.getActive().then(({ data }) => setBanners(data || [])).catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [])
 
   const fetchDashboardData = async () => {
@@ -494,7 +494,7 @@ indigo:'bg-accent-soft text-accent-soft-foreground',
   )
 }
 
-function QuickActions({ showAll, showPOS, showInventory, showSuppliers, showPromotions, showCustomers }) {
+function QuickActions({ showAll, showPOS, showInventory, showSuppliers, showPromotions }) {
   const { hasPermission } = useUserStore()
   const { t } = useAppStore()
 

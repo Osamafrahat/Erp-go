@@ -1,9 +1,9 @@
+import ConfirmModal from '../components/ConfirmModal'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
 import { servicesApi } from '../lib/api'
 import { X, Plus, Edit2, Trash2, Wrench, Shield, Settings } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 const SERVICE_TYPES = [
   { value: 'maintenance', icon: Wrench },
@@ -12,7 +12,7 @@ const SERVICE_TYPES = [
 ]
 
 export default function ServicesPage() {
-  const { t, language } = useAppStore()
+  const { t } = useAppStore()
   const { hasPermission } = useUserStore()
   const canEdit = hasPermission(PERMISSIONS.SERVICES_EDIT)
   const [services, setServices] = useState([])
@@ -143,7 +143,7 @@ className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hov
 }
 
 function ServiceForm({ service, onSave, onClose }) {
-  const { t, language } = useAppStore()
+  const { t } = useAppStore()
   const [form, setForm] = useState({
     name: service?.name || '',
     description: service?.description || '',

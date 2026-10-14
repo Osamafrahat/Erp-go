@@ -1,9 +1,9 @@
+import ReceiptModal from '../components/pos/ReceiptModal'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { ordersApi, etaApi, subscriptionsApi } from '../lib/api'
 import { formatCurrency } from '../lib/utils'
 import { FileText, Search, Eye, RefreshCcw, CheckCircle, XCircle, Clock, Send, Wrench, DollarSign, Repeat } from 'lucide-react'
-import ReceiptModal from '../components/pos/ReceiptModal'
 
 const STATUS_COLORS = {
 paid:'bg-success-soft text-success-soft-foreground',

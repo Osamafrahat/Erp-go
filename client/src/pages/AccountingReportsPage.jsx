@@ -1,8 +1,8 @@
+import ConfirmModal from '../components/ConfirmModal'
 import { useState, useEffect, Fragment } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { accountingReportsApi } from '../lib/api'
 import { BarChart3, FileText, Scale, TrendingUp, TrendingDown, Download } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 export default function AccountingReportsPage() {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -12,13 +12,13 @@ export default function AccountingReportsPage() {
   const [profitLoss, setProfitLoss] = useState(null)
   const [fiscalPeriods, setFiscalPeriods] = useState([])
   const [loading, setLoading] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [closeTarget, setCloseTarget] = useState(null)
   const [closing, setClosing] = useState(false)
 
   useEffect(() => {
     loadReport()
     loadFiscalPeriods()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [activeTab])
 
   const loadReport = async () => {

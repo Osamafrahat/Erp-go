@@ -1,9 +1,9 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { Plus, Search, Eye, RotateCcw, Save, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { journalsApi, accountsApi } from '../lib/api'
 import { translateDescription } from '../lib/translateDescription'
-import { Plus, Search, Eye, RotateCcw, Save, X } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 export default function JournalEntriesPage() {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -37,6 +37,7 @@ export default function JournalEntriesPage() {
     ],
   })
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   useEffect(() => { fetchEntries(); fetchAccounts() }, [page, search])
 
   const fetchEntries = async () => {

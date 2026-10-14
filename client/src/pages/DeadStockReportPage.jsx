@@ -2,18 +2,11 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { deadStockApi } from '../lib/api'
-import {
-  AlertTriangle,
-  Calendar,
-  Filter,
-  Loader2,
-  Package,
-  TrendingDown,
-  Trash2
-} from 'lucide-react'
+
+
 
 export default function DeadStockReportPage() {
-  const { t, toastSuccess, toastError } = useAppStore()
+  const { t, toastError } = useAppStore()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState({
@@ -55,6 +48,7 @@ export default function DeadStockReportPage() {
 
   useEffect(() => {
     fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [dateRange.from, dateRange.to, categoryFilter])
 
   const getDaysColor = (days) => {

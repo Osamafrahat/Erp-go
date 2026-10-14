@@ -5,7 +5,6 @@ import { escapeHtml } from '../lib/html'
 
 // Simple barcode generator using Code 128
 function generateBarcode(value) {
-  const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const charWidth = 2
   const barHeight = 50
   const quietZone = 10
@@ -70,7 +69,7 @@ export default function BarcodePrinter({ product, onClose }) {
   const { t } = useAppStore()
   const [quantity, setQuantity] = useState(1)
   const [labelWidth, setLabelWidth] = useState(50)
-  const [labelHeight, setLabelHeight] = useState(30)
+  const [labelHeight] = useState(30)
   const [showText, setShowText] = useState(true)
   const printRef = useRef()
 

@@ -1,8 +1,8 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { Plus, Search, Edit2, Trash2, Save, X, RefreshCw, Landmark } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import api, { accountsApi } from '../lib/api'
-import { Plus, Search, Edit2, Trash2, Save, X, RefreshCw, Landmark } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 export default function ChartOfAccountsPage() {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -35,6 +35,7 @@ revenue:{label: t('accounting.revenue')||'Revenue',color:'bg-success-soft text-s
 expense:{label: t('accounting.expenseType')||'Expense',color:'bg-warning-soft text-warning-soft-foreground'},
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   useEffect(() => { fetchAccounts() }, [])
 
   const fetchAccounts = async () => {

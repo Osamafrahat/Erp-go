@@ -1,3 +1,4 @@
+import ChatWidget from '../ChatWidget'
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../stores/appStore'
@@ -13,14 +14,7 @@ import {
   Truck,
   Tag,
   Settings,
-  Menu,
-  X,
-  Sun,
-  Moon,
-  Store,
-  Globe,
   Users,
-  LogOut,
   LayoutDashboard,
   UserCheck,
   Receipt,
@@ -30,8 +24,6 @@ import {
   FileText,
   DollarSign,
   Scale,
-  ChevronDown,
-  WifiOff,
   RefreshCw,
   HardDrive,
   Clock,
@@ -41,13 +33,11 @@ import {
   Wrench,
   CreditCard,
   Crown,
-  Sparkles,
   Shield,
    Banknote,
    ClipboardList,
    AlertTriangle,
 } from 'lucide-react'
-import ChatWidget from '../ChatWidget'
 
 export default function Layout({ children }) {
   const location = useLocation()
@@ -63,13 +53,11 @@ export default function Layout({ children }) {
   const canAccess = useUserStore((s) => s.canAccess)
   const hasPermission = useUserStore((s) => s.hasPermission)
   const subscriptionTier = useUserStore((s) => s.subscriptionTier)
-  const subscriptionStatus = useUserStore((s) => s.subscriptionStatus)
   const trialEndsAt = useUserStore((s) => s.trialEndsAt)
   const isTrial = useUserStore((s) => s.isTrial)
-  const { isOnline, pendingCount, lastSyncTime, isSyncing, syncProgress, init: initOffline, syncPendingOrders, retryFailed } = useOfflineStore()
+  const { isOnline, pendingCount, lastSyncTime, isSyncing, syncProgress, init: initOffline, syncPendingOrders } = useOfflineStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
-  const [showUserMenu, setShowUserMenu] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState({})
   const [showSyncPanel, setShowSyncPanel] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)

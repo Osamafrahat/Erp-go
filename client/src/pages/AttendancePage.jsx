@@ -1,12 +1,12 @@
+import SearchableSelect from '../components/SearchableSelect'
+import ConfirmModal from '../components/ConfirmModal'
+import AttendanceCalendar from '../components/attendance/AttendanceCalendar'
+import ClockWidget from '../components/attendance/ClockWidget'
+import { ChevronLeft, ChevronRight, Plus, Trash2, X } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { attendanceApi, employeesApi } from '../lib/api'
-import { ChevronLeft, ChevronRight, Plus, Trash2, X, BarChart3 } from 'lucide-react'
-import ClockWidget from '../components/attendance/ClockWidget'
-import AttendanceCalendar from '../components/attendance/AttendanceCalendar'
-import ConfirmModal from '../components/ConfirmModal'
-import SearchableSelect from '../components/SearchableSelect'
 
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
@@ -39,6 +39,7 @@ export default function AttendancePage() {
     return `${year}-${month}-${day}`
   }, [selectedYear, selectedMonth])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   useEffect(() => { fetchData() }, [startDate, endDate])
 
   const fetchData = async () => {

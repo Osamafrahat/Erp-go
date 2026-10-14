@@ -1,8 +1,8 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { DollarSign, Plus, Search, Trash2, Save, X, ArrowUpRight, ArrowDownRight, Pencil } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { paymentsApi, suppliersApi } from '../lib/api'
-import { DollarSign, Plus, Search, Trash2, Save, X, ArrowUpRight, ArrowDownRight, Pencil } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 export default function PaymentsPage() {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -30,6 +30,7 @@ export default function PaymentsPage() {
   useEffect(() => {
     fetchPayments()
     suppliersApi.getAll().then(res => setSuppliers(res.data || [])).catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [search, filterType])
 
   const fetchPayments = async () => {

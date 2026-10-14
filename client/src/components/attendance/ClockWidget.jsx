@@ -1,8 +1,8 @@
+import { Clock, LogIn, LogOut, Coffee, Pause } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useAppStore } from '../../stores/appStore'
 import { useUserStore } from '../../stores/userStore'
 import { attendanceApi, shiftsApi } from '../../lib/api'
-import { Clock, LogIn, LogOut, Coffee, Pause, MapPin } from 'lucide-react'
 
 export default function ClockWidget() {
   const { t, toastSuccess, toastError } = useAppStore()

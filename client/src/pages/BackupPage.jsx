@@ -1,25 +1,9 @@
+import ConfirmModal from '../components/ConfirmModal'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import api from '../lib/api'
-import ConfirmModal from '../components/ConfirmModal'
-import {
-  Download,
-  Upload,
-  Trash2,
-  Database,
-  FileText,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  RefreshCw,
-  HardDrive,
-  Zap,
-  ZapOff,
-  Calendar,
-  DownloadCloud,
-  Cloud,
-  CloudOff,
-} from 'lucide-react'
+
+
 
 export default function BackupPage() {
   const { t } = useAppStore()
@@ -69,6 +53,7 @@ export default function BackupPage() {
     } catch {}
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   useEffect(() => { loadBackups(); loadAutoStatus(); loadCloudBackups() }, [])
 
   const showMessage = (type, text) => {
@@ -191,7 +176,7 @@ export default function BackupPage() {
   const uploadToCloud = async (format) => {
     try {
       setUploadingCloud(format)
-      const res = await api.post('/backup/cloud/upload', { format })
+      await api.post('/backup/cloud/upload', { format })
       showMessage('success', t('backup.cloudUploaded'))
       loadCloudBackups()
     } catch (err) {

@@ -209,12 +209,14 @@ export default function BillingPage() {
   // used to sit above the useEffects below, so switching the current user to a
   // non-manager role re-rendered the component with more hooks than the
   // previous render and React threw a rules-of-hooks error.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   useEffect(() => { fetchBilling() }, [currentUser])
 
   useEffect(() => {
     const onFocus = () => fetchBilling()
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader is re-created each render and is intentionally NOT a dep
   }, [currentUser])
 
   useEffect(() => {

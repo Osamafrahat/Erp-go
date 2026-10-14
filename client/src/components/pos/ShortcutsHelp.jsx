@@ -1,6 +1,6 @@
+import { X, Keyboard } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 import { POS_SHORTCUTS } from '../../lib/posShortcuts'
-import { X, Keyboard } from 'lucide-react'
 
 // F1 overlay listing every POS shortcut. Renders the same POS_SHORTCUTS
 // array the keydown resolver uses, so the help can never drift from the

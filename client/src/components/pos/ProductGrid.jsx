@@ -1,13 +1,7 @@
+import { Package, Plus, Wrench, Repeat } from 'lucide-react'
 import { useState, memo } from 'react'
 import { useAppStore } from '../../stores/appStore'
 import { formatCurrency } from '../../lib/utils'
-import { Package, Plus, Wrench, Repeat } from 'lucide-react'
-
-const BILLING_CYCLE_LABELS = {
-  monthly: { en: 'Monthly', ar: 'شهري' },
-  annual: { en: 'Annually', ar: 'سنوي' },
-  one_time: { en: 'One-time', ar: 'مرة واحدة' },
-}
 
 export default memo(function ProductGrid({ products, onAddToCart }) {
   const { t, toastError } = useAppStore()

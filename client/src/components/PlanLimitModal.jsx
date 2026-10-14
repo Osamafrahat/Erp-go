@@ -1,7 +1,7 @@
+import { X, AlertTriangle, ArrowUpRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
-import { X, AlertTriangle, ArrowUpRight } from 'lucide-react'
 
 export default function PlanLimitModal() {
   const { t } = useAppStore()

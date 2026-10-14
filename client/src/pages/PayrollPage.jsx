@@ -1,8 +1,8 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { DollarSign, Calendar, CheckCircle, FileText, Eye, Trash2, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { payrollApi } from '../lib/api'
-import { DollarSign, Calendar, CheckCircle, Clock, FileText, Eye, Trash2, X } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 const STATUS_COLORS = {
 draft:'bg-surface-tertiary text-foreground',
@@ -25,6 +25,7 @@ export default function PayrollPage() {
   const [payingItem, setPayingItem] = useState(null)
   const [paying, setPaying] = useState(false)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   useEffect(() => { fetchPayrolls() }, [])
 
   const fetchPayrolls = async () => {

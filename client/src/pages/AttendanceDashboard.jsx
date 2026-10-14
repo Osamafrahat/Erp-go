@@ -1,8 +1,8 @@
+import { ChevronLeft, ChevronRight, TrendingUp, Clock, Users, AlertTriangle } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { useState, useEffect, useMemo } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { attendanceApi } from '../lib/api'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
-import { ChevronLeft, ChevronRight, TrendingUp, Clock, Users, AlertTriangle } from 'lucide-react'
 
 const COLORS = {
   present: '#22c55e',
@@ -25,6 +25,7 @@ export default function AttendanceDashboard() {
     return d.toISOString().split('T')[0]
   }, [selectedYear, selectedMonth])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   useEffect(() => { fetchDashboard() }, [startDate, endDate])
 
   const fetchDashboard = async () => {

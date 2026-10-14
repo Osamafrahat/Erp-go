@@ -1,13 +1,13 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { X, Plus, Edit2, Trash2, Truck, Phone, Mail, MapPin, DollarSign } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
 import { suppliersApi } from '../lib/api'
-import { X, Plus, Edit2, Trash2, Truck, Phone, Mail, MapPin, DollarSign } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 export default function SuppliersPage() {
   const { t, toastSuccess, toastError } = useAppStore()
-  const { currentUser, hasPermission } = useUserStore()
+  const { hasPermission } = useUserStore()
   const canEdit = hasPermission(PERMISSIONS.SUPPLIERS_EDIT)
   const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(true)

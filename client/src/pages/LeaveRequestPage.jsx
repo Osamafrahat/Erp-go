@@ -1,9 +1,7 @@
+import { Calendar, Plus, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
-import { useUserStore } from '../stores/userStore'
-import { leaveApi, employeesApi } from '../lib/api'
-import { Calendar, Plus, Clock, X } from 'lucide-react'
-import SearchableSelect from '../components/SearchableSelect'
+import { leaveApi } from '../lib/api'
 
 const STATUS_COLORS = {
 pending:'bg-warning-soft text-warning-soft-foreground',
@@ -13,7 +11,6 @@ rejected:'bg-danger-soft text-danger-soft-foreground',
 
 export default function LeaveRequestPage() {
   const { t, toastSuccess, toastError } = useAppStore()
-  const currentUser = useUserStore(s => s.currentUser)
   const [leaveTypes, setLeaveTypes] = useState([])
   const [requests, setRequests] = useState([])
   const [balances, setBalances] = useState([])

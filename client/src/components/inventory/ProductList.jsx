@@ -1,8 +1,8 @@
+import { Edit2, Trash2, Search, ChevronDown, Package, AlertTriangle, QrCode, ArrowDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../../stores/appStore'
 import { formatCurrency } from '../../lib/utils'
 import { suppliersApi, stockApi } from '../../lib/api'
-import { Edit2, Trash2, Search, ChevronDown, Package, AlertTriangle, QrCode, ArrowDown } from 'lucide-react'
 
 export default function ProductList({ products, canEdit, onEdit, onDelete, onPrintBarcode, onRefresh }) {
   const { t, toastSuccess, toastError } = useAppStore()

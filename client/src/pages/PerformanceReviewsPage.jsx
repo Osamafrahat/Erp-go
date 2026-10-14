@@ -1,10 +1,10 @@
+import SearchableSelect from '../components/SearchableSelect'
+import ConfirmModal from '../components/ConfirmModal'
+import { Star, Plus, Eye, Edit2, Trash2, User, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { performanceApi, employeesApi } from '../lib/api'
-import { Star, Plus, Eye, Edit2, Trash2, User, X } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
-import SearchableSelect from '../components/SearchableSelect'
 
 const STATUS_COLORS = {
 draft:'bg-surface-tertiary text-foreground',
@@ -65,6 +65,7 @@ export default function PerformanceReviewsPage() {
 
   const isManager = currentUser?.role === 'MANAGER'
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   useEffect(() => { fetchData() }, [])
 
   const fetchData = async () => {

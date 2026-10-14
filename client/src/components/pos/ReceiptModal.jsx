@@ -1,6 +1,6 @@
 import { useAppStore } from '../../stores/appStore'
 import { formatCurrency, formatDateTime } from '../../lib/utils'
-import { Printer, X, Wrench } from 'lucide-react'
+import { Printer, X } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
 import { etaApi } from '../../lib/api'
 import { escapeHtml } from '../../lib/html'
@@ -32,7 +32,7 @@ export default function ReceiptModal({ order, onClose }) {
         if (res.data?.qrContent) setEtaQR(res.data.qrContent)
       }).catch(() => {})
     }
-  }, [order.id])
+  }, [order.id, etaQR, settings.eta_auto_submit])
 
   // Render the ETA QR locally whenever its content changes. No network call,
   // so this also works with the till offline.

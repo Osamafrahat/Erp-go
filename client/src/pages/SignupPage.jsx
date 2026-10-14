@@ -1,9 +1,9 @@
+import { Store, User, Lock, Mail, AlertCircle, CheckCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useUserStore } from '../stores/userStore'
 import { useAppStore } from '../stores/appStore'
 import api from '../lib/api'
-import { Store, User, Lock, Mail, AlertCircle, CheckCircle } from 'lucide-react'
 
 export default function SignupPage() {
   const { t, settings } = useAppStore()

@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
-import { useUserStore } from '../stores/userStore'
 import {
-  ShoppingCart, Package, Users, BarChart3, UserCheck, Layers,
-  Check, ArrowRight, Zap, Shield, Globe, Star, Store,
-  Headphones, ArrowUpRight,
+  ShoppingCart, Package, Users, BarChart3, UserCheck, Zap, Shield, Globe, Star, Store,
+  Headphones,
   Database, MessageCircle, Timer
 } from 'lucide-react'
 
@@ -46,7 +44,6 @@ const DEMO_VIDEO_SRC = '/videos/demo.mp4'
 
 export default function LandingPage() {
   const { t, language, setLanguage } = useAppStore()
-  const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const [openModal, setOpenModal] = useState(null)
   const [hasVideo, setHasVideo] = useState(false)
   const [playing, setPlaying] = useState(false)

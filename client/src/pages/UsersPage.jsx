@@ -1,10 +1,10 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { X, Plus, Edit2, Trash2, User, UserCheck, Shield } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useUserStore, ROLES, PERMISSIONS } from '../stores/userStore'
 import { useAppStore } from '../stores/appStore'
 import { usersApi, employeesApi } from '../lib/api'
-import { X, Plus, Edit2, Trash2, User, UserCheck, Shield } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 const permissionLabelsEn = {
   [PERMISSIONS.DASHBOARD_VIEW]: 'View Dashboard',
@@ -65,8 +65,7 @@ const permissionLabelsAr = {
 export default function UsersPage() {
   const { users, currentUser, addUser, updateUser, deleteUser, toggleUserActive, hasPermission } = useUserStore()
   const canManage = hasPermission(PERMISSIONS.USER_MANAGE)
-  const { t, language } = useAppStore()
-  const permissionLabels = language === 'ar' ? permissionLabelsAr : permissionLabelsEn
+  const { t } = useAppStore()
   const location = useLocation()
   const [showForm, setShowForm] = useState(false)
   const [editingUser, setEditingUser] = useState(null)

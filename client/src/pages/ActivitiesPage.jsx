@@ -64,6 +64,7 @@ export default function ActivitiesPage() {
   useEffect(() => {
     fetchActivities()
     fetchStats()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [pagination.page, actionFilter, entityFilter])
 
   const fetchActivities = async () => {
@@ -104,7 +105,7 @@ export default function ActivitiesPage() {
     setPagination(prev => ({ ...prev, page: newPage }))
   }
 
-  const formatDetails = (details, action) => {
+  const formatDetails = (details) => {
     if (!details || Object.keys(details).length === 0) return null
     const items = []
     if (details.total) items.push(`Total: ${details.total} EGP`)

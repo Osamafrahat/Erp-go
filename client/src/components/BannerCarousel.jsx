@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
 
 export default function BannerCarousel({ banners }) {
   const [current, setCurrent] = useState(0)

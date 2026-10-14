@@ -1,7 +1,7 @@
+import { X, RotateCcw, AlertCircle, CheckCircle, Package, Search } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { refundsApi, ordersApi } from '../lib/api'
-import { X, RotateCcw, AlertCircle, CheckCircle, Package, Search } from 'lucide-react'
 
 export default function RefundsPage() {
   const { t } = useAppStore()
@@ -147,7 +147,7 @@ function RefundForm({ onSave, onClose, isSubmitting }) {
   const { t, settings } = useAppStore()
   const [orderNumber, setOrderNumber] = useState('')
   const [order, setOrder] = useState(null)
-  const [orderItems, setOrderItems] = useState([])
+  const [, setOrderItems] = useState([])
   const [refundableItems, setRefundableItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -288,7 +288,6 @@ function RefundForm({ onSave, onClose, isSubmitting }) {
     const orderSubtotal = parseFloat(order.subtotal) || 0
     const orderDiscount = parseFloat(order.discount_amount) || 0
     const orderTax = parseFloat(order.tax_amount) || 0
-    const orderTotal = parseFloat(order.total) || 0
 
     // Sum of original item totals for selected items
     const selectedItemTotals = selectedItems.reduce((sum, i) => sum + (i.unit_price * i.quantity - i.item_discount), 0)

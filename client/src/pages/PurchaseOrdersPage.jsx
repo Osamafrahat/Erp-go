@@ -2,20 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { purchaseOrdersApi, suppliersApi, productsApi } from '../lib/api'
-import {
-  ShoppingCart,
-  Plus,
-  Eye,
-  X,
-  Loader2,
-  Search,
-  Package,
-  Truck,
-  CheckCircle,
-  Trash2,
-  FileText,
-  Send
-} from 'lucide-react'
+
+
 
 export default function PurchaseOrdersPage() {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -67,6 +55,7 @@ export default function PurchaseOrdersPage() {
 
   useEffect(() => {
     fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [filter])
 
   useEffect(() => {

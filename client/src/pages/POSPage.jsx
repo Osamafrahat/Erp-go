@@ -1,3 +1,4 @@
+import { Search, Zap, User, Wrench, CreditCard, WifiOff, Pause, Play, X, Keyboard } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useProductStore } from '../stores/productStore'
 import { useCartStore } from '../stores/cartStore'
@@ -14,8 +15,6 @@ import BarcodeScanner from '../components/pos/BarcodeScanner'
 import ReceiptModal from '../components/pos/ReceiptModal'
 import ShortcutsHelp from '../components/pos/ShortcutsHelp'
 import usePosShortcuts from '../hooks/usePosShortcuts'
-import { Search, Zap, User, Wrench, CreditCard, WifiOff, Pause, Play, X, Keyboard } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 
 export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -51,11 +50,10 @@ export default function POSPage() {
   const clearCartConfirmRef = useRef(0)
 
   const { products, categories, setProducts, setCategories, setLoading, setError } = useProductStore()
-  const { addItem, items, getTotal } = useCartStore()
+  const { addItem, items } = useCartStore()
   const { settings, t, toastSuccess, toastError, toastInfo } = useAppStore()
   const { currentUser } = useUserStore()
   const { isOnline, cacheData, loadCachedData, queueOrder } = useOfflineStore()
-  const navigate = useNavigate()
 
   useEffect(() => {
     fetchData()
@@ -65,6 +63,7 @@ export default function POSPage() {
     const onOnline = () => fetchActiveShift()
     window.addEventListener('online', onOnline)
     return () => window.removeEventListener('online', onOnline)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [])
 
   const fetchActiveShift = async () => {
@@ -846,7 +845,6 @@ className="w-full px-3 py-2 text-sm rounded-lg border-2 border-dashed border-acc
               // Note: Subscriptions are handled separately via quickCreate and their own journal entries
               const allOrderItems = [
                 ...productItems.map(item => {
-                  const isBoxSale = item.sellMode === 'box'
                   const isPieceSale = item.sellMode === 'pieces'
                   const unitPrice = isPieceSale && item.product.pieces_per_box
                     ? item.product.price / item.product.pieces_per_box

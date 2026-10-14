@@ -1,9 +1,9 @@
-import { useState, useEffect, memo, useCallback } from 'react'
+import { Trash2, Plus, Minus, Tag, ShoppingBag, X, Wrench } from 'lucide-react'
+import { useState, useEffect, memo } from 'react'
 import { useCartStore } from '../../stores/cartStore'
 import { useAppStore } from '../../stores/appStore'
 import { promotionsApi } from '../../lib/api'
 import { formatCurrency } from '../../lib/utils'
-import { Trash2, Plus, Minus, Tag, ShoppingBag, X, Wrench } from 'lucide-react'
 
 export default memo(function Cart({ onCheckout, selectedRow = -1 }) {
   const { items, removeItem, updateQuantity, clearCart, getSubtotal, getProductSubtotal, getNonProductSubtotal, getDiscount, getTax, getTotal, promoCode, promoDiscount, applyPromo, removePromo } = useCartStore()

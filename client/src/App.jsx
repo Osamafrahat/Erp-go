@@ -1,13 +1,13 @@
+import ErrorBoundary from './components/ErrorBoundary'
+import PlanLimitModal from './components/PlanLimitModal'
+import ForcePasswordChange from './components/ForcePasswordChange'
+import SessionTimeout from './components/SessionTimeout'
+import Toast from './components/Toast'
+import Layout from './components/layout/Layout'
 import { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useAppStore } from './stores/appStore'
 import { useUserStore } from './stores/userStore'
-import Layout from './components/layout/Layout'
-import Toast from './components/Toast'
-import SessionTimeout from './components/SessionTimeout'
-import ForcePasswordChange from './components/ForcePasswordChange'
-import PlanLimitModal from './components/PlanLimitModal'
-import ErrorBoundary from './components/ErrorBoundary'
 
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))

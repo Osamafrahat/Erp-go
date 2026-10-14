@@ -1,9 +1,9 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { X, Plus, Edit2, Trash2, UserCheck, User, Phone, Mail, Calendar, DollarSign, Shield } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
 import { employeesApi, usersApi } from '../lib/api'
-import { X, Plus, Edit2, Trash2, UserCheck, User, Phone, Mail, Calendar, DollarSign, Shield } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 const USER_ROLES = (t) => [
   { value: 'MANAGER', label: t('role.manager') },
@@ -16,7 +16,7 @@ const USER_ROLES = (t) => [
 
 export default function EmployeesPage() {
   const { t, toastSuccess, toastError } = useAppStore()
-  const { currentUser, hasPermission } = useUserStore()
+  const { hasPermission } = useUserStore()
   const canEdit = hasPermission(PERMISSIONS.EMPLOYEES_EDIT)
   const [employees, setEmployees] = useState([])
   const [loading, setLoading] = useState(true)

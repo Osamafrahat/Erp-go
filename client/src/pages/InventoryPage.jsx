@@ -1,15 +1,15 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { Plus, Package, Tag, Printer, X } from 'lucide-react'
+import InventoryPrintSheet from '../components/inventory/InventoryPrintSheet'
+import BarcodePrinter from '../components/BarcodePrinter'
+import CategoryManager from '../components/inventory/CategoryManager'
+import ProductForm from '../components/inventory/ProductForm'
+import ProductList from '../components/inventory/ProductList'
 import { useState, useEffect } from 'react'
 import { useProductStore } from '../stores/productStore'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
 import { productsApi, categoriesApi, suppliersApi } from '../lib/api'
-import ProductList from '../components/inventory/ProductList'
-import ProductForm from '../components/inventory/ProductForm'
-import CategoryManager from '../components/inventory/CategoryManager'
-import BarcodePrinter from '../components/BarcodePrinter'
-import InventoryPrintSheet from '../components/inventory/InventoryPrintSheet'
-import { Plus, Package, Tag, Printer, X } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 export default function InventoryPage() {
   const { products, categories, setProducts, setCategories, setLoading, setError } = useProductStore()
@@ -28,6 +28,7 @@ export default function InventoryPage() {
 
   useEffect(() => {
     fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [])
 
   const fetchData = async () => {

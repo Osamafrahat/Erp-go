@@ -1,10 +1,10 @@
+import SearchableSelect from '../components/SearchableSelect'
+import ConfirmModal from '../components/ConfirmModal'
+import { Calendar, Plus, Check, X, User, Filter } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { leaveApi, employeesApi } from '../lib/api'
-import { Calendar, Plus, Check, X, Clock, User, Filter } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
-import SearchableSelect from '../components/SearchableSelect'
 
 const STATUS_COLORS = {
 pending:'bg-warning-soft text-warning-soft-foreground',
@@ -44,6 +44,7 @@ export default function LeavePage() {
 
   const isManager = currentUser?.role === 'MANAGER'
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   useEffect(() => { fetchData() }, [])
 
   const fetchData = async () => {

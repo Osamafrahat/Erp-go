@@ -2,6 +2,8 @@ import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
+import react from 'eslint-plugin-react'
+import unusedImports from 'eslint-plugin-unused-imports'
 
 // Flat config for ESLint 9. The repo previously had `npm run lint: eslint .`
 // declared with no config file anywhere, so linting could never run -- which
@@ -27,16 +29,24 @@ export default [
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      'react': react,
+      'unused-imports': unusedImports,
     },
     rules: {
       // The rules that would have caught the listener-leak / stale-closure bugs.
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      // JSX references are real references: without this, every component
+      // only ever rendered as <Tag /> is reported as an unused variable.
+      'react/jsx-uses-vars': 'error',
 
-      // Unused imports are cleanup debt, not correctness bugs. Kept as a
-      // warning so they stay visible without drowning out the error-level
-      // findings (duplicate object keys, undefined globals, broken hooks).
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // Unused imports are autofixable (eslint --fix drops them); unused
+      // variables stay visible as warnings. `^_` marks deliberate silence.
+      // Catch bindings are idiomatic to name (`catch (err)`) even when the
+      // error is only logged or ignored, so they are not counted.
+      'no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'warn',
+      'unused-imports/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'prefer-const': 'error',
       eqeqeq: ['error', 'smart'],

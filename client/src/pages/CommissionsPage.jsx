@@ -2,22 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { commissionsApi, employeesApi } from '../lib/api'
-import {
-  Award,
-  DollarSign,
-  CheckCircle,
-  Clock,
-  Loader2,
-  Calendar,
-  Search,
-  TrendingUp,
-  Users,
-  Calculator,
-  AlertTriangle,
-  Package,
-  UserCheck,
-  ShoppingCart
-} from 'lucide-react'
+
+
 
 export default function CommissionsPage() {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -64,6 +50,7 @@ export default function CommissionsPage() {
 
   useEffect(() => {
     fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [filter, employeeFilter])
 
   const handleApprove = async (id) => {

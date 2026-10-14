@@ -213,7 +213,7 @@ export default function PricingPage() {
         .catch(() => setVerifyResult({ paid: false }))
         .finally(() => setVerifying(false))
     }
-  }, [searchParams])
+  }, [searchParams, verifying, verifyResult, refreshUser, navigate])
 
   const handlePlanAction = (tier) => {
     const currentOrder = TIER_ORDER[currentPlan] ?? 0
@@ -385,7 +385,6 @@ export default function PricingPage() {
             const colors = colorMap[tier.color]
             const Icon = tier.icon
             const isCurrent = currentPlan === tier.id
-            const isUpgrade = TIER_ORDER[tier.id] > TIER_ORDER[currentPlan]
             const isDowngrade = TIER_ORDER[tier.id] < TIER_ORDER[currentPlan]
 
             let buttonLabel, buttonClass, buttonDisabled

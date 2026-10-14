@@ -2,18 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { cashShiftsApi } from '../lib/api'
-import {
-  DollarSign,
-  Clock,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  Plus,
-  X,
-  History,
-  BarChart3,
-  Loader2
-} from 'lucide-react'
+
+
 
 export default function CashShiftPage() {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -51,6 +41,7 @@ export default function CashShiftPage() {
 
   useEffect(() => {
     fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [])
 
   useEffect(() => {

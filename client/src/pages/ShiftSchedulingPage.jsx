@@ -1,9 +1,9 @@
+import SearchableSelect from '../components/SearchableSelect'
+import ConfirmModal from '../components/ConfirmModal'
+import { Clock, Plus, Trash2, ChevronLeft, ChevronRight, X, GripVertical } from 'lucide-react'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { shiftsApi, employeesApi } from '../lib/api'
-import { Clock, Plus, Trash2, ChevronLeft, ChevronRight, X, GripVertical } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
-import SearchableSelect from '../components/SearchableSelect'
 
 const SHIFT_COLORS = [
 'bg-accent-soft text-accent-soft-foreground',
@@ -75,9 +75,9 @@ export default function ShiftSchedulingPage({ readOnly = false }) {
 
   const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart])
 
-  useEffect(() => { fetchData() }, [weekStart])
-
-  const fetchData = async () => {
+  // Identity is stable per weekStart, so the load effect and the drag-drop
+  // callback below can safely list it as a dependency.
+  const fetchData = useCallback(async () => {
     setLoading(true)
     try {
       const endDate = new Date(weekStart + 'T00:00:00')
@@ -103,7 +103,9 @@ export default function ShiftSchedulingPage({ readOnly = false }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [weekStart])
+
+  useEffect(() => { fetchData() }, [fetchData])
 
   const prevWeek = () => {
     const d = new Date(weekStart + 'T00:00:00')
@@ -233,15 +235,6 @@ export default function ShiftSchedulingPage({ readOnly = false }) {
     }
   }, [fetchData, toastError, t])
 
-  const handleRemoveAssignment = useCallback(async (assignmentId) => {
-    try {
-      await shiftsApi.deleteAssignment(assignmentId)
-      fetchData()
-    } catch (err) {
-      toastError(err.response?.data?.error || t('hr.shifts.removeFailed') || 'Failed to remove')
-    }
-  }, [fetchData, toastError, t])
-
   const getShiftColor = (shiftId) => {
     const idx = shifts.findIndex(s => s.id === shiftId)
     return SHIFT_COLORS[idx % SHIFT_COLORS.length]
@@ -337,7 +330,6 @@ className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium s
 <tr className="border-b border-border">
 <th className="text-start px-4 py-3 font-medium text-muted min-w-[150px]">{t('hr.shifts.employee')||'Employee'}</th>
                 {weekDates.map((date, i) => {
-                  const d = new Date(date + 'T00:00:00')
                   const isToday = date === new Date().toISOString().split('T')[0]
                   return (
 <th key={date}className={`text-center px-3 py-3 font-medium text-xs ${isToday ?'text-accent-soft-foreground bg-accent-soft':'text-muted'}`}>

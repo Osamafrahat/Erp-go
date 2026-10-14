@@ -1,8 +1,8 @@
+import ConfirmModal from '../ConfirmModal'
+import { X, Plus, Edit2, Trash2, Tag, Check } from 'lucide-react'
 import { useState } from 'react'
 import { useAppStore } from '../../stores/appStore'
 import { categoriesApi } from '../../lib/api'
-import { X, Plus, Edit2, Trash2, Tag, Check } from 'lucide-react'
-import ConfirmModal from '../ConfirmModal'
 
 export default function CategoryManager({ categories, onClose, onRefresh }) {
   const { t } = useAppStore()

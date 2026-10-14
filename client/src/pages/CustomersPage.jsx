@@ -1,13 +1,13 @@
+import ConfirmModal from '../components/ConfirmModal'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
 import { customersApi, ordersApi } from '../lib/api'
 import { X, Plus, Edit2, Trash2, User, Phone, Mail, MapPin, Star, ChevronDown, ChevronRight, ShoppingCart, Receipt, Calendar, CreditCard, Package } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 export default function CustomersPage() {
   const { t, toastSuccess, toastError } = useAppStore()
-  const { currentUser, hasPermission } = useUserStore()
+  const { hasPermission } = useUserStore()
   const canEdit = hasPermission(PERMISSIONS.CUSTOMERS_EDIT)
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -21,6 +21,7 @@ export default function CustomersPage() {
 
   useEffect(() => {
     fetchCustomers()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [])
 
   const fetchCustomers = async () => {
@@ -251,6 +252,7 @@ function CustomerDetailDrawer({ customer, onClose }) {
 
   useEffect(() => {
     fetchCustomerOrders()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep
   }, [customer.id])
 
   const fetchCustomerOrders = async () => {

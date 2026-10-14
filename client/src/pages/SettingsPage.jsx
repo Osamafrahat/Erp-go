@@ -1,8 +1,8 @@
+import { Save, Store, Percent, Receipt, AlertTriangle, Globe, Star, Upload, X, MapPin, Navigation } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { settingsApi } from '../lib/api'
 import { languageNames } from '../lib/translations'
-import { Save, Store, Percent, Receipt, AlertTriangle, Globe, Star, Upload, X, MapPin, Navigation } from 'lucide-react'
 
 export default function SettingsPage() {
   const { settings, updateSettings, language, setLanguage, t, toastSuccess, toastError } = useAppStore()
@@ -16,7 +16,7 @@ export default function SettingsPage() {
         updateSettings(data)
       }
     }).catch(() => {})
-  }, [])
+  }, [updateSettings])
 
   const handleChange = (e) => {
     const { name, value, type } = e.target

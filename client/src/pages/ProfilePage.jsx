@@ -8,7 +8,7 @@ import { User, Phone, Mail, Lock, Shield, Calendar, ArrowLeft, Save, Eye, EyeOff
 export default function ProfilePage() {
   const navigate = useNavigate()
   const { t, toastSuccess, toastError } = useAppStore()
-  const { currentUser, logout } = useUserStore()
+  const { logout } = useUserStore()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -27,6 +27,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchProfile()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [])
 
   const fetchProfile = async () => {

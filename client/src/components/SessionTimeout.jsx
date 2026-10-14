@@ -1,8 +1,8 @@
+import { AlertTriangle, Clock } from 'lucide-react'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUserStore } from '../stores/userStore'
 import { useAppStore } from '../stores/appStore'
-import { AlertTriangle, Clock } from 'lucide-react'
 
 const WARNING_TIME = 5 * 60 * 1000 // Show warning 5 minutes before timeout
 const CHECK_INTERVAL = 30 * 1000 // Check every 30 seconds

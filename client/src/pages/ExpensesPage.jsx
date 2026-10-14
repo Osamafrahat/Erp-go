@@ -1,9 +1,9 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { X, Plus, Edit2, Trash2, Receipt, DollarSign, TrendingDown, Filter } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
 import { expensesApi } from '../lib/api'
-import { X, Plus, Edit2, Trash2, Receipt, DollarSign, TrendingDown, Filter } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 const EXPENSE_CATEGORIES = [
   'Rent',
@@ -19,7 +19,7 @@ const EXPENSE_CATEGORIES = [
 
 export default function ExpensesPage() {
   const { t, toastSuccess, toastError } = useAppStore()
-  const { currentUser, hasPermission } = useUserStore()
+  const { hasPermission } = useUserStore()
   const canEdit = hasPermission(PERMISSIONS.EXPENSES_EDIT)
   const [expenses, setExpenses] = useState([])
   const [summary, setSummary] = useState({ summary: {}, total: 0 })
@@ -35,6 +35,7 @@ export default function ExpensesPage() {
   useEffect(() => {
     fetchExpenses()
     fetchSummary()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [dateFilter, categoryFilter])
 
   const fetchExpenses = async () => {

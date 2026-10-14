@@ -5,7 +5,7 @@ import { formatCurrency, calculateChange } from '../../lib/utils'
 import { X, CreditCard, Banknote, Smartphone, Clock, Check } from 'lucide-react'
 
 export default function PaymentModal({ onClose, onComplete, isSubmitting, selectedCustomer }) {
-  const { items, getSubtotal, getDiscount, getTax, getTotal, promoCode, promoDiscount } = useCartStore()
+  const { getSubtotal, getDiscount, getTax, getTotal, promoCode } = useCartStore()
   const { settings, t, toastError } = useAppStore()
 
   const paymentMethods = [

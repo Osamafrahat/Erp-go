@@ -2,18 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { formatCurrency } from '../lib/utils'
 import { creditSalesApi } from '../lib/api'
-import {
-  CreditCard,
-  DollarSign,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Search,
-  X,
-  Loader2,
-  Wallet,
-  User
-} from 'lucide-react'
+
+
 
 export default function CreditSalesPage() {
   const { t, toastSuccess, toastError } = useAppStore()
@@ -55,6 +45,7 @@ export default function CreditSalesPage() {
 
   useEffect(() => {
     fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [filter])
 
   const getCustomerName = (sale) => sale.customers?.name || sale.customer_name || '—'

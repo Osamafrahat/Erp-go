@@ -1,6 +1,6 @@
+import { X, Camera, Keyboard, Check, Loader2 } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAppStore } from '../../stores/appStore'
-import { X, Camera, Keyboard, Check, Loader2 } from 'lucide-react'
 
 export default function BarcodeScanner({ onScan, onClose }) {
   const { t } = useAppStore()

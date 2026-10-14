@@ -1,9 +1,9 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { X, Plus, Edit2, Trash2, CreditCard, Repeat } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
 import { servicePlansApi } from '../lib/api'
-import { X, Plus, Edit2, Trash2, CreditCard, Calendar, Repeat } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 const BILLING_CYCLE_KEYS = {
   monthly: 'services.monthly',
@@ -12,7 +12,7 @@ const BILLING_CYCLE_KEYS = {
 }
 
 export default function ServicePlansPage() {
-  const { t, language } = useAppStore()
+  const { t } = useAppStore()
   const { hasPermission } = useUserStore()
   const canEdit = hasPermission(PERMISSIONS.SERVICES_EDIT)
   const [plans, setPlans] = useState([])

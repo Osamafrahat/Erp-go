@@ -1,9 +1,9 @@
+import { Lock, AlertTriangle, Check } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUserStore } from '../stores/userStore'
 import { useAppStore } from '../stores/appStore'
 import { authApi } from '../lib/api'
-import { Lock, AlertTriangle, Check } from 'lucide-react'
 
 export default function ForcePasswordChange() {
   const { logout } = useUserStore()

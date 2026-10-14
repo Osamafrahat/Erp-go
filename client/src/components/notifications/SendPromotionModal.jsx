@@ -3,21 +3,9 @@ import { useAppStore } from '../../stores/appStore'
 import { customersApi, emailApi, healthApi } from '../../lib/api'
 import { formatCurrency } from '../../lib/utils'
 import {
-  X,
-  Send,
   Mail,
   MessageCircle,
   Users,
-  CheckCircle,
-  Loader2,
-  Percent,
-  DollarSign,
-  ExternalLink,
-  User,
-  AlertCircle,
-  RefreshCw,
-  Check,
-  XIcon,
 } from 'lucide-react'
 
 function generateWhatsAppLink(phone, message) {
@@ -25,7 +13,7 @@ function generateWhatsAppLink(phone, message) {
   return `https://wa.me/${num}?text=${encodeURIComponent(message)}`
 }
 
-export default function SendPromotionModal({ promotion, onClose, onSent }) {
+export default function SendPromotionModal({ promotion, onClose }) {
   const { t } = useAppStore()
   const [sendMethod, setSendMethod] = useState('whatsapp')
   const [step, setStep] = useState('form')
@@ -43,7 +31,7 @@ export default function SendPromotionModal({ promotion, onClose, onSent }) {
     ? `${promotion.value}%`
     : formatCurrency(promotion.value)
 
-  const buildMessage = (storeName) => {
+  const buildMessage = useCallback((storeName) => {
     const discountText = promotion.type === 'percentage'
       ? `${promotion.value}%`
       : `${promotion.value} ج.م`
@@ -54,14 +42,14 @@ export default function SendPromotionModal({ promotion, onClose, onSent }) {
       (promotion.min_order_amount ? `📌 الحد الأدنى للطلب: ${promotion.min_order_amount} ج.م\n` : '') +
       `📅 صالح حتى: ${new Date(promotion.end_date).toLocaleDateString('ar-EG')}\n\n` +
       `سارع بالاستفادة! 🛒`
-  }
+  }, [promotion])
 
-  const getStoreName = () => {
+  const getStoreName = useCallback(() => {
     try {
       const settings = JSON.parse(localStorage.getItem('app_settings') || '{}')
       return settings.storeName || 'المتجر'
     } catch { return 'المتجر' }
-  }
+  }, [])
 
   const loadWhatsApp = useCallback(async () => {
     try {
@@ -85,7 +73,7 @@ export default function SendPromotionModal({ promotion, onClose, onSent }) {
       setWhatsappError(err.response?.data?.error || err.message || 'Failed to load customers')
       setWhatsappState('error')
     }
-  }, [])
+  }, [buildMessage, getStoreName])
 
   const loadEmail = useCallback(async () => {
     try {

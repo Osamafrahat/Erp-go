@@ -1,10 +1,10 @@
+import ConfirmModal from '../components/ConfirmModal'
+import { Send, Trash2, MessageCircle, Users, Wifi, WifiOff } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import api from '../lib/api'
 import supabase from '../lib/supabase'
-import { Send, Trash2, MessageCircle, Users, Wifi, WifiOff } from 'lucide-react'
-import ConfirmModal from '../components/ConfirmModal'
 
 export default function ChatPage() {
   const { t } = useAppStore()

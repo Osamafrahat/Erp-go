@@ -1,9 +1,9 @@
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { reportsApi } from '../lib/api'
 import { formatCurrency } from '../lib/utils'
 import { BarChart3, TrendingUp, Package, AlertTriangle, DollarSign, Receipt, TrendingDown, Wallet } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16']
 
@@ -26,6 +26,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate trigger list: the loader below is re-created each render and is intentionally NOT a dep, so only these inputs refetch
   }, [dateRange])
 
   const fetchData = async () => {
