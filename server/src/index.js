@@ -123,7 +123,10 @@ const corsOptions = {
     }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  // x-branch-id is the multi-branch scoping header sent by the web client on
+  // every request once a branch is selected. Without it in this allow-list the
+  // browser blocks the preflighted request outright (network error client-side).
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-branch-id'],
   credentials: true,
   maxAge: 86400
 }
