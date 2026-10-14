@@ -4,7 +4,7 @@
 #
 
 app = 'erp-go-crimson-wind-2087'
-primary_region = 'ams'
+primary_region = 'cdg'
 
 [build]
   dockerfile = 'Dockerfile'
@@ -14,7 +14,9 @@ primary_region = 'ams'
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
+  # Always keep one warm machine: at 0, the server cold-starts from stopped
+  # and the first request after an idle window pays the start penalty.
+  min_machines_running = 1
 
   [http_service.concurrency]
     type = 'connections'
