@@ -5,6 +5,7 @@ import { useAppStore } from '../../stores/appStore'
 import { useCartStore } from '../../stores/cartStore'
 import { useUserStore, PERMISSIONS } from '../../stores/userStore'
 import { useOfflineStore } from '../../stores/offlineStore'
+import { useBranchStore } from '../../stores/branchStore'
 import { languageNames } from '../../lib/translations'
 import { Button } from '@heroui/react'
 import {
@@ -15,7 +16,9 @@ import {
   BarChart3,
   BookOpen,
   Briefcase,
+  Building2,
   Calendar,
+  Check,
   ChevronDown,
   ClipboardList,
   Clock,
@@ -66,8 +69,14 @@ export default function Layout({ children }) {
   const trialEndsAt = useUserStore((s) => s.trialEndsAt)
   const isTrial = useUserStore((s) => s.isTrial)
   const { isOnline, pendingCount, lastSyncTime, isSyncing, syncProgress, init: initOffline, syncPendingOrders } = useOfflineStore()
+  // Branch switcher: narrow selectors (same reasoning as the userStore ones)
+  const branches = useBranchStore((s) => s.branches)
+  const currentBranchId = useBranchStore((s) => s.currentBranchId)
+  const loadBranches = useBranchStore((s) => s.loadBranches)
+  const setBranch = useBranchStore((s) => s.setBranch)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
+  const [showBranchMenu, setShowBranchMenu] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState({})
   const [showSyncPanel, setShowSyncPanel] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
@@ -76,6 +85,24 @@ export default function Layout({ children }) {
   useEffect(() => {
     initOffline()
   }, [initOffline])
+
+  // Load branches once (the store skips the fetch when already loaded, so the
+  // Layout re-mounting on every navigation doesn't hammer /api/branches)
+  useEffect(() => {
+    loadBranches()
+  }, [loadBranches])
+
+  // Close branch menu on outside click
+  useEffect(() => {
+    if (!showBranchMenu) return
+    const handler = (e) => {
+      if (!e.target.closest('[data-branch-menu]')) {
+        setShowBranchMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showBranchMenu])
 
   // Close sync panel on outside click
   useEffect(() => {
@@ -91,6 +118,19 @@ export default function Layout({ children }) {
 
   const toggleGroup = (group) => {
     setExpandedGroups(prev => ({ ...prev, [group]: !prev[group] }))
+  }
+
+  // Branch switcher state: managers/super-admins may switch; everyone else
+  // sees the current branch as a read-only list (server enforces as well).
+  const canSwitchBranch = currentUser?.role === 'MANAGER' || currentUser?.role === 'SUPER_ADMIN'
+  const activeBranches = branches.filter((b) => b.is_active)
+  const currentBranch = branches.find((b) => b.id === currentBranchId)
+  const currentBranchName = currentBranch?.name || t('branches.mainBranch')
+
+  const handleSwitchBranch = (id) => {
+    if (!canSwitchBranch || id === currentBranchId) return
+    setShowBranchMenu(false)
+    setBranch(id)
   }
 
   // Build grouped navigation based on Odoo classification
@@ -159,6 +199,11 @@ export default function Layout({ children }) {
   }
   if (canAccess('/purchase-orders') && currentUser?.role !== 'SUPER_ADMIN') {
     inventoryItems.push({ name: t('nav.purchaseOrders') || 'Purchase Orders', href: '/purchase-orders', icon: ClipboardList })
+  }
+  // Branch management: same gate as Users/Activity Log (user_manage permission
+  // via routePermissions) plus the platform super admin.
+  if (canAccess('/branches') || currentUser?.role === 'SUPER_ADMIN') {
+    inventoryItems.push({ name: t('nav.branches'), href: '/branches', icon: Building2 })
   }
   if (inventoryItems.length > 0) {
     groups.push({ key: 'inventory', label: t('nav.groupInventory') || 'Inventory', items: inventoryItems })
@@ -583,6 +628,36 @@ export default function Layout({ children }) {
 
             {/* Mobile Bottom */}
             <div className="p-3 border-t border-border space-y-2">
+              {/* Branch Switcher */}
+              <div className="flex items-center gap-2 px-2 flex-wrap">
+                <Store className="w-4 h-4 text-muted flex-shrink-0" />
+                {activeBranches.length === 0 ? (
+                  <span className="text-xs text-muted">{currentBranchName}</span>
+                ) : (
+                  activeBranches.map((b) => (
+                    <button
+                      key={b.id}
+                      onClick={() => {
+                        if (!canSwitchBranch || b.id === currentBranchId) return
+                        setMobileMenuOpen(false)
+                        setBranch(b.id)
+                      }}
+                      disabled={!canSwitchBranch}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                        b.id === currentBranchId
+                          ? 'bg-accent text-accent-foreground'
+                          : 'bg-surface-hover text-muted hover:text-foreground'
+                      } ${!canSwitchBranch ? 'cursor-not-allowed opacity-60' : ''}`}
+                    >
+                      {b.name}
+                    </button>
+                  ))
+                )}
+              </div>
+              {!canSwitchBranch && activeBranches.length > 0 && (
+                <p className="px-2 text-[11px] text-muted">{t('branches.readOnlyHint')}</p>
+              )}
+
               {/* Language Switcher */}
               <div className="flex items-center gap-2 px-2">
                 <Globe className="w-4 h-4 text-muted flex-shrink-0" />
@@ -776,6 +851,57 @@ export default function Layout({ children }) {
                   </Link>
                 )
               })()}
+
+              {/* Branch Switcher */}
+              <div className="relative" data-branch-menu>
+                <button
+                  onClick={() => setShowBranchMenu(!showBranchMenu)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-surface-secondary text-muted hover:text-foreground hover:bg-surface-hover transition-all duration-200"
+                  title={t('branches.switchBranch')}
+                >
+                  <Store className="w-4 h-4" />
+                  <span className="hidden sm:inline max-w-[140px] truncate">{currentBranchName}</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showBranchMenu ? '' : '-rotate-90'}`} />
+                </button>
+                {showBranchMenu && (
+                  <div className="absolute end-0 top-full mt-1 w-64 bg-overlay border border-border rounded-xl shadow-xl overflow-hidden z-50">
+                    <div className="px-3 py-2 border-b border-border">
+                      <p className="text-[11px] uppercase tracking-wider font-semibold text-muted">{t('branches.switchBranch')}</p>
+                      {!canSwitchBranch && (
+                        <p className="text-[11px] text-muted mt-0.5">{t('branches.readOnlyHint')}</p>
+                      )}
+                    </div>
+                    <div className="max-h-64 overflow-y-auto py-1">
+                      {activeBranches.length === 0 ? (
+                        <p className="px-3 py-2 text-sm text-muted">{t('branches.noBranches')}</p>
+                      ) : (
+                        activeBranches.map((b) => (
+                          <button
+                            key={b.id}
+                            onClick={() => handleSwitchBranch(b.id)}
+                            disabled={!canSwitchBranch}
+                            className={`w-full px-3 py-2 flex items-center justify-between gap-2 text-start transition-colors ${
+                              b.id === currentBranchId
+                                ? 'text-accent bg-accent-soft'
+                                : canSwitchBranch
+                                  ? 'text-foreground hover:bg-surface-hover'
+                                  : 'text-foreground cursor-not-allowed opacity-70'
+                            }`}
+                          >
+                            <span className="min-w-0">
+                              <span className="block text-sm font-medium truncate">{b.name}</span>
+                              <span className="block text-[11px] text-muted">
+                                {b.type === 'warehouse' ? t('branches.typeWarehouse') : t('branches.typeStore')}
+                              </span>
+                            </span>
+                            {b.id === currentBranchId && <Check className="w-4 h-4 flex-shrink-0" />}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Mobile Language Switcher */}
               <div className="relative md:hidden">

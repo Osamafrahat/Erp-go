@@ -4,6 +4,7 @@ import supabase from '../db/supabase.js'
 import { authenticateToken, requireSuperAdmin, generateToken } from '../middleware/auth.js'
 import { body, validationResult } from 'express-validator'
 import { logActivity } from '../middleware/activityLogger.js'
+import { ensureDefaultBranch } from '../services/branches.js'
 import { sanitizeSearch } from '../helpers/search.js'
 import { sendWelcomeEmail } from '../services/emailService.js'
 
@@ -183,6 +184,14 @@ router.post('/tenants', [
       .select('*')
       .single()
     if (tenantError) throw tenantError
+
+    // Every new tenant starts with its Main Branch (resolution self-heals
+    // too, but create it eagerly; failure is non-fatal).
+    try {
+      await ensureDefaultBranch(tenant.id)
+    } catch (brErr) {
+      console.error('[SuperAdmin] default branch creation failed:', brErr.message)
+    }
 
     const { error: userError } = await supabase
       .from('users')

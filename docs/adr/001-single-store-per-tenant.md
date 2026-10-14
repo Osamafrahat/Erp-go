@@ -1,8 +1,36 @@
 # ADR-001: Single Store Per Tenant
 
-- **Status:** Accepted
+- **Status:** Superseded — decision reversed the same day; multi-branch shipped
+  (see Outcome). Kept as the record of the original constraint.
 - **Date:** 2026-10-14
 - **Deciders:** Product
+
+## Outcome (2026-10-14) — reversed, Phases 1–3 shipped
+
+Multi-branch/multi-warehouse was built end-to-end, following the migration
+plan below with four deliberate deviations:
+
+1. **`products` stays tenant-shared** — no `branch_id` FK on products. The
+   per-branch quantity lives in `product_stock (product_id, branch_id,
+   quantity)`; `products.stock_quantity` remains a cached TOTAL recomputed by
+   the `adjust_product_stock()` SQL function, so `total = sum(branches)` holds
+   by construction and every legacy reader of the total stays correct.
+2. **Scoping is explicit query filters, not RLS predicates** — the server uses
+   the service key (bypasses RLS), so `setTenantContext` resolves an effective
+   branch (header for MANAGER/SUPER_ADMIN, pinned `users.branch_id`, else the
+   tenant default) and handlers filter by `req.branchId`. New tables are RLS
+   deny-all with anon/authenticated revoked.
+3. **Backfill chose explicit "Main Branch" rows**, not NULL-as-whole-tenant:
+   every tenant got one default branch and all existing operational rows were
+   stamped (the ambiguity flagged in Phase 1 was resolved that way).
+4. **Per-branch plan limits (Phase 3) did not ship** — limits stay tenant-level.
+
+Shipped: `branches` table (store/warehouse types, one default per tenant),
+branch switcher + management page, atomic inter-branch transfers
+(`execute_stock_transfer()`, all-or-nothing with FOR UPDATE row locks),
+branch-scoped orders/shifts/expenses/stock movements/reports/refunds, and
+optional `branch_id` on employees, users, and purchase orders. Schema record:
+`server/migrations/create_branches.sql`.
 
 ## Context
 

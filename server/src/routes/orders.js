@@ -2,6 +2,7 @@ import { Router } from 'express'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requirePermission } from '../middleware/auth.js'
 import { checkTenantLimits } from '../middleware/limits.js'
+import { adjustStock } from '../services/branchStock.js'
 
 const router = Router()
 
@@ -56,6 +57,10 @@ router.get('/', async (req, res, next) => {
     }
     if (customer_id) {
       query = query.eq('customer_id', customer_id)
+    }
+    // History is branch-scoped: this shows the ACTIVE location's orders.
+    if (req.branchId) {
+      query = query.eq('branch_id', req.branchId)
     }
 
     const { data, error } = await query
@@ -213,6 +218,7 @@ router.post('/', authenticateToken, requirePermission('pos_access'), checkTenant
       .from('orders')
       .insert({
         tenant_id: req.user?.tenantId,
+        branch_id: req.branchId || null,
         order_number,
         subtotal: subtotal || 0,
         discount_amount: discount_amount || 0,
@@ -294,17 +300,24 @@ async function processOrderBackground(order, items, payments, customer_id, userI
   if (productItems.length > 0) {
     try {
       const productIds = productItems.map(i => i.id)
-      const { data: products } = await supabase.from('products').select('id, stock_quantity, pieces_per_box, unit_of_measure').in('id', productIds).eq('tenant_id', tid)
+      const { data: products } = await supabase.from('products').select('id, pieces_per_box, unit_of_measure').in('id', productIds).eq('tenant_id', tid)
       const stockMap = {}
-      if (products) products.forEach(p => { stockMap[p.id] = { stock: p.stock_quantity || 0, pieces_per_box: p.pieces_per_box, unit_of_measure: p.unit_of_measure } })
+      if (products) products.forEach(p => { stockMap[p.id] = { pieces_per_box: p.pieces_per_box, unit_of_measure: p.unit_of_measure } })
 
+      // The sale deducts from the ORDER'S BRANCH (captured at creation, so
+      // it stays correct even if the cashier switches branch mid-flight).
+      // adjustStock floors the branch row at 0 — same net behavior as the
+      // old Math.max(0, stock - deduct) — and recomputes the product total.
       await Promise.all(productItems.map(item => {
-        const info = stockMap[item.id] || { stock: 0, pieces_per_box: null }
+        const info = stockMap[item.id] || { pieces_per_box: null }
         // For box units sold as box, deduct quantity * pieces_per_box
         const deductQty = item.sell_mode === 'box' && info.pieces_per_box
           ? item.qty * info.pieces_per_box
           : item.qty
-        return supabase.from('products').update({ stock_quantity: Math.max(0, (info.stock || 0) - deductQty), updated_at: new Date().toISOString() }).eq('id', item.id).eq('tenant_id', tid)
+        return adjustStock({ tenantId: tid, branchId: order.branch_id || null, productId: item.id, delta: -deductQty })
+          .then((newQty) => {
+            if (newQty === null) console.error('[ORDER BG] stock adjust failed for product', item.id)
+          })
       }))
 
       await supabase.from('stock_movements').insert(productItems.map(item => {
@@ -314,7 +327,8 @@ async function processOrderBackground(order, items, payments, customer_id, userI
           : item.qty
         return {
           tenant_id: tid, product_id: item.id, type: 'sale', quantity: -deductQty, reference_id: order.id,
-          notes: `Order ${order_number}${item.sell_mode === 'box' ? ' (box sale)' : item.sell_mode === 'pieces' ? ' (piece sale)' : ''}`
+          notes: `Order ${order_number}${item.sell_mode === 'box' ? ' (box sale)' : item.sell_mode === 'pieces' ? ' (piece sale)' : ''}`,
+          branch_id: order.branch_id || null
         }
       }))
     } catch (e) { console.error('[ORDER BG] Stock update failed:', e.message) }

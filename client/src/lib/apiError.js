@@ -17,6 +17,11 @@ const CODE_KEYS = {
   PERMISSION_CANNOT_GRANT_ROLE: 'error.cannotGrantRole',
   AUTH_TOKEN_MISSING: 'error.tokenRequired',
   AUTH_ACCOUNT_DEACTIVATED: 'error.accountDeactivated',
+  STOCK_INSUFFICIENT: 'error.stockInsufficient',
+  BRANCH_SAME: 'error.branchSame',
+  BRANCH_EMPTY: 'error.branchEmpty',
+  BRANCH_DEFAULT_PROTECTED: 'error.branchDefaultProtected',
+  BRANCH_INVALID: 'error.branchInvalid',
 }
 
 // Legacy English messages (pre-`code` servers / older cached bundles)

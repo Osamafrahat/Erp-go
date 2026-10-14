@@ -29,11 +29,13 @@ const flattenShifts = (shifts) => (shifts || []).map(flattenShift)
 // Get shift summary stats
 router.get('/summary', async (req, res, next) => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('cash_shifts')
       .select('*')
       .eq('tenant_id', req.user?.tenantId)
+    if (req.branchId) query = query.eq('branch_id', req.branchId)
 
+    const { data, error } = await query
     if (error) throw error
 
     const shifts = data || []
@@ -128,6 +130,9 @@ router.get('/', async (req, res, next) => {
     if (user_id) query = query.eq('user_id', user_id)
     if (start_date) query = query.gte('opened_at', start_date)
     if (end_date) query = query.lte('opened_at', end_date)
+    // Shift history is per-branch (the open shift itself stays user-scoped
+    // above so switching branch never hides a cashier's open drawer).
+    if (req.branchId) query = query.eq('branch_id', req.branchId)
 
     const { data, error } = await query
     if (error) throw error
@@ -165,6 +170,7 @@ router.post('/', [
       .from('cash_shifts')
       .insert({
         tenant_id: req.user?.tenantId,
+        branch_id: req.branchId || null,
         user_id: req.user.id,
         opening_balance,
         notes,

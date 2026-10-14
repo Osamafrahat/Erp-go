@@ -51,6 +51,7 @@ const SuperAdminPage = lazy(() => import('./pages/SuperAdminPage'))
 const CashShiftPage = lazy(() => import('./pages/CashShiftPage'))
 const CreditSalesPage = lazy(() => import('./pages/CreditSalesPage'))
 const PurchaseOrdersPage = lazy(() => import('./pages/PurchaseOrdersPage'))
+const BranchesPage = lazy(() => import('./pages/BranchesPage'))
 const CommissionsPage = lazy(() => import('./pages/CommissionsPage'))
 const DeadStockReportPage = lazy(() => import('./pages/DeadStockReportPage'))
 
@@ -158,6 +159,7 @@ function App() {
                 <Route path="/cash-shifts" element={<ProtectedRoute><Layout><CashShiftPage /></Layout></ProtectedRoute>} />
                 <Route path="/credit-sales" element={<ProtectedRoute><Layout><CreditSalesPage /></Layout></ProtectedRoute>} />
                 <Route path="/purchase-orders" element={<ProtectedRoute><Layout><PurchaseOrdersPage /></Layout></ProtectedRoute>} />
+                <Route path="/branches" element={<ProtectedRoute><Layout><BranchesPage /></Layout></ProtectedRoute>} />
                 <Route path="/commissions" element={<ProtectedRoute><Layout><CommissionsPage /></Layout></ProtectedRoute>} />
                 <Route path="/dead-stock" element={<ProtectedRoute><Layout><DeadStockReportPage /></Layout></ProtectedRoute>} />
 

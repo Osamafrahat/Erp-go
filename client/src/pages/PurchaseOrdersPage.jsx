@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
+import { useBranchStore } from '../stores/branchStore'
 import { formatCurrency } from '../lib/utils'
 import { purchaseOrdersApi, suppliersApi, productsApi } from '../lib/api'
 import { CheckCircle, Eye, FileText, Loader2, Package, Plus, Search, Send, ShoppingCart, Trash2, Truck, X } from 'lucide-react'
@@ -21,9 +22,20 @@ export default function PurchaseOrdersPage() {
   const [form, setForm] = useState({
     supplier_id: '',
     expected_date: '',
+    branch_id: '',
     notes: '',
     items: [{ product_id: '', quantity: '', unit_price: '' }]
   })
+
+  // Branches: destination select on the create form + label under each PO number
+  const branches = useBranchStore((s) => s.branches)
+  const loadBranches = useBranchStore((s) => s.loadBranches)
+
+  const branchName = (id) => {
+    if (id == null) return null
+    const found = branches.find((b) => Number(b.id) === Number(id))
+    return found ? found.name : null
+  }
 
   const fetchData = async () => {
     try {
@@ -61,7 +73,8 @@ export default function PurchaseOrdersPage() {
 
   useEffect(() => {
     loadDropdowns()
-  }, [])
+    loadBranches()
+  }, [loadBranches])
 
   const handleItemChange = (index, field, value) => {
     const updated = [...form.items]
@@ -95,6 +108,8 @@ export default function PurchaseOrdersPage() {
       await purchaseOrdersApi.create({
         supplier_id: form.supplier_id,
         expected_date: form.expected_date || null,
+        // Optional destination branch; null = server defaults to current branch
+        branch_id: form.branch_id === '' ? null : Number(form.branch_id),
         notes: form.notes,
         items: validItems.map((item) => ({
           product_id: item.product_id,
@@ -104,7 +119,7 @@ export default function PurchaseOrdersPage() {
       })
       toastSuccess(t('purchaseOrders.created'))
       setShowCreateForm(false)
-      setForm({ supplier_id: '', expected_date: '', notes: '', items: [{ product_id: '', quantity: '', unit_price: '' }] })
+      setForm({ supplier_id: '', expected_date: '', branch_id: '', notes: '', items: [{ product_id: '', quantity: '', unit_price: '' }] })
       fetchData()
     } catch (err) {
       toastError(err.message || t('purchaseOrders.createFailed'))
@@ -317,7 +332,12 @@ className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-surface tex
               ) : (
                 filteredOrders.map((po) => (
 <tr key={po.id}className="bg-surface-hover transition-colors">
-<td className="px-5 py-4 text-sm font-mono font-medium text-foreground">{po.order_number}</td>
+<td className="px-5 py-4 text-sm font-mono font-medium text-foreground">
+                      {po.order_number}
+                      {branchName(po.branch_id) && (
+                        <span className="block text-[11px] font-sans font-normal text-muted">{branchName(po.branch_id)}</span>
+                      )}
+                    </td>
 <td className="px-5 py-4 text-sm text-muted">{getSupplierName(po)}</td>
 <td className="px-5 py-4 text-sm text-center text-muted">{po.items_count || po.items?.length || 0}</td>
 <td className="px-5 py-4 text-sm text-right text-foreground font-medium">{formatCurrency(po.total)}</td>
@@ -394,6 +414,20 @@ className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-fore
 className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
                   />
                 </div>
+              </div>
+
+              <div>
+<label className="block text-sm font-medium text-foreground mb-1">{t('branches.destinationBranch')}</label>
+                <select
+                  value={form.branch_id}
+                  onChange={(e) => setForm({ ...form, branch_id: e.target.value })}
+className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground ring-focus outline-none"
+                >
+                  <option value="">{t('branches.useCurrent')}</option>
+                  {branches.filter((b) => b.is_active).map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
               </div>
 
               <div>

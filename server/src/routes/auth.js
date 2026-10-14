@@ -8,6 +8,7 @@ import { logActivity } from '../middleware/activityLogger.js'
 import supabase from '../db/supabase.js'
 import { issueResetToken, consumeResetToken } from '../services/passwordReset.js'
 import { sendWelcomeEmail } from '../services/emailService.js'
+import { ensureDefaultBranch } from '../services/branches.js'
 
 const router = Router()
 
@@ -212,6 +213,15 @@ router.post('/signup', [
     }
 
     await seedTenantData(tenant.id, storeName)
+
+    // Give the new tenant its Main Branch right away — resolution also
+    // self-heals on first use, but eager creation keeps that first request
+    // a read. Failure is non-fatal (self-heal will retry).
+    try {
+      await ensureDefaultBranch(tenant.id)
+    } catch (brErr) {
+      console.error('[SIGNUP] default branch creation failed:', brErr.message)
+    }
 
     // Onboarding email: fire-and-forget, never blocks or fails signup.
     sendWelcomeEmail({ to: email, name: fullName, storeName, trial: true }).catch((err) =>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useUserStore, ROLES, PERMISSIONS } from '../stores/userStore'
 import { useAppStore } from '../stores/appStore'
+import { useBranchStore } from '../stores/branchStore'
 import { usersApi, employeesApi } from '../lib/api'
 
 const permissionLabelsEn = {
@@ -74,6 +75,16 @@ export default function UsersPage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
+  // Branches: form select + the home-branch label under each user's role
+  const branches = useBranchStore((s) => s.branches)
+  const loadBranches = useBranchStore((s) => s.loadBranches)
+
+  const branchName = (id) => {
+    if (id == null) return null
+    const found = branches.find((b) => Number(b.id) === Number(id))
+    return found ? found.name : null
+  }
+
   const loadUsers = async () => {
     try {
       const { data } = await usersApi.getAll()
@@ -88,6 +99,7 @@ export default function UsersPage() {
         lastLogin: u.last_login,
         employeeId: u.employee_id,
         employee: u.employee || null,
+        branchId: u.branch_id ?? null,
         createdAt: u.created_at,
         updatedAt: u.updated_at,
       }))
@@ -100,6 +112,7 @@ export default function UsersPage() {
   useEffect(() => {
     loadUsers()
     fetchEmployees()
+    loadBranches()
 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
@@ -108,7 +121,7 @@ export default function UsersPage() {
     }
     document.addEventListener('visibilitychange', handleVisibility)
     return () => document.removeEventListener('visibilitychange', handleVisibility)
-  }, [location.pathname])
+  }, [location.pathname, loadBranches])
 
   const fetchEmployees = async () => {
     try {
@@ -233,6 +246,9 @@ className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hov
                         {ROLES[user.role]?.name || user.role}
                       </span>
                     )}
+                    {branchName(user.branchId) && (
+<p className="mt-1 text-[11px] text-muted">{branchName(user.branchId)}</p>
+                    )}
                   </td>
                   <td className="p-4">
                     {user.employee ? (
@@ -334,6 +350,8 @@ className="p-2 text-muted hover:text-red-600 hover:bg-red-50 rounded-lg"
 function UserForm({ user, employees, onSave, onClose }) {
   const { t, language } = useAppStore()
   const permissionLabels = language === 'ar' ? permissionLabelsAr : permissionLabelsEn
+  const branches = useBranchStore((s) => s.branches)
+  const loadBranches = useBranchStore((s) => s.loadBranches)
   const [formData, setFormData] = useState({
     username: user?.username || '',
     password: '',
@@ -341,7 +359,14 @@ function UserForm({ user, employees, onSave, onClose }) {
     role: user?.role || 'CASHIER',
     permissions: user?.permissions || ROLES.CASHIER.permissions,
     employeeId: user?.employee_id || '',
+    branch_id: user?.branchId != null ? String(user.branchId) : '',
   })
+
+  // Branch options come from the shared store (already loaded by the page /
+  // Layout; this no-ops when loaded)
+  useEffect(() => {
+    loadBranches()
+  }, [loadBranches])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -379,6 +404,8 @@ function UserForm({ user, employees, onSave, onClose }) {
       ...formData,
       password: formData.password || undefined,
       employeeId: formData.employeeId || null,
+      // Optional home branch; '' (None) clears any previous assignment
+      branch_id: formData.branch_id === '' ? null : Number(formData.branch_id),
     })
   }
 
@@ -473,6 +500,23 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               <option value="">{t('users.noEmployee')}</option>
               {employees.filter(e => e.is_active).map(emp => (
                 <option key={emp.id} value={emp.id}>{emp.name} - {emp.role}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+<label className="block text-sm font-medium text-foreground mb-1">
+              {t('branches.branch')}
+            </label>
+            <select
+              name="branch_id"
+              value={formData.branch_id}
+              onChange={handleChange}
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
+            >
+              <option value="">{t('branches.useCurrent')}</option>
+              {branches.filter((b) => b.is_active).map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
               ))}
             </select>
           </div>

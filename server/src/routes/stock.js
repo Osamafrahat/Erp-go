@@ -1,6 +1,9 @@
 import { Router } from 'express'
 import { body, validationResult } from 'express-validator'
 import supabase from '../db/supabase.js'
+import { requireManager } from '../middleware/auth.js'
+import { adjustStock } from '../services/branchStock.js'
+import { validateTransferInput, executeTransfer, fetchTransfer, listTransfers } from '../services/transfers.js'
 
 const router = Router()
 
@@ -26,6 +29,9 @@ router.get('/movements', async (req, res, next) => {
 
     if (product_id) {
       query = query.eq('product_id', product_id)
+    }
+    if (req.branchId) {
+      query = query.eq('branch_id', req.branchId)
     }
 
     const { data, error } = await query
@@ -114,11 +120,12 @@ router.post('/receive', [
     // Use provided cost_price or product's existing cost
     const unitCost = newCostPrice !== null ? newCostPrice : (targetProduct.cost_price || 0)
 
-    // Update stock
+    // Update cost price first (a receive may reprice), then move stock
+    // into the ACTIVE BRANCH through the RPC — which floors the branch row
+    // at 0 and recomputes products.stock_quantity from all branch rows.
     const { error: updateError } = await supabase
       .from('products')
       .update({
-        stock_quantity: (targetProduct.stock_quantity || 0) + qty,
         cost_price: newCostPrice !== null ? newCostPrice : targetProduct.cost_price,
         updated_at: new Date().toISOString()
       })
@@ -126,6 +133,9 @@ router.post('/receive', [
       .eq('tenant_id', tid)
 
     if (updateError) throw updateError
+
+    const adjusted = await adjustStock({ tenantId: tid, branchId: req.branchId, productId: targetProductId, delta: qty })
+    if (adjusted === null) throw new Error('Stock update failed')
 
     // Record movement
     const { data, error } = await supabase
@@ -135,7 +145,8 @@ router.post('/receive', [
         product_id: targetProductId,
         type: 'receive',
         quantity: qty,
-        notes: notes || 'Stock received'
+        notes: notes || 'Stock received',
+        branch_id: req.branchId || null
       })
       .select()
       .single()
@@ -189,10 +200,12 @@ router.post('/adjust', [
     const pid = parseInt(product_id)
     const tid = req.user?.tenantId
 
-    // Get current stock
+    // Verify the product exists (404 semantics), then adjust per-branch:
+    // the RPC floors the branch row at 0 (same as the old
+    // Math.max(0, stock + quantity)) and recomputes the product total.
     const { data: product } = await supabase
       .from('products')
-      .select('stock_quantity')
+      .select('id')
       .eq('id', pid)
       .eq('tenant_id', tid)
       .single()
@@ -201,19 +214,8 @@ router.post('/adjust', [
       return res.status(404).json({ error: 'Product not found' })
     }
 
-    const newQuantity = Math.max(0, product.stock_quantity + quantity)
-
-    // Update stock
-    const { error: updateError } = await supabase
-      .from('products')
-      .update({
-        stock_quantity: newQuantity,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', pid)
-      .eq('tenant_id', tid)
-
-    if (updateError) throw updateError
+    const adjusted = await adjustStock({ tenantId: tid, branchId: req.branchId, productId: pid, delta: quantity })
+    if (adjusted === null) throw new Error('Stock update failed')
 
     // Record movement
     const { data, error } = await supabase
@@ -223,7 +225,8 @@ router.post('/adjust', [
         product_id: pid,
         type: 'adjust',
         quantity,
-        notes: notes || 'Stock adjusted'
+        notes: notes || 'Stock adjusted',
+        branch_id: req.branchId || null
       })
       .select()
       .single()
@@ -244,5 +247,92 @@ router.post('/adjust', [
     next(err)
   }
 })
+
+// List stock transfers (newest first)
+router.get('/transfers', async (req, res, next) => {
+  try {
+    const tenantId = req.user?.tenantId
+    if (!tenantId) return res.json({ data: [] })
+    const data = await listTransfers(tenantId)
+    res.json({ data })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// Create a transfer — executes IMMEDIATELY (MVP: no pending/cancelled
+// lifecycle; the status column keeps room for one later). The SQL function
+// locks the source rows and moves stock + audit movements atomically.
+router.post(
+  '/transfers',
+  requireManager,
+  [
+    body('from_branch_id').isInt({ min: 1 }).withMessage('Source branch is required'),
+    body('to_branch_id').isInt({ min: 1 }).withMessage('Destination branch is required'),
+    body('items').isArray({ min: 1 }).withMessage('At least one item is required'),
+  ],
+  validate,
+  async (req, res, next) => {
+    try {
+      const tenantId = req.user?.tenantId
+      if (!tenantId) return res.status(400).json({ error: 'A tenant is required', code: 'TENANT_REQUIRED' })
+
+      const fromBranchId = Number(req.body.from_branch_id)
+      const toBranchId = Number(req.body.to_branch_id)
+      const { items } = req.body
+      const notes = typeof req.body.notes === 'string' ? req.body.notes.slice(0, 500) : null
+
+      // Tenant-scoped lookups: both branch ends must belong to this tenant,
+      // and sufficiency is checked against the SOURCE branch's stock.
+      const [{ data: branches }, { data: stockRows }] = await Promise.all([
+        supabase
+          .from('branches')
+          .select('id, is_active')
+          .in('id', [fromBranchId, toBranchId])
+          .eq('tenant_id', tenantId),
+        supabase
+          .from('product_stock')
+          .select('product_id, quantity')
+          .eq('tenant_id', tenantId)
+          .eq('branch_id', fromBranchId)
+          .in('product_id', items.map((i) => Number(i?.product_id)).filter(Boolean)),
+      ])
+
+      const check = validateTransferInput({
+        fromBranchId,
+        toBranchId,
+        items,
+        branches: branches || [],
+        stockRows: stockRows || [],
+      })
+      if (!check.ok) {
+        return res.status(check.status).json({ error: check.error, code: check.code })
+      }
+
+      const result = await executeTransfer({
+        tenantId,
+        userId: req.user?.id,
+        fromBranchId,
+        toBranchId,
+        items: check.items,
+        notes,
+      })
+      if (!result.ok) {
+        return res.status(result.status).json({ error: result.error, code: result.code })
+      }
+
+      const transfer = await fetchTransfer(tenantId, result.transferId)
+      req.logActivity?.({
+        action: 'created',
+        entity_type: 'stock_transfer',
+        entity_name: `Transfer #${result.transferId}`,
+        entity_id: result.transferId,
+      })
+      res.status(201).json({ data: transfer })
+    } catch (err) {
+      next(err)
+    }
+  }
+)
 
 export default router

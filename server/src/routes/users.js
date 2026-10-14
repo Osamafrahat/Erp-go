@@ -3,6 +3,7 @@ import { body, param, validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requirePermission } from '../middleware/auth.js'
+import { resolveBranchParam } from '../services/branches.js'
 import { checkTenantLimits } from '../middleware/limits.js'
 
 const router = Router()
@@ -21,7 +22,7 @@ router.get('/', async (req, res, next) => {
     res.set('Cache-Control', 'no-store')
     const { data, error } = await supabase
       .from('users')
-      .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, created_at, updated_at')
+      .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, branch_id, created_at, updated_at')
       .eq('tenant_id', req.user.tenantId)
       .order('created_at', { ascending: false })
 
@@ -57,7 +58,7 @@ router.get('/:id', [
   try {
     const { data, error } = await supabase
       .from('users')
-      .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, created_at, updated_at')
+      .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, branch_id, created_at, updated_at')
       .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
       .single()
@@ -93,10 +94,18 @@ router.post('/', authenticateToken, requirePermission('user_manage'), checkTenan
   try {
     const { username, password, fullName, role, permissions, employeeId } = req.body
 
-    // Only managers may assign roles or permission sets (a MANAGER bypasses
-    // every permission check, so this must never be reachable via user_manage)
-    if (req.user.role !== 'MANAGER' && (role !== undefined || permissions !== undefined)) {
-      return res.status(403).json({ error: 'Only managers can set roles or permissions' })
+    // Only managers may assign roles, permission sets, or a home branch
+    // (a MANAGER bypasses every permission check, so this must never be
+    // reachable via user_manage)
+    if (req.user.role !== 'MANAGER' && (role !== undefined || permissions !== undefined || req.body.branch_id !== undefined)) {
+      return res.status(403).json({ error: 'Only managers can set roles, permissions, or a home branch' })
+    }
+
+    // Optional home branch: pins this login to one location (everyone else
+    // falls back to the tenant default).
+    const branchCheck = await resolveBranchParam(req.user.tenantId, req.body.branch_id)
+    if (!branchCheck.ok) {
+      return res.status(400).json({ error: 'Selected branch does not exist', code: 'BRANCH_INVALID' })
     }
 
     // Check if username exists per tenant
@@ -125,9 +134,10 @@ router.post('/', authenticateToken, requirePermission('user_manage'), checkTenan
         permissions: permissions || [],
         is_active: true,
         must_change_password: true,
-        employee_id: employeeId || null
+        employee_id: employeeId || null,
+        branch_id: branchCheck.value
       })
-      .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, created_at, updated_at')
+      .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, branch_id, created_at, updated_at')
       .single()
 
     if (error) throw error
@@ -166,13 +176,21 @@ router.put('/:id', authenticateToken, requirePermission('user_manage'), [
 
     const { username, fullName, role, password, employeeId, permissions } = req.body
 
-    // Only managers may change roles or permission sets
-    if (req.user.role !== 'MANAGER' && (role !== undefined || permissions !== undefined)) {
-      return res.status(403).json({ error: 'Only managers can set roles or permissions' })
+    // Only managers may change roles, permission sets, or home branch
+    if (req.user.role !== 'MANAGER' && (role !== undefined || permissions !== undefined || req.body.branch_id !== undefined)) {
+      return res.status(403).json({ error: 'Only managers can set roles, permissions, or a home branch' })
     }
 
     const updateData = {
       updated_at: new Date().toISOString()
+    }
+
+    if ('branch_id' in req.body) {
+      const branchCheck = await resolveBranchParam(req.user.tenantId, req.body.branch_id)
+      if (!branchCheck.ok) {
+        return res.status(400).json({ error: 'Selected branch does not exist', code: 'BRANCH_INVALID' })
+      }
+      updateData.branch_id = branchCheck.value
     }
 
     if (username !== undefined) {
@@ -212,7 +230,7 @@ router.put('/:id', authenticateToken, requirePermission('user_manage'), [
       .update(updateData)
       .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
-      .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, created_at, updated_at')
+      .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, branch_id, created_at, updated_at')
       .single()
 
     if (error) throw error
@@ -259,7 +277,7 @@ router.patch('/:id/toggle-active', authenticateToken, requirePermission('user_ma
       .update(updatePayload)
       .eq('tenant_id', req.user.tenantId)
       .eq('id', req.params.id)
-      .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, created_at, updated_at')
+      .select('id, username, full_name, role, permissions, is_active, must_change_password, last_login, employee_id, branch_id, created_at, updated_at')
       .single()
 
     if (error) throw error

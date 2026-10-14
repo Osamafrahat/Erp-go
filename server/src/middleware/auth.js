@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import supabase from '../db/supabase.js'
+import { resolveEffectiveBranch } from '../services/branches.js'
 import crypto from 'crypto'
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -173,6 +174,21 @@ export async function setTenantContext(req, res, next) {
     }
   } catch (err) {
     console.error('Tenant context error:', err.message)
+  }
+  // Branch context: which location this request operates in (x-branch-id
+  // header for MANAGER/SUPER_ADMIN, pinned home branch, else the tenant
+  // default — self-healed to a Main Branch when missing). Handlers read
+  // req.branchId; null means "no branch scope" (legacy/tenant-less paths).
+  try {
+    req.branchId = await resolveEffectiveBranch({
+      tenantId: req.user.tenantId,
+      userId: req.user.id,
+      role: req.user.role,
+      headerBranchId: req.get('x-branch-id'),
+    })
+  } catch (err) {
+    console.error('Branch context error:', err.message)
+    req.branchId = null
   }
   next()
 }

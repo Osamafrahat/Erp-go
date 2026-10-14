@@ -69,6 +69,15 @@ export async function getCachedProducts() {
   return db.getAll('products')
 }
 
+// Wipes only the product cache. Used on a branch switch so the reloaded POS
+// shows the new branch's per-branch stock instead of the previous branch's
+// snapshot. pendingOrders (unsynced offline sales) and syncMeta in the same
+// database are deliberately NOT touched — real orders must survive.
+export async function clearCachedProducts() {
+  const db = await getDB()
+  await db.clear('products')
+}
+
 export async function updateCachedProduct(productId, updates) {
   const db = await getDB()
   const product = await db.get('products', productId)

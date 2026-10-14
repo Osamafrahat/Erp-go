@@ -321,6 +321,7 @@ export const useUserStore = create(
           '/hr/performance': PERMISSIONS.HR_VIEW,
           '/activities': PERMISSIONS.USER_MANAGE,
           '/backup': PERMISSIONS.USER_MANAGE,
+          '/branches': PERMISSIONS.USER_MANAGE,
           '/invoices': PERMISSIONS.POS_ACCESS,
           '/services': PERMISSIONS.SERVICES_VIEW,
           '/service-plans': PERMISSIONS.SERVICES_VIEW,
@@ -424,6 +425,7 @@ export const useUserStore = create(
             role: userData.role,
             permissions: userData.permissions,
             employeeId: userData.employeeId || null,
+            branch_id: userData.branch_id ?? null,
           })
           const mapped = {
             id: data.id,
@@ -452,6 +454,8 @@ export const useUserStore = create(
           if (userData.permissions) payload.permissions = userData.permissions
           if (userData.password) payload.password = userData.password
           if (userData.employeeId !== undefined) payload.employeeId = userData.employeeId
+          // Optional home branch (null clears it)
+          if (userData.branch_id !== undefined) payload.branch_id = userData.branch_id
 
           const { data } = await usersApi.update(userId, payload)
           const mapped = {

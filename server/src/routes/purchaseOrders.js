@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import { body, validationResult } from 'express-validator'
 import supabase from '../db/supabase.js'
+import { adjustStock } from '../services/branchStock.js'
+import { resolveBranchParam } from '../services/branches.js'
 
 const router = Router()
 
@@ -64,6 +66,13 @@ router.post('/', [
   try {
     const { supplier_id, items, expected_date, notes } = req.body
 
+    // Destination branch: explicit body value, else the active branch.
+    const branchCheck = await resolveBranchParam(req.user?.tenantId, req.body.branch_id)
+    if (!branchCheck.ok) {
+      return res.status(400).json({ error: 'Selected branch does not exist', code: 'BRANCH_INVALID' })
+    }
+    const destinationBranchId = branchCheck.value || req.branchId || null
+
     const order_number = `PO-${Date.now()}`
 
     // Lookup product names from product IDs
@@ -98,6 +107,7 @@ router.post('/', [
       .from('purchase_orders')
       .insert({
         tenant_id: req.user?.tenantId,
+        branch_id: destinationBranchId,
         supplier_id,
         order_number,
         total,
@@ -176,6 +186,13 @@ router.put('/:id', async (req, res, next) => {
     }
     if (expected_date !== undefined) updateFields.expected_date = expected_date
     if (notes !== undefined) updateFields.notes = notes
+    if ('branch_id' in req.body) {
+      const branchCheck = await resolveBranchParam(req.user?.tenantId, req.body.branch_id)
+      if (!branchCheck.ok) {
+        return res.status(400).json({ error: 'Selected branch does not exist', code: 'BRANCH_INVALID' })
+      }
+      updateFields.branch_id = branchCheck.value
+    }
 
     if (items && Array.isArray(items)) {
       let total = 0
@@ -265,19 +282,19 @@ router.patch('/:id/receive', async (req, res, next) => {
             .eq('id', item.id)
             .eq('tenant_id', req.user?.tenantId)
 
-          const { data: product } = await supabase
-            .from('products')
-            .select('stock_quantity')
-            .eq('id', item.product_id)
-            .eq('tenant_id', req.user?.tenantId)
-            .single()
-
-          if (product) {
-            await supabase
-              .from('products')
-              .update({ stock_quantity: (product.stock_quantity || 0) + received_qty })
-              .eq('id', item.product_id)
-              .eq('tenant_id', req.user?.tenantId)
+          // Goods land at the PO'S DESTINATION BRANCH (legacy rows were
+          // backfilled to the default) — not wherever the receiver happens
+          // to be standing. adjustStock keeps the branch row and the total
+          // in sync.
+          const targetBranchId = po.branch_id || req.branchId || null
+          const adjusted = await adjustStock({
+            tenantId: req.user?.tenantId,
+            branchId: targetBranchId,
+            productId: item.product_id,
+            delta: received_qty,
+          })
+          if (adjusted === null) {
+            console.error('[PO RECEIVE] stock adjust failed for product', item.product_id)
           }
 
           await supabase
@@ -289,6 +306,7 @@ router.patch('/:id/receive', async (req, res, next) => {
               type: 'purchase',
               reference: po.order_number,
               notes: `Received from PO ${po.order_number}`,
+              branch_id: targetBranchId,
               created_at: new Date().toISOString(),
             })
         }

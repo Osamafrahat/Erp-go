@@ -4,6 +4,7 @@ import supabase from '../db/supabase.js'
 import { authenticateToken, requirePermission } from '../middleware/auth.js'
 import { checkTenantLimits } from '../middleware/limits.js'
 import { sanitizeSearch } from '../helpers/search.js'
+import { adjustStock, overlayBranchStock } from '../services/branchStock.js'
 
 const router = Router()
 
@@ -40,6 +41,10 @@ router.get('/', async (req, res, next) => {
     const { data, error, count } = await query
     if (error) throw error
 
+    // stock_quantity becomes the ACTIVE BRANCH's quantity; a product with
+    // no stock row at this branch shows 0 (this branch holds none).
+    await overlayBranchStock(data, req.user?.tenantId, req.branchId)
+
     res.json({ data, total: count, page: parseInt(page), limit: parseInt(limit) })
   } catch (err) {
     next(err)
@@ -61,6 +66,8 @@ router.get('/:id', [
     if (error || !data) {
       return res.status(404).json({ error: 'Product not found' })
     }
+
+    await overlayBranchStock([data], req.user?.tenantId, req.branchId)
 
     res.json(data)
   } catch (err) {
@@ -84,6 +91,8 @@ router.get('/barcode/:barcode', [
       return res.status(404).json({ error: 'Product not found' })
     }
 
+    await overlayBranchStock([data], req.user?.tenantId, req.branchId)
+
     res.json(data)
   } catch (err) {
     next(err)
@@ -104,6 +113,7 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
   try {
     const { name, sku, barcode, category_id, supplier_id, price, cost_price,
             stock_quantity, low_stock_threshold, is_refundable, unit_of_measure, pieces_per_box, image_url, specifications, commission_rate } = req.body
+    const initialStock = parseFloat(stock_quantity) || 0
 
     // Check for duplicate SKU
     if (sku) {
@@ -147,7 +157,11 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
         supplier_id: supplier_id || null,
         price,
         cost_price: cost_price || 0,
-        stock_quantity: stock_quantity || 0,
+        // Seeded to 0: initial stock is applied through adjustStock below,
+        // which creates the product_stock row AND recomputes the total —
+        // writing stock_quantity directly here would break
+        // total = sum(branches) from day one.
+        stock_quantity: 0,
         low_stock_threshold: low_stock_threshold || 10,
         is_refundable: is_refundable !== false,
         unit_of_measure: unit_of_measure || 'quantity',
@@ -160,6 +174,20 @@ router.post('/', authenticateToken, requirePermission('inventory_edit'), checkTe
       .single()
 
     if (error) throw error
+
+    // Seed initial stock at the ACTIVE BRANCH (RPC keeps row + total in
+    // sync); on failure the product stays at 0 — loudly logged, retryable.
+    if (initialStock > 0) {
+      const adjusted = await adjustStock({
+        tenantId: req.user?.tenantId,
+        branchId: req.branchId,
+        productId: data.id,
+        delta: initialStock,
+      })
+      if (adjusted !== null) data.stock_quantity = adjusted
+      else console.error('[PRODUCTS] initial stock seed failed for product', data.id)
+    }
+
     req.logActivity({ action: 'created', entity_type: 'product', entity_name: data.name })
 
     // Auto-post journal if initial stock with supplier (AP liability)
@@ -199,6 +227,11 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
     if (!existing) {
       return res.status(404).json({ error: 'Product not found' })
     }
+
+    // existing.stock_quantity becomes the ACTIVE BRANCH's quantity — the
+    // stock input the UI sends was displayed branch-relative, so the diff
+    // (and the journal below) must be computed against the same basis.
+    await overlayBranchStock([existing], req.user?.tenantId, req.branchId)
 
     const { name, sku, barcode, category_id, supplier_id, price, cost_price,
             stock_quantity, low_stock_threshold, is_refundable, unit_of_measure, pieces_per_box, image_url, specifications, is_active, commission_rate } = req.body
@@ -248,7 +281,6 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
         supplier_id: supplier_id !== undefined ? (supplier_id || null) : existing.supplier_id,
         price: price ?? existing.price,
         cost_price: cost_price ?? existing.cost_price,
-        stock_quantity: stock_quantity ?? existing.stock_quantity,
         low_stock_threshold: low_stock_threshold ?? existing.low_stock_threshold,
         is_refundable: is_refundable ?? existing.is_refundable,
         unit_of_measure: unit_of_measure ?? existing.unit_of_measure,
@@ -266,6 +298,31 @@ router.put('/:id', authenticateToken, requirePermission('inventory_edit'), [
 
     if (error) throw error
     req.logActivity({ action: 'updated', entity_type: 'product', entity_id: req.params.id, entity_name: data.name })
+
+    // Stock input = SET the active branch's quantity; convert to a delta
+    // and let the RPC apply it (it owns stock_quantity now — the payload no
+    // longer carries it). data.stock_quantity is rewritten to the branch's
+    // post-edit quantity so the journal diff below stays branch-relative;
+    // on RPC failure keep the pre-edit quantity so a failed write never
+    // posts a journal entry.
+    let effectiveBranchQty = Number(existing.stock_quantity) || 0
+    if (stock_quantity !== undefined && stock_quantity !== null) {
+      const targetQty = parseFloat(stock_quantity)
+      const delta = targetQty - effectiveBranchQty
+      if (delta !== 0) {
+        const adjusted = await adjustStock({
+          tenantId: req.user?.tenantId,
+          branchId: req.branchId,
+          productId: data.id,
+          delta,
+        })
+        if (adjusted !== null) effectiveBranchQty = adjusted
+        else console.error('[PRODUCTS] stock adjust failed for product', data.id)
+      } else {
+        effectiveBranchQty = targetQty
+      }
+    }
+    data.stock_quantity = effectiveBranchQty
 
     // Auto-post journal if stock changed
     const stockDiff = data.stock_quantity - existing.stock_quantity

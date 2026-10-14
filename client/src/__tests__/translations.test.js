@@ -61,6 +61,11 @@ describe('translations dictionaries', () => {
       'error.cannotGrantRole',
       'error.tokenRequired',
       'error.accountDeactivated',
+      'error.stockInsufficient',
+      'error.branchSame',
+      'error.branchEmpty',
+      'error.branchDefaultProtected',
+      'error.branchInvalid',
     ]
     for (const key of required) {
       expect(translations.en[key], `en ${key}`).toBeTruthy()

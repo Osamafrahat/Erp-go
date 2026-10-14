@@ -18,6 +18,7 @@ import productsRouter from './routes/products.js'
 import categoriesRouter from './routes/categories.js'
 import ordersRouter from './routes/orders.js'
 import stockRouter from './routes/stock.js'
+import branchesRouter from './routes/branches.js'
 import suppliersRouter from './routes/suppliers.js'
 import promotionsRouter from './routes/promotions.js'
 import reportsRouter from './routes/reports.js'
@@ -169,6 +170,7 @@ app.use('/api/products', authenticateToken, setTenantContext, activityLogger, pr
 app.use('/api/categories', authenticateToken, setTenantContext, activityLogger, categoriesRouter)
 app.use('/api/orders', authenticateToken, setTenantContext, activityLogger, ordersRouter)
 app.use('/api/stock', authenticateToken, setTenantContext, activityLogger, stockRouter)
+app.use('/api/branches', authenticateToken, setTenantContext, activityLogger, branchesRouter)
 app.use('/api/suppliers', authenticateToken, setTenantContext, activityLogger, suppliersRouter)
 app.use('/api/promotions', authenticateToken, setTenantContext, activityLogger, promotionsRouter)
 app.use('/api/reports', authenticateToken, setTenantContext, activityLogger, reportsRouter)

@@ -1,7 +1,14 @@
 import { Router } from 'express'
 import supabase from '../db/supabase.js'
+import { overlayBranchStock } from '../services/branchStock.js'
 
 const router = Router()
+
+// Attaches a branch filter when one is active (null keeps the legacy
+// whole-tenant scope).
+function branchScoped(query, branchId) {
+  return branchId ? query.eq('branch_id', branchId) : query
+}
 
 // Get sales report
 router.get('/sales', async (req, res, next) => {
@@ -29,13 +36,18 @@ router.get('/sales', async (req, res, next) => {
         startDate = new Date(now.setDate(now.getDate() - 7))
     }
 
-    // Get orders in range
-    const { data: orders, error: ordersError } = await supabase
+    // Get orders in range — branch-scoped so the report (and the
+    // dashboard, which calls this with range=today) reflects the active
+    // location.
+    let ordersQuery = supabase
       .from('orders')
       .select('*')
       .eq('tenant_id', req.user.tenantId)
       .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: false })
+    if (req.branchId) ordersQuery = ordersQuery.eq('branch_id', req.branchId)
+
+    const { data: orders, error: ordersError } = await ordersQuery
 
     if (ordersError) throw ordersError
 
@@ -122,6 +134,9 @@ router.get('/stock', async (req, res, next) => {
 
     if (productsError) throw productsError
 
+    // Value/low-stock math below runs on the ACTIVE BRANCH's quantities.
+    await overlayBranchStock(products, req.user.tenantId, req.branchId)
+
     const safeProducts = products || []
 
     // Get categories separately
@@ -207,11 +222,14 @@ router.get('/expenses', async (req, res, next) => {
         startDate = new Date(now.setMonth(now.getMonth() - 1))
     }
 
-    const { data: expenses, error } = await supabase
+    let expensesQuery = supabase
       .from('expenses')
       .select('*')
       .eq('tenant_id', req.user.tenantId)
       .gte('created_at', startDate.toISOString())
+    if (req.branchId) expensesQuery = expensesQuery.eq('branch_id', req.branchId)
+
+    const { data: expenses, error } = await expensesQuery
 
     if (error) throw error
 
@@ -273,11 +291,29 @@ router.get('/profit-loss', async (req, res, next) => {
         startDate = new Date(now.setMonth(now.getMonth() - 1))
     }
 
-    const [ordersRes, expensesRes, refundsRes] = await Promise.all([
+    // Branch-scoped P&L: orders/expenses filter directly; refunds carry no
+    // branch_id, so when a branch is active they join through their order
+    // (inner) — only refunds against THIS branch's orders count here.
+    const branchId = req.branchId
+    const ordersQ = branchScoped(
       supabase.from('orders').select('total, created_at').eq('tenant_id', req.user.tenantId).gte('created_at', startDate.toISOString()),
+      branchId
+    )
+    const expensesQ = branchScoped(
       supabase.from('expenses').select('amount, created_at').eq('tenant_id', req.user.tenantId).gte('created_at', startDate.toISOString()),
-      supabase.from('refunds').select('amount, created_at').eq('tenant_id', req.user.tenantId).gte('created_at', startDate.toISOString()),
-    ])
+      branchId
+    )
+    const refundsBase = supabase.from('refunds').select('amount, created_at').eq('tenant_id', req.user.tenantId).gte('created_at', startDate.toISOString())
+    const refundsQ = branchId
+      ? supabase
+          .from('refunds')
+          .select('amount, created_at, orders!inner(branch_id)')
+          .eq('tenant_id', req.user.tenantId)
+          .gte('created_at', startDate.toISOString())
+          .eq('orders.branch_id', branchId)
+      : refundsBase
+
+    const [ordersRes, expensesRes, refundsRes] = await Promise.all([ordersQ, expensesQ, refundsQ])
 
     const orders = ordersRes.data || []
     const expenses = expensesRes.data || []
@@ -344,19 +380,28 @@ router.get('/dead-stock', async (req, res, next) => {
       productQuery = productQuery.eq('category_id', resolvedCategoryId)
     }
 
-    const { data: products, error: prodErr } = await productQuery
+    let { data: products, error: prodErr } = await productQuery
     if (prodErr) throw prodErr
 
-    if (!products || products.length === 0) {
+    // Re-check "in stock" against the ACTIVE BRANCH — the query's
+    // stock_quantity > 0 pre-filter ran on totals, and a product can hold
+    // stock centrally but none here.
+    await overlayBranchStock(products, req.user.tenantId, req.branchId)
+    products = (products || []).filter(p => (p.stock_quantity || 0) > 0)
+
+    if (products.length === 0) {
       return res.json({ items: [], total_items: 0, total_value: 0 })
     }
 
-    // Get order IDs created after cutoff (recent orders)
-    const { data: recentOrders } = await supabase
+    // Get order IDs created after cutoff (recent orders) — branch-scoped so
+    // "recently sold" means sold AT THIS LOCATION.
+    let recentOrdersQuery = supabase
       .from('orders')
       .select('id')
       .eq('tenant_id', req.user.tenantId)
       .gt('created_at', cutoffStr)
+    if (req.branchId) recentOrdersQuery = recentOrdersQuery.eq('branch_id', req.branchId)
+    const { data: recentOrders } = await recentOrdersQuery
 
     const recentOrderIds = (recentOrders || []).map(o => o.id)
 
@@ -375,13 +420,15 @@ router.get('/dead-stock', async (req, res, next) => {
     }
 
     // Get last sale date for each product
-    // First get all orders before cutoff
-    const { data: oldOrders } = await supabase
+    // First get all orders before cutoff (branch-scoped)
+    let oldOrdersQuery = supabase
       .from('orders')
       .select('id, created_at')
       .eq('tenant_id', req.user.tenantId)
       .lte('created_at', cutoffStr)
       .order('created_at', { ascending: false })
+    if (req.branchId) oldOrdersQuery = oldOrdersQuery.eq('branch_id', req.branchId)
+    const { data: oldOrders } = await oldOrdersQuery
 
     const oldOrderIds = (oldOrders || []).map(o => o.id)
     const orderDateMap = {}

@@ -1,8 +1,9 @@
 import ConfirmModal from '../components/ConfirmModal'
-import { X, Plus, Edit2, Trash2, UserCheck, User, Phone, Mail, Calendar, DollarSign, Shield } from 'lucide-react'
+import { X, Plus, Edit2, Trash2, UserCheck, User, Phone, Mail, Calendar, DollarSign, Shield, Building2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore, PERMISSIONS } from '../stores/userStore'
+import { useBranchStore } from '../stores/branchStore'
 import { employeesApi, usersApi } from '../lib/api'
 
 const USER_ROLES = (t) => [
@@ -26,9 +27,20 @@ export default function EmployeesPage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
+  // Branches for the form's branch select + the branch label on each card
+  const branches = useBranchStore((s) => s.branches)
+  const loadBranches = useBranchStore((s) => s.loadBranches)
+
   useEffect(() => {
     fetchEmployees()
-  }, [])
+    loadBranches()
+  }, [loadBranches])
+
+  const branchName = (id) => {
+    if (id == null) return null
+    const found = branches.find((b) => Number(b.id) === Number(id))
+    return found ? found.name : null
+  }
 
   const fetchEmployees = async () => {
     setLoading(true)
@@ -235,6 +247,12 @@ className="p-2 text-muted hover:text-red-600 hover:bg-red-50 rounded-lg"
                     <span>{t('employees.salaryLabel')} {employee.salary?.toLocaleString()} {t('common.currency') || 'EGP'}</span>
                   </div>
                 )}
+                {employee.branch_id != null && branchName(employee.branch_id) && (
+<div className="flex items-center gap-2 text-muted">
+                    <Building2 className="w-4 h-4" />
+                    <span>{branchName(employee.branch_id)}</span>
+                  </div>
+                )}
               </div>
 
 <div className="mt-3 pt-3 border-t border-border">
@@ -290,6 +308,8 @@ className="p-2 text-muted hover:text-red-600 hover:bg-red-50 rounded-lg"
 
 function EmployeeForm({ employee, onSave, onClose }) {
   const { t } = useAppStore()
+  const branches = useBranchStore((s) => s.branches)
+  const loadBranches = useBranchStore((s) => s.loadBranches)
   const [formData, setFormData] = useState({
     name: employee?.name || '',
     role: employee?.user?.role || employee?.role || 'CASHIER',
@@ -298,10 +318,17 @@ function EmployeeForm({ employee, onSave, onClose }) {
     salary: employee?.salary || '',
     hire_date: employee?.hire_date || '',
     notes: employee?.notes || '',
+    branch_id: employee?.branch_id != null ? String(employee.branch_id) : '',
     create_user: !employee,
     username: employee?.user?.username || '',
     password: '',
   })
+
+  // Branch options come from the shared store (already loaded by the page /
+  // Layout; this no-ops when loaded)
+  useEffect(() => {
+    loadBranches()
+  }, [loadBranches])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -318,6 +345,8 @@ function EmployeeForm({ employee, onSave, onClose }) {
       salary: formData.salary ? parseFloat(formData.salary) : 0,
       hire_date: formData.hire_date || null,
       notes: formData.notes || null,
+      // Optional home branch; '' (None) clears any previous assignment
+      branch_id: formData.branch_id === '' ? null : Number(formData.branch_id),
     }
     if (!employee && formData.create_user && formData.username) {
       payload.create_user = true
@@ -434,6 +463,23 @@ className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
 className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
               />
             </div>
+          </div>
+
+          <div>
+<label className="block text-sm font-medium text-foreground mb-1">
+              {t('branches.branch')}
+            </label>
+            <select
+              name="branch_id"
+              value={formData.branch_id}
+              onChange={handleChange}
+className="w-full px-4 py-2 rounded-lg border border-border bg-surface"
+            >
+              <option value="">{t('branches.useCurrent')}</option>
+              {branches.filter((b) => b.is_active).map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
           </div>
 
           <div>

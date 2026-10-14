@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import supabase from '../db/supabase.js'
 import { resolveSalesperson } from './orders.js'
+import { adjustStock } from '../services/branchStock.js'
 
 const router = Router()
 
@@ -50,6 +51,7 @@ router.post('/order', async (req, res, next) => {
       .from('orders')
       .insert({
         tenant_id: req.user?.tenantId,
+        branch_id: req.branchId || null,
         order_number,
         subtotal: subtotal || 0,
         discount_amount: discount_amount || 0,
@@ -126,6 +128,7 @@ router.post('/bulk', async (req, res, next) => {
           .from('orders')
           .insert({
             tenant_id: req.user?.tenantId,
+            branch_id: req.branchId || null,
             order_number: orderData.order_number,
             subtotal: orderData.subtotal || 0,
             discount_amount: orderData.discount_amount || 0,
@@ -216,12 +219,16 @@ async function processSyncedOrder(order, items, payments, customer_id, userId, o
         total: itemTotal
       })
 
-      const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', item.product_id).eq('tenant_id', tenantId).single()
-      if (product) {
-        await supabase.from('products').update({
-          stock_quantity: Math.max(0, product.stock_quantity - qty),
-          updated_at: new Date().toISOString()
-        }).eq('id', item.product_id).eq('tenant_id', tenantId)
+      // Offline sale deducts from the ORDER'S BRANCH (same rule as the
+      // online path) through the RPC that keeps branch row + total in sync.
+      const adjusted = await adjustStock({
+        tenantId,
+        branchId: order.branch_id || null,
+        productId: item.product_id,
+        delta: -qty,
+      })
+      if (adjusted === null) {
+        console.error(`[SYNC BG] stock adjust failed for product ${item.product_id}`)
       }
 
       await supabase.from('stock_movements').insert({
@@ -230,6 +237,7 @@ async function processSyncedOrder(order, items, payments, customer_id, userId, o
         type: 'sale',
         quantity: -qty,
         reference_id: order.id,
+        branch_id: order.branch_id || null,
         notes: `Order ${order_number} (synced)`
       })
     } catch (e) { console.error(`[SYNC BG] Stock update failed for item ${item.product_id}:`, e.message) }

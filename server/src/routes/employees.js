@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requireManager, requirePermission } from '../middleware/auth.js'
 import { checkTenantLimits } from '../middleware/limits.js'
+import { resolveBranchParam } from '../services/branches.js'
 
 const router = Router()
 
@@ -90,11 +91,17 @@ router.post('/', authenticateToken, requirePermission('employees_edit'), [
   try {
     const { name, role, phone, email, salary, hire_date, notes, create_user, username, password, user_role } = req.body
 
+    const branchCheck = await resolveBranchParam(req.user.tenantId, req.body.branch_id)
+    if (!branchCheck.ok) {
+      return res.status(400).json({ error: 'Selected branch does not exist', code: 'BRANCH_INVALID' })
+    }
+
     // Create employee
     const { data, error } = await supabase
       .from('employees')
       .insert({
         tenant_id: req.user.tenantId,
+        branch_id: branchCheck.value,
         name,
         role,
         phone: phone || null,
@@ -216,6 +223,17 @@ router.put('/:id', authenticateToken, requirePermission('employees_edit'), [
 
     const { name, role, phone, email, salary, hire_date, notes, is_active } = req.body
 
+    // branch_id: only touched when the field is present — null clears the
+    // assignment, an id must belong to this tenant.
+    let branchPatch = {}
+    if ('branch_id' in req.body) {
+      const branchCheck = await resolveBranchParam(req.user.tenantId, req.body.branch_id)
+      if (!branchCheck.ok) {
+        return res.status(400).json({ error: 'Selected branch does not exist', code: 'BRANCH_INVALID' })
+      }
+      branchPatch = { branch_id: branchCheck.value }
+    }
+
     const { data, error } = await supabase
       .from('employees')
       .update({
@@ -227,6 +245,7 @@ router.put('/:id', authenticateToken, requirePermission('employees_edit'), [
         hire_date: hire_date || null,
         notes: notes || null,
         is_active: is_active ?? true,
+        ...branchPatch,
         updated_at: new Date().toISOString()
       })
       .eq('tenant_id', req.user.tenantId)

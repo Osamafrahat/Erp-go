@@ -3,6 +3,7 @@ import { body, param, validationResult } from 'express-validator'
 import supabase from '../db/supabase.js'
 import { authenticateToken, requirePermission } from '../middleware/auth.js'
 import { getCashBoxBalance } from '../services/cashBox.js'
+import { adjustStock } from '../services/branchStock.js'
 
 const router = Router()
 
@@ -17,15 +18,26 @@ const validate = (req, res, next) => {
 // Get all refunds
 router.get('/', async (req, res, next) => {
   try {
-    const { data, error } = await supabase
-      .from('refunds')
-      .select(`
-        *,
-        orders(order_number, total),
-        users(full_name)
-      `)
-      .eq('tenant_id', req.user.tenantId)
-      .order('created_at', { ascending: false })
+    // Refund history follows the ACTIVE BRANCH through the refunded order
+    // (refunds carry no branch_id of their own).
+    let query = req.branchId
+      ? supabase
+          .from('refunds')
+          .select(`*, orders!inner(order_number, total, branch_id), users(full_name)`)
+          .eq('tenant_id', req.user.tenantId)
+          .eq('orders.branch_id', req.branchId)
+          .order('created_at', { ascending: false })
+      : supabase
+          .from('refunds')
+          .select(`
+            *,
+            orders(order_number, total),
+            users(full_name)
+          `)
+          .eq('tenant_id', req.user.tenantId)
+          .order('created_at', { ascending: false })
+
+    const { data, error } = await query
 
     if (error) throw error
 
@@ -209,22 +221,17 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
           .single()
 
         if (orderItem) {
-          const { data: product } = await supabase
-            .from('products')
-            .select('stock_quantity')
-            .eq('tenant_id', req.user.tenantId)
-            .eq('id', orderItem.product_id)
-            .single()
-
-          if (product) {
-            await supabase
-              .from('products')
-              .update({
-                stock_quantity: product.stock_quantity + item.quantity,
-                updated_at: new Date().toISOString()
-              })
-              .eq('tenant_id', req.user.tenantId)
-              .eq('id', orderItem.product_id)
+          // Restock goes back to the ORDER'S BRANCH — the location that
+          // sold it — never the viewer's current branch.
+          const restockBranchId = order.branch_id || req.branchId || null
+          const adjusted = await adjustStock({
+            tenantId: req.user.tenantId,
+            branchId: restockBranchId,
+            productId: orderItem.product_id,
+            delta: item.quantity,
+          })
+          if (adjusted === null) {
+            console.error('[REFUND] restock failed for product', orderItem.product_id)
           }
 
           await supabase
@@ -235,6 +242,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
               type: 'refund',
               quantity: item.quantity,
               reference_id: order_id,
+              branch_id: restockBranchId,
               notes: `Partial refund for order ${order.order_number}`
             })
         }
@@ -249,22 +257,15 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
 
       if (allItems) {
         for (const item of allItems) {
-          const { data: product } = await supabase
-            .from('products')
-            .select('stock_quantity')
-            .eq('tenant_id', req.user.tenantId)
-            .eq('id', item.product_id)
-            .single()
-
-          if (product) {
-            await supabase
-              .from('products')
-              .update({
-                stock_quantity: product.stock_quantity + item.quantity,
-                updated_at: new Date().toISOString()
-              })
-              .eq('tenant_id', req.user.tenantId)
-              .eq('id', item.product_id)
+          const restockBranchId = order.branch_id || req.branchId || null
+          const adjusted = await adjustStock({
+            tenantId: req.user.tenantId,
+            branchId: restockBranchId,
+            productId: item.product_id,
+            delta: item.quantity,
+          })
+          if (adjusted === null) {
+            console.error('[REFUND] restock failed for product', item.product_id)
           }
 
           await supabase
@@ -275,6 +276,7 @@ router.post('/', authenticateToken, requirePermission('refunds_edit'), [
               type: 'refund',
               quantity: item.quantity,
               reference_id: order_id,
+              branch_id: restockBranchId,
               notes: `Refund for order ${order.order_number}`
             })
         }

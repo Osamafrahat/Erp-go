@@ -33,6 +33,9 @@ router.get('/', async (req, res, next) => {
     if (category) {
       query = query.eq('category', category)
     }
+    if (req.branchId) {
+      query = query.eq('branch_id', req.branchId)
+    }
 
     const { data, error } = await query
     if (error) throw error
@@ -58,6 +61,9 @@ router.get('/summary', async (req, res, next) => {
     }
     if (end_date) {
       query = query.lte('expense_date', end_date)
+    }
+    if (req.branchId) {
+      query = query.eq('branch_id', req.branchId)
     }
 
     const { data, error } = await query
@@ -94,6 +100,7 @@ router.post('/', authenticateToken, requirePermission('expenses_edit'), [
       .from('expenses')
       .insert({
         tenant_id: req.user.tenantId,
+        branch_id: req.branchId || null,
         category,
         amount,
         description: description || null,

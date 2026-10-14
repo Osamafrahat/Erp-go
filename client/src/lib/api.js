@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { localizeApiError } from './apiError'
+import { getBranchHeader } from './branchHeader'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -9,12 +10,19 @@ const api = axios.create({
   },
 })
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token + active branch
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    }
+    // Multi-branch scoping: every request carries the branch the operator
+    // selected (see lib/branchHeader.js). Absent selection = no header, and
+    // the server resolves its own effective branch.
+    const branchId = getBranchHeader()
+    if (branchId != null) {
+      config.headers['x-branch-id'] = branchId
     }
     return config
   },
@@ -132,6 +140,17 @@ export const stockApi = {
   getMovements: (params) => api.get('/stock/movements', { params }),
   receive: (data) => api.post('/stock/receive', data),
   adjust: (data) => api.post('/stock/adjust', data),
+  // Multi-branch stock transfers (executed immediately server-side)
+  getTransfers: () => api.get('/stock/transfers'),
+  createTransfer: (data) => api.post('/stock/transfers', data),
+}
+
+// Branches API (stores & warehouses; DELETE archives, never destroys)
+export const branchesApi = {
+  getAll: () => api.get('/branches'),
+  create: (data) => api.post('/branches', data),
+  update: (id, data) => api.put(`/branches/${id}`, data),
+  archive: (id) => api.delete(`/branches/${id}`),
 }
 
 // Suppliers API
