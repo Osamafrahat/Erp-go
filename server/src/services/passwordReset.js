@@ -13,12 +13,29 @@ export function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex')
 }
 
+function isLoopbackOrigin(origin) {
+  try {
+    const { protocol, hostname } = new URL(origin)
+    return protocol.startsWith('http') &&
+      (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '[::1]')
+  } catch {
+    return false
+  }
+}
+
+// Base URL for links that leave the server by email. Order:
+//   1. CLIENT_URL, 2. FRONTEND_URL (what production actually sets),
+//   3. first NON-loopback ALLOWED_ORIGINS entry — production ships with
+//      localhost first in that list, and a localhost link in an emailed
+//      reset URL is always wrong for anyone but the sender's dev machine.
+// Loopback survives only as the local-dev fallback (an all-localhost
+// ALLOWED_ORIGINS means you ARE running locally).
 export function clientBaseUrl() {
-  return (
-    process.env.CLIENT_URL ||
-    (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean)[0] ||
-    'http://localhost:5173'
-  )
+  const explicit = process.env.CLIENT_URL || process.env.FRONTEND_URL
+  if (explicit) return explicit
+
+  const origins = (process.env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean)
+  return origins.find((o) => !isLoopbackOrigin(o)) || origins[0] || 'http://localhost:5173'
 }
 
 /**

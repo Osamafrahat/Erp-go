@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals'
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
 
 // Controllable supabase stub: every from(table) returns a chain whose
 // terminals resolve from `tables`; every write is recorded in `calls`.
@@ -160,19 +160,50 @@ describe('consumeResetToken', () => {
 })
 
 describe('clientBaseUrl', () => {
-  it('prefers CLIENT_URL, falls back to first allowed origin, then localhost', () => {
-    const prev = { CLIENT_URL: process.env.CLIENT_URL, ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS }
-    try {
-      process.env.CLIENT_URL = 'https://app.example.com'
-      process.env.ALLOWED_ORIGINS = 'https://other.example.com'
-      expect(clientBaseUrl()).toBe('https://app.example.com')
-      delete process.env.CLIENT_URL
-      expect(clientBaseUrl()).toBe('https://other.example.com')
-      delete process.env.ALLOWED_ORIGINS
-      expect(clientBaseUrl()).toBe('http://localhost:5173')
-    } finally {
-      process.env.CLIENT_URL = prev.CLIENT_URL
-      process.env.ALLOWED_ORIGINS = prev.ALLOWED_ORIGINS
-    }
+  const KEYS = ['CLIENT_URL', 'FRONTEND_URL', 'ALLOWED_ORIGINS']
+  let saved
+
+  beforeEach(() => {
+    saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]))
+    KEYS.forEach((k) => delete process.env[k])
+  })
+
+  afterEach(() => {
+    KEYS.forEach((k) => {
+      if (saved[k] === undefined) delete process.env[k]
+      else process.env[k] = saved[k]
+    })
+  })
+
+  it('prefers CLIENT_URL over FRONTEND_URL over ALLOWED_ORIGINS', () => {
+    process.env.CLIENT_URL = 'https://a.example.com'
+    process.env.FRONTEND_URL = 'https://b.example.com'
+    process.env.ALLOWED_ORIGINS = 'https://c.example.com'
+    expect(clientBaseUrl()).toBe('https://a.example.com')
+    delete process.env.CLIENT_URL
+    expect(clientBaseUrl()).toBe('https://b.example.com')
+    delete process.env.FRONTEND_URL
+    expect(clientBaseUrl()).toBe('https://c.example.com')
+  })
+
+  it('uses FRONTEND_URL when CLIENT_URL is unset (the production shape)', () => {
+    // This is the exact production config that once mailed a localhost link.
+    process.env.FRONTEND_URL = 'https://erp-go.vercel.app'
+    process.env.ALLOWED_ORIGINS = 'http://localhost:5173,https://erp-go.vercel.app,http://localhost:3001'
+    expect(clientBaseUrl()).toBe('https://erp-go.vercel.app')
+  })
+
+  it('never picks a loopback origin from ALLOWED_ORIGINS when a public one exists', () => {
+    process.env.ALLOWED_ORIGINS = 'http://localhost:5173,https://public.example.com,http://127.0.0.1:3001'
+    expect(clientBaseUrl()).toBe('https://public.example.com')
+  })
+
+  it('falls back to loopback when that is all ALLOWED_ORIGINS has (dev machine)', () => {
+    process.env.ALLOWED_ORIGINS = 'http://localhost:5173,http://127.0.0.1:3001'
+    expect(clientBaseUrl()).toBe('http://localhost:5173')
+  })
+
+  it('falls back to localhost with no configuration at all', () => {
+    expect(clientBaseUrl()).toBe('http://localhost:5173')
   })
 })
