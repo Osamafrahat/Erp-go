@@ -98,7 +98,9 @@ router.post('/', [
         product_name: productNameMap[item.product_id] || item.product_name || 'Unknown',
         quantity,
         unit_price,
-        line_total,
+        // Column is `total` in purchase_order_items — `line_total` does not
+        // exist and PostgREST rejects the insert (500 on create).
+        total: line_total,
         received_quantity: 0,
       }
     })
@@ -131,7 +133,12 @@ router.post('/', [
       .from('purchase_order_items')
       .insert(itemsToInsert)
 
-    if (itemsError) throw itemsError
+    if (itemsError) {
+      // Roll back the header so a failed item insert never leaves an
+      // orphaned draft PO behind.
+      await supabase.from('purchase_orders').delete().eq('id', po.id)
+      throw itemsError
+    }
 
     const { data: itemsData } = await supabase
       .from('purchase_order_items')
@@ -214,13 +221,15 @@ router.put('/:id', async (req, res, next) => {
         product_name: item.product_name || 'Unknown',
         quantity: parseFloat(item.quantity),
         unit_price: parseFloat(item.unit_price),
-        line_total: parseFloat(item.quantity) * parseFloat(item.unit_price),
+        // Schema column is `total` — `line_total` doesn't exist.
+        total: parseFloat(item.quantity) * parseFloat(item.unit_price),
         received_quantity: item.received_quantity || 0,
       }))
 
-      await supabase
+      const { error: itemsError } = await supabase
         .from('purchase_order_items')
         .insert(itemsToInsert)
+      if (itemsError) throw itemsError
     }
 
     const { data, error } = await supabase

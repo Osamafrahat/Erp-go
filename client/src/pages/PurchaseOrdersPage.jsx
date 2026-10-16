@@ -556,7 +556,7 @@ className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-fore
 <td className="px-4 py-3 text-sm text-right text-muted">{item.quantity}</td>
 <td className="px-4 py-3 text-sm text-right text-muted">{formatCurrency(item.unit_price)}</td>
 <td className="px-4 py-3 text-sm text-right font-medium text-foreground">
-                        {formatCurrency(item.line_total || item.quantity * item.unit_price)}
+                        {formatCurrency(item.total || item.quantity * item.unit_price)}
                       </td>
                     </tr>
                   ))}
