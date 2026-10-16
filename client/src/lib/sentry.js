@@ -25,6 +25,19 @@ export function initSentry() {
         /ResizeObserver loop/,
         /Script error/,
       ],
+      beforeSend(event) {
+        // Some browser extensions wrap navigator.serviceWorker.register in
+        // their own frames (e.g. "wrsParams") and their promise rejections
+        // land in our Sentry as "Error: Rejected" — extension failures are
+        // not our failures. Only drop the event when the offending frame is
+        // clearly not ours (our code never contains that identifier).
+        const values = event.exception?.values || []
+        const frames = values.flatMap((v) => v.stacktrace?.frames || [])
+        if (frames.some((f) => `${f.function || ''}${f.filename || ''}`.includes('wrsParams'))) {
+          return null
+        }
+        return event
+      },
     })
     return true
   } catch (err) {
