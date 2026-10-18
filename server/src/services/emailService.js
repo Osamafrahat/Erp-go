@@ -9,12 +9,33 @@ function getResendClient() {
   return resendClient
 }
 
+// Split senders: each mail category gets its own From address on the
+// verified sending domain (support@, billing@, hello@, promotions@, ...).
+// MAIL_FROM_<CATEGORY> overrides one category (e.g. MAIL_FROM_BILLING=
+// billing@dukkanza.com); otherwise the local part is derived from the
+// SMTP_FROM domain, so adding or renaming a sender needs no code change.
+// Falls back to the Resend test sender when nothing is configured.
+export function senderFor(localPart) {
+  const envKey = `MAIL_FROM_${localPart.toUpperCase().replace(/-/g, '_')}`
+  if (process.env[envKey]) return process.env[envKey]
+  const base = process.env.SMTP_FROM
+  if (base && base.includes('@')) return `${localPart}@${base.slice(base.indexOf('@') + 1)}`
+  return 'onboarding@resend.dev'
+}
+
+// Single choke point for every send so an optional reply mailbox
+// (MAIL_REPLY_TO) applies to all categories without touching each template.
+function sendPayload(client, payload) {
+  const replyTo = process.env.MAIL_REPLY_TO
+  return client.emails.send(replyTo ? { ...payload, reply_to: replyTo } : payload)
+}
+
 export async function sendEmail({ to, subject, html }) {
   const client = getResendClient()
   if (!client) throw new Error('RESEND_API_KEY not configured')
 
-  const from = process.env.SMTP_FROM || 'onboarding@resend.dev'
-  const { data, error } = await client.emails.send({ from, to, subject, html })
+  const from = senderFor('no-reply')
+  const { data, error } = await sendPayload(client, { from, to, subject, html })
   if (error) throw new Error(error.message)
   console.log('[EMAIL] Sent:', data?.id)
   return data
@@ -74,12 +95,12 @@ export async function sendPromotionEmail({ recipients, promotion, storeName }) {
     </html>
   `
 
-  const from = process.env.SMTP_FROM || 'onboarding@resend.dev'
+  const from = senderFor('promotions')
   const results = []
 
   for (const recipient of recipients) {
     try {
-      const { data, error } = await client.emails.send({
+      const { data, error } = await sendPayload(client, {
         from,
         to: recipient.email,
         subject: `🎉 عرض خاص: خصم ${discountText} - ${storeName}`,
@@ -165,8 +186,8 @@ export async function sendPasswordResetEmail({ to, name, resetUrl }) {
     `,
   })
 
-  const from = process.env.SMTP_FROM || 'onboarding@resend.dev'
-  const { data, error } = await client.emails.send({
+  const from = senderFor('support')
+  const { data, error } = await sendPayload(client, {
     from,
     to,
     subject: 'إعادة تعيين كلمة المرور / Reset your password',
@@ -206,8 +227,8 @@ export async function sendWelcomeEmail({ to, name, storeName, trial = true }) {
     `,
   })
 
-  const from = process.env.SMTP_FROM || 'onboarding@resend.dev'
-  const { data, error } = await client.emails.send({
+  const from = senderFor('hello')
+  const { data, error } = await sendPayload(client, {
     from,
     to,
     subject: `مرحباً بك في ${safeStore} / Welcome to ${safeStore}`,
@@ -241,8 +262,8 @@ export async function sendSubscriptionActivatedEmail({ to, name, storeName, plan
     `,
   })
 
-  const from = process.env.SMTP_FROM || 'onboarding@resend.dev'
-  const { data, error } = await client.emails.send({
+  const from = senderFor('billing')
+  const { data, error } = await sendPayload(client, {
     from,
     to,
     subject: `تم تفعيل الاشتراك / Subscription activated - ${safeStore}`,
@@ -280,12 +301,12 @@ export async function sendCustomEmail({ recipients, subject, message, storeName 
     </html>
   `
 
-  const from = process.env.SMTP_FROM || 'onboarding@resend.dev'
+  const from = senderFor('promotions')
   const results = []
 
   for (const recipient of recipients) {
     try {
-      const { data, error } = await client.emails.send({
+      const { data, error } = await sendPayload(client, {
         from,
         to: recipient.email,
         subject,
