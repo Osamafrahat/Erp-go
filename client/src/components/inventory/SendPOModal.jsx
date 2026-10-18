@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useAppStore } from '../../stores/appStore'
 import { emailApi } from '../../lib/api'
-import { AlertCircle, CheckCircle, Loader2, Mail, MessageCircle, Send, X } from 'lucide-react'
+import { AlertCircle, Check, CheckCircle, ClipboardCopy, Loader2, Mail, MessageCircle, Send, X } from 'lucide-react'
 
 // Send a purchase order to its supplier by email and/or WhatsApp.
 // The server composes the message (order details + store name/location/phone)
@@ -13,6 +13,7 @@ export default function SendPOModal({ po, onClose, onSent }) {
   const [isSending, setIsSending] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   const supplier = po?.suppliers || {}
 
@@ -43,6 +44,32 @@ export default function SendPOModal({ po, onClose, onSent }) {
       setIsSending(false)
     }
   }, [po.id, doEmail, doWhatsApp, isSending, onSent, t])
+
+  // Copy the exact message the server composed so it can be pasted into any
+  // channel manually. Falls back to a hidden textarea when the async
+  // clipboard API is unavailable (e.g. non-secure origins).
+  const copyMessage = useCallback(async () => {
+    const text = result?.message || ''
+    if (!text) return
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text)
+      } else {
+        const ta = document.createElement('textarea')
+        ta.value = text
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      }
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('[SendPO] copy failed:', err)
+    }
+  }, [result])
 
   if (result) {
     const emailRes = result.results?.email?.[0]
@@ -96,6 +123,25 @@ export default function SendPOModal({ po, onClose, onSent }) {
               </div>
             )}
           </div>
+
+          {result.message && (
+            <button
+              onClick={copyMessage}
+              className="w-full px-4 py-2.5 bg-surface-hover border border-border rounded-xl font-medium text-foreground hover:bg-surface-secondary transition-colors flex items-center justify-center gap-2"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 text-success" />
+                  {t('purchaseOrders.copied') || 'Copied'}
+                </>
+              ) : (
+                <>
+                  <ClipboardCopy className="h-4 w-4" />
+                  {t('purchaseOrders.copyMessage') || 'Copy message'}
+                </>
+              )}
+            </button>
+          )}
 
           <button
             onClick={onClose}
