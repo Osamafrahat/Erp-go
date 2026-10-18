@@ -1,28 +1,14 @@
-import { Edit2, Trash2, Search, ChevronDown, Package, AlertTriangle, QrCode, ArrowDown } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Edit2, Trash2, Search, ChevronDown, Package, AlertTriangle, QrCode } from 'lucide-react'
+import { useState } from 'react'
 import { useAppStore } from '../../stores/appStore'
 import { formatCurrency } from '../../lib/utils'
-import { suppliersApi, stockApi } from '../../lib/api'
-import SearchableSelect from '../../components/SearchableSelect'
 
-export default function ProductList({ products, canEdit, onEdit, onDelete, onPrintBarcode, onRefresh }) {
-  const { t, toastSuccess, toastError } = useAppStore()
+export default function ProductList({ products, canEdit, onEdit, onDelete, onPrintBarcode }) {
+  const { t } = useAppStore()
   const [searchQuery, setSearchQuery] = useState('')
   const [sortField, setSortField] = useState('name')
   const [sortDirection, setSortDirection] = useState('asc')
-  const [receiveStockProduct, setReceiveStockProduct] = useState(null)
-  const [receiveQty, setReceiveQty] = useState('')
-  const [receiveLoading, setReceiveLoading] = useState(false)
-  const [suppliers, setSuppliers] = useState([])
-  const [receiveSupplierId, setReceiveSupplierId] = useState('')
-  const [receiveCostPrice, setReceiveCostPrice] = useState('')
   const [deletingId, setDeletingId] = useState(null)
-
-  useEffect(() => {
-    suppliersApi.getAll()
-      .then(({ data }) => setSuppliers(Array.isArray(data) ? data : []))
-      .catch(() => {})
-  }, [])
 
   const filteredProducts = products
     .filter(p => {
@@ -63,38 +49,6 @@ export default function ProductList({ products, canEdit, onEdit, onDelete, onPri
         className={`w-4 h-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
       />
     )
-  }
-
-  const isSplittable = receiveStockProduct?.unit_of_measure && receiveStockProduct.unit_of_measure !== 'quantity'
-
-  const handleReceiveStock = async () => {
-    const qty = isSplittable ? parseFloat(receiveQty) : parseInt(receiveQty)
-    if (!receiveQty || qty <= 0) return
-    setReceiveLoading(true)
-    try {
-      const body = {
-        product_id: receiveStockProduct.id,
-        quantity: qty,
-      }
-      if (receiveSupplierId) body.supplier_id = parseInt(receiveSupplierId)
-      if (receiveCostPrice !== '') body.cost_price = parseFloat(receiveCostPrice)
-
-      const { data: result } = await stockApi.receive(body)
-      if (result.duplicated) {
-        toastSuccess(`${t('inventory.productDuplicated') || 'Created new product for supplier'} (${receiveQty} ${receiveStockProduct.name})`)
-      } else {
-        toastSuccess(`${t('inventory.received') || 'Received'} ${receiveQty} ${receiveStockProduct.name}`)
-      }
-      setReceiveStockProduct(null)
-      setReceiveQty('')
-      setReceiveSupplierId('')
-      setReceiveCostPrice('')
-      onRefresh?.()
-    } catch (err) {
-      toastError(err.response?.data?.error || err.message || t('common.failed') || 'Failed')
-    } finally {
-      setReceiveLoading(false)
-    }
   }
 
   if (products.length === 0) {
@@ -215,9 +169,6 @@ className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface t
 <button onClick={()=>onPrintBarcode?.(product)}className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center text-muted hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"title="Print Barcode">
                         <QrCode className="w-4 h-4" />
                       </button>
-<button onClick={()=>{setReceiveStockProduct(product);setReceiveQty('');setReceiveSupplierId(product.supplier_id?.toString()||'');setReceiveCostPrice(product.cost_price?.toString()||'')}}className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center text-muted hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"title={t('inventory.receiveStock')||'Receive Stock'}>
-                        <ArrowDown className="w-4 h-4" />
-                      </button>
                       {canEdit && (
 <button onClick={()=>onEdit(product)}className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center text-muted hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                           <Edit2 className="w-4 h-4" />
@@ -241,92 +192,6 @@ className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface t
 <div className="px-4 py-3 border-t border-border text-xs text-muted">
         {t('inventory.showing')} {filteredProducts.length} {t('inventory.of')} {products.length} {t('common.products')}
       </div>
-
-      {/* Receive Stock Modal */}
-      {receiveStockProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-<div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
-            <h3 className="text-lg font-bold">{t('inventory.receiveStock') || 'Receive Stock'}</h3>
-<p className="text-sm text-muted">{receiveStockProduct.name}</p>
-
-            {/* Supplier Selection */}
-            <div>
-<label className="block text-sm font-medium text-foreground mb-1">{t('inventory.supplier')||'Supplier'}</label>
-              <SearchableSelect
-                options={[
-                  { value: '', label: t('inventory.noSupplier') || 'No Supplier' },
-                  ...suppliers.map(s => ({ value: String(s.id), label: s.name })),
-                ]}
-                value={receiveSupplierId}
-                onChange={(v) => setReceiveSupplierId(v)}
-                placeholder={t('common.searchSelect')}
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"
-              />
-              {receiveSupplierId && receiveStockProduct.supplier_id && parseInt(receiveSupplierId) !== receiveStockProduct.supplier_id && (
-<p className="text-xs text-warning mt-1 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  {t('inventory.supplierChanged') || 'Supplier changed — a new product will be created for this supplier'}
-                </p>
-              )}
-            </div>
-
-            {/* Cost Price */}
-            <div>
-<label className="block text-sm font-medium text-foreground mb-1">{t('inventory.costPrice')||'Cost Price'}(EGP)</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={receiveCostPrice}
-                onChange={e => setReceiveCostPrice(e.target.value)}
-                placeholder={receiveStockProduct.cost_price?.toString() || '0'}
-className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus"
-              />
-            </div>
-
-            {/* Quantity */}
-            <div>
-<label className="block text-sm font-medium text-foreground mb-1">{t('inventory.quantity')||'Quantity'}</label>
-              <input
-                type="number"
-                min={isSplittable ? "0.01" : "1"}
-                step={isSplittable ? "0.01" : "1"}
-                value={receiveQty}
-                onChange={e => setReceiveQty(e.target.value)}
-                placeholder={t('inventory.quantity') || 'Quantity'}
-className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-secondary outline-none ring-focus text-lg font-bold"
-                autoFocus
-              />
-            </div>
-
-            {/* Total Cost */}
-            {receiveQty && parseFloat(receiveQty) > 0 && (
-<div className="bg-surface-secondary rounded-xl p-3 flex justify-between items-center">
-<span className="text-sm font-medium text-muted">{t('inventory.totalCost')||'Total Cost'}</span>
-<span className="text-lg font-bold text-accent">
-                  {((parseFloat(receiveCostPrice) || receiveStockProduct.cost_price || 0) * parseFloat(receiveQty)).toLocaleString('en-EG', { minimumFractionDigits: 2 })} EGP
-                </span>
-              </div>
-            )}
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleReceiveStock}
-                disabled={receiveLoading || !receiveQty || parseFloat(receiveQty) <= 0}
-className="flex-1 px-4 py-2.5 bg-accent hover:bg-primary-700 disabled:opacity-50 text-white rounded-xl font-medium"
-              >
-                {receiveLoading ? '...' : (t('common.save') || 'Save')}
-              </button>
-              <button
-                onClick={() => { setReceiveStockProduct(null); setReceiveQty(''); setReceiveSupplierId(''); setReceiveCostPrice('') }}
-className="px-4 py-2.5 bg-surface-tertiary bg-surface-hover rounded-xl font-medium"
-              >
-                {t('common.cancel') || 'Cancel'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -164,7 +164,6 @@ className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hov
         onEdit={handleEditProduct}
         onDelete={(id) => setDeleteTarget(id)}
         onPrintBarcode={(product) => setBarcodeProduct(product)}
-        onRefresh={fetchData}
       />
 
       {/* Product Form Modal */}
