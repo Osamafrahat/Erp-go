@@ -4,6 +4,7 @@ import { useBranchStore } from '../stores/branchStore'
 import { formatCurrency } from '../lib/utils'
 import { purchaseOrdersApi, suppliersApi, productsApi } from '../lib/api'
 import SearchableSelect from '../components/SearchableSelect'
+import SendPOModal from '../components/inventory/SendPOModal'
 import { CheckCircle, Eye, FileText, Loader2, Package, Plus, Search, Send, ShoppingCart, Trash2, Truck, X } from 'lucide-react'
 
 
@@ -17,6 +18,7 @@ export default function PurchaseOrdersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [showDetail, setShowDetail] = useState(null)
+  const [sendPO, setSendPO] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [suppliers, setSuppliers] = useState([])
   const [products, setProducts] = useState([])
@@ -157,15 +159,21 @@ export default function PurchaseOrdersPage() {
     }
   }
 
+  // The Send button opens the send modal. It needs the full supplier contact
+  // record (email/phone), so fetch the PO first; the list row only carries the
+  // supplier name via the `suppliers(name, ...)` join.
   const handleSend = async (id) => {
-    if (!confirm(t('purchaseOrders.confirmSend'))) return
     try {
-      await purchaseOrdersApi.update(id, { status: 'sent' })
-      toastSuccess(t('purchaseOrders.markedSent'))
-      fetchData()
+      const res = await purchaseOrdersApi.getById(id)
+      setSendPO(res.data)
     } catch (err) {
-      toastError(err.message || t('purchaseOrders.sendFailed'))
+      toastError(err.message || t('purchaseOrders.loadDetailsFailed'))
     }
+  }
+
+  const handleSent = () => {
+    toastSuccess(t('purchaseOrders.markedSent'))
+    fetchData()
   }
 
   const handleReceive = async (id) => {
@@ -590,6 +598,13 @@ className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-fore
             </div>
           </div>
         </div>
+      )}
+      {sendPO && (
+        <SendPOModal
+          po={sendPO}
+          onClose={() => setSendPO(null)}
+          onSent={handleSent}
+        />
       )}
     </div>
   )

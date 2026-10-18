@@ -238,6 +238,8 @@ export const refundsApi = {
 // Email API (promotion sending)
 export const emailApi = {
   sendPromotion: (promotionId, options = {}) => api.post('/notifications/promotion', { promotion_id: promotionId, ...options }, { timeout: 30000 }),
+  sendPurchaseOrder: (purchaseOrderId, options = {}) =>
+    api.post('/notifications/purchase-order', { purchase_order_id: purchaseOrderId, ...options }, { timeout: 30000 }),
 }
 
 // Health API

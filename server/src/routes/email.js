@@ -124,4 +124,127 @@ router.post('/promotion', authenticateToken, requirePermission('promotions_edit'
   }
 })
 
+// Compose the outbound purchase-order message (order details + store
+// name/location/phone). Shared by the email and WhatsApp channels so the
+// supplier always receives identical content however they are contacted.
+function buildPurchaseOrderMessage(po, items, store) {
+  const lines = []
+  lines.push(`Purchase Order: ${po.order_number}`)
+  if (po.expected_date) {
+    lines.push(`Expected date: ${new Date(po.expected_date).toLocaleDateString('ar-EG')}`)
+  }
+  lines.push('')
+  lines.push('Items:')
+  for (const item of items) {
+    const lineTotal = item.total != null
+      ? parseFloat(item.total)
+      : parseFloat(item.quantity) * parseFloat(item.unit_price)
+    lines.push(
+      `- ${item.product_name} | qty: ${item.quantity} | unit: ${parseFloat(item.unit_price)} | total: ${lineTotal}`
+    )
+  }
+  lines.push('')
+  lines.push(`Order total: ${parseFloat(po.total)}`)
+  if (po.notes) {
+    lines.push('')
+    lines.push(`Notes: ${po.notes}`)
+  }
+  lines.push('')
+  lines.push('Store information:')
+  lines.push(`Store: ${store.name}`)
+  if (store.address) lines.push(`Location: ${store.address}`)
+  if (store.phone) lines.push(`Phone: ${store.phone}`)
+  return lines.join('\n')
+}
+
+// Send a purchase order to its supplier by email and/or WhatsApp.
+// Email is actually delivered via Resend; WhatsApp returns a wa.me link the
+// client opens (the same approach the promotion flow uses).
+router.post('/purchase-order', authenticateToken, async (req, res) => {
+  try {
+    const { purchase_order_id, send_email, send_whatsapp } = req.body
+    const poId = Number(purchase_order_id)
+    if (!poId || poId <= 0) {
+      return res.status(400).json({ error: 'Invalid purchase order ID' })
+    }
+    if (!send_email && !send_whatsapp) {
+      return res.status(400).json({ error: 'No channels selected' })
+    }
+
+    const tenantId = req.user?.tenantId
+
+    const { data: po, error: poError } = await supabase
+      .from('purchase_orders')
+      .select('*, suppliers(name, contact_person, email, phone)')
+      .eq('id', poId)
+      .eq('tenant_id', tenantId)
+      .single()
+    if (poError || !po) {
+      return res.status(404).json({ error: 'Purchase order not found' })
+    }
+
+    const { data: items } = await supabase
+      .from('purchase_order_items')
+      .select('*')
+      .eq('purchase_order_id', po.id)
+      .eq('tenant_id', tenantId)
+
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('name, address, phone')
+      .eq('id', tenantId)
+      .single()
+    const store = {
+      name: tenant?.name || (await getStoreName(tenantId)),
+      address: tenant?.address || '',
+      phone: tenant?.phone || '',
+    }
+
+    const supplier = po.suppliers || {}
+    const message = buildPurchaseOrderMessage(po, items || [], store)
+    const subject = `Purchase Order ${po.order_number} — ${store.name}`
+    const emailConfigured = !!(process.env.RESEND_API_KEY || (process.env.SMTP_USER && process.env.SMTP_PASS))
+
+    const results = { email: [], whatsapp: [] }
+
+    if (send_email) {
+      if (!supplier.email) {
+        results.email = [{ success: false, skipped: true, reason: 'no_supplier_email' }]
+      } else if (!emailConfigured) {
+        results.email = [{ success: false, skipped: true, reason: 'email_not_configured' }]
+      } else {
+        results.email = await sendCustomEmail({
+          recipients: [{ email: supplier.email, name: supplier.name }],
+          subject,
+          message,
+          storeName: store.name,
+        })
+      }
+    }
+
+    if (send_whatsapp) {
+      if (!supplier.phone) {
+        results.whatsapp = [{ success: false, skipped: true, reason: 'no_supplier_phone' }]
+      } else {
+        results.whatsapp = await sendCustomWhatsApp({
+          recipients: [{ phone: supplier.phone, name: supplier.contact_person || supplier.name }],
+          title: subject,
+          message,
+          storeName: store.name,
+        })
+      }
+    }
+
+    res.json({
+      success: true,
+      supplier: { name: supplier.name, email: supplier.email || null, phone: supplier.phone || null },
+      message,
+      results,
+    })
+  } catch (err) {
+    console.error('[EMAIL] Purchase order send FAILED:', err.message)
+    res.status(500).json({ error: 'Failed to send purchase order' })
+  }
+})
+
 export default router
