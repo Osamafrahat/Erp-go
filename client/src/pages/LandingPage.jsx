@@ -124,7 +124,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2.5">
-              <img src="/dukkanza.svg" alt="Dukkanza" className="h-12 w-auto" />
+              <img src="/dukkanza.svg" alt="Dukkanza" className="h-14 w-auto" />
 <span className="text-xl font-extrabold text-foreground tracking-tight">{t('landing.brand')||'Dukkanza'}</span>
             </div>
             <div className="hidden md:flex items-center gap-7">
@@ -167,7 +167,7 @@ className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-muted 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-28 lg:py-44">
           <div className="text-center max-w-4xl mx-auto">
             <div className="flex justify-center mb-6 lp-hero-in">
-              <img src="/dukkanza.svg" alt="Dukkanza" className="h-16 sm:h-24 lg:h-32 w-auto lp-float" />
+              <img src="/dukkanza.svg" alt="Dukkanza" className="h-24 sm:h-36 lg:h-48 w-auto lp-float" />
             </div>
 <h1 className="lp-hero-in lp-gradient-text bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 bg-clip-text text-transparent text-3xl sm:text-5xl lg:text-8xl font-extrabold tracking-tight leading-[1.1] mb-8"style={{animationDelay:'120ms'}}>
               {t('landing.heroTitle') || 'Complete Store'}{' '}
@@ -360,7 +360,7 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-accent te
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src="/dukkanza.svg" alt="Dukkanza" className="h-10 w-auto" />
+                <img src="/dukkanza.svg" alt="Dukkanza" className="h-12 w-auto" />
 <span className="font-extrabold text-foreground tracking-tight">{t('landing.brand')||'Dukkanza'}</span>
               </div>
 <p className="text-sm text-muted leading-relaxed">{t('landing.footerDesc')||'Intelligent Solutions'}</p>
