@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { paymobApi, billingApi, walletApi } from '../lib/api'
-import { Check, X, Star, Zap, Crown, CreditCard, Smartphone, Loader2, ArrowDown, ArrowLeft, Copy, Upload, Clock, Wallet } from 'lucide-react'
+import { Check, X, Star, Zap, Crown, CreditCard, Smartphone, Loader2, ArrowDown, ArrowLeft, ArrowRight, Copy, Upload, Clock, Wallet } from 'lucide-react'
 import api from '../lib/api'
 
 const TIER_ORDER = { free: 0, pro: 1, enterprise: 2 }
@@ -130,6 +130,7 @@ check:'text-warning',
 
 export default function PricingPage() {
   const t = useAppStore((s) => s.t)
+  const language = useAppStore((s) => s.language)
   // Narrow selectors: SessionTimeout updates `lastActivity` on every
   // mousemove/click; whole-store subscriptions re-rendered this page (and the
   // open payment modal) on every pointer move.
@@ -333,6 +334,18 @@ export default function PricingPage() {
   return (
 <div className="min-h-screen bg-surface-secondary py-8 sm:py-12 px-4">
       <div className="max-w-5xl mx-auto">
+        {/* Public route: no sidebar, so offer an explicit way back.
+            Arrow faces the reading direction (right in Arabic). */}
+        <button
+          type="button"
+          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+          className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-surface border border-border text-sm font-medium text-muted hover:text-foreground shadow-sm transition-colors"
+          aria-label={t('common.back')}
+        >
+          {language === 'ar' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+          {t('common.back')}
+        </button>
+
         {verifying && (
 <div className="mb-6 p-4 bg-accent-soft border border-accent rounded-xl flex items-center gap-3">
 <Loader2 className="w-5 h-5 animate-spin text-accent"/>
