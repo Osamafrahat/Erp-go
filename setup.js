@@ -95,7 +95,7 @@ function printBanner() {
   console.log('')
   console.log('  ╔═══════════════════════════════════════════════════╗')
   console.log('  ║                                                   ║')
-  console.log('  ║         Store Management POS — Setup              ║')
+  console.log('  ║         Dukkanza POS — Setup                      ║')
   console.log('  ║         ═══════════════════════════               ║')
   console.log('  ║                                                   ║')
   console.log('  ║  Interactive installer for all platforms          ║')

@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Complete guide to deploy Store Management POS on any platform.
+Complete guide to deploy Dukkanza POS on any platform.
 
 ---
 

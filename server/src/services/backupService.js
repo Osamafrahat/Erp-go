@@ -73,7 +73,7 @@ export async function backupToSql(tenantId) {
   await ensureBackupDir()
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
   const lines = []
-  lines.push('-- Store Management System Database Backup')
+  lines.push('-- Dukkanza Database Backup')
   lines.push(`-- Generated: ${new Date().toISOString()}`)
   if (tenantId) lines.push(`-- Tenant: ${tenantId}`)
   lines.push('--')
