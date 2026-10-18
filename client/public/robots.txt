@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /reset-password
+
+Sitemap: https://dukkanza.com/sitemap.xml
