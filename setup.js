@@ -482,8 +482,8 @@ async function installVPS(config) {
   divider()
   console.log('  Configuring Nginx reverse proxy...\n')
 
-  run(`sudo cp ${nginxPath} /etc/nginx/sites-available/store-management`)
-  run('sudo ln -sf /etc/nginx/sites-available/store-management /etc/nginx/sites-enabled/')
+  run(`sudo cp ${nginxPath} /etc/nginx/sites-available/dukkanza`)
+  run('sudo ln -sf /etc/nginx/sites-available/dukkanza /etc/nginx/sites-enabled/')
   run('sudo rm -f /etc/nginx/sites-enabled/default')
 
   const nginxTest = run('sudo nginx -t')

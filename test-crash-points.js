@@ -235,7 +235,7 @@ await test('OPTIONS preflight returns proper CORS headers', async () => {
   const r = await fetch(`${BASE}/api/health`, {
     method: 'OPTIONS',
     headers: {
-      'Origin': 'https://erp-go.vercel.app',
+      'Origin': 'https://dukkanza.com',
       'Access-Control-Request-Method': 'GET'
     }
   })

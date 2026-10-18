@@ -97,8 +97,8 @@ docker compose version
 
 ```bash
 # Clone the repo
-git clone https://github.com/Osamafrahat/store-management.git
-cd store-management
+git clone https://github.com/Osamafrahat/Erp-go.git
+cd Erp-go
 
 # Create environment file
 cp .env.docker.example .env.docker
@@ -172,7 +172,7 @@ The server runs on port `3001` and the client on port `80` (via Nginx).
 Create an Nginx config for your domain:
 
 ```bash
-sudo nano /etc/nginx/sites-available/store-management
+sudo nano /etc/nginx/sites-available/dukkanza
 ```
 
 Paste this (replace `mystore.com` with your domain):
@@ -218,7 +218,7 @@ server {
 Enable and test:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/store-management /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/dukkanza /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl reload nginx
@@ -357,7 +357,7 @@ If you prefer cloud hosting without managing a VPS:
 ### Client (Vercel)
 1. Go to [vercel.com](https://vercel.com) → Import Git Repository
 2. Set environment variable:
-   - `VITE_API_URL` = `https://erp-go.fly.dev/api`
+   - `VITE_API_URL` = `https://erp-go-crimson-wind-2087.fly.dev/api`
 3. Deploy
 
 ### Database (Supabase)

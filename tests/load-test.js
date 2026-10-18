@@ -1,4 +1,4 @@
-// k6 Load Test Script for Erp-go API
+// k6 Load Test Script for Dukkanza API
 // Install k6: https://k6.io/docs/getting-started/installation/
 // Run: k6 run tests/load-test.js
 // Run with options: k6 run --vus 10 --duration 30s tests/load-test.js

@@ -1,4 +1,4 @@
-// Erp-go Security Audit Script
+// Dukkanza Security Audit Script
 // Run: node tests/security-audit.js
 // This checks for common security issues in the codebase
 

@@ -1,7 +1,7 @@
 {
-  "name": "store-management-server",
+  "name": "dukkanza-server",
   "version": "1.0.0",
-  "description": "Backend API for Store Management POS System",
+  "description": "Backend API for the Dukkanza POS & store management platform",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

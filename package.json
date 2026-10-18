@@ -1,7 +1,7 @@
 {
-  "name": "store-management",
+  "name": "dukkanza",
   "version": "1.0.0",
-  "description": "Store Management POS & Stock System",
+  "description": "Dukkanza POS & Store Management Platform",
   "private": true,
   "type": "module",
   "scripts": {

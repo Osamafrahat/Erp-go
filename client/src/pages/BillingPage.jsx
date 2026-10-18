@@ -44,11 +44,11 @@ function ContactSupportModal({ open, onClose, t, currentUser }) {
     setSending(true)
     try {
       const body = `Support Request\nFrom: ${currentUser?.fullName || currentUser?.username || 'User'}\nSubject: ${subject}\n\n${message}`
-      window.open(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`[ERP-Go] ${subject}`)}&body=${encodeURIComponent(body)}`, '_blank')
+      window.open(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`[Dukkanza] ${subject}`)}&body=${encodeURIComponent(body)}`, '_blank')
       setSent(true)
       setTimeout(() => { setSent(false); onClose() }, 2000)
     } catch {
-      window.open(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`[ERP-Go] ${subject}`)}&body=${encodeURIComponent(message)}`, '_blank')
+      window.open(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`[Dukkanza] ${subject}`)}&body=${encodeURIComponent(message)}`, '_blank')
       setSent(true)
       setTimeout(() => { setSent(false); onClose() }, 2000)
     } finally {
@@ -57,7 +57,7 @@ function ContactSupportModal({ open, onClose, t, currentUser }) {
   }
 
   const openWhatsApp = () => {
-    const text = `Hi, I need support with ERP-Go.\nUser: ${currentUser?.fullName || currentUser?.username || 'N/A'}\n`
+    const text = `Hi, I need support with Dukkanza.\nUser: ${currentUser?.fullName || currentUser?.username || 'N/A'}\n`
     window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(text)}`, '_blank')
   }
 
@@ -96,7 +96,7 @@ className="w-full flex items-center gap-3 p-3 bg-success-soft border border-succ
               </button>
 
               <button
-                onClick={() => window.open(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[ERP-Go] Support Request')}`, '_blank')}
+                onClick={() => window.open(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Dukkanza] Support Request')}`, '_blank')}
 className="w-full flex items-center gap-3 p-3 bg-accent-soft border border-accent rounded-lg hover:bg-blue-100 transition-colors"
               >
 <Mail className="w-5 h-5 text-accent"/>

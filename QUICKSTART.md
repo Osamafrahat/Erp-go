@@ -26,7 +26,7 @@
 
 ### Option 1: Start both (if root package.json has dev script)
 ```bash
-cd store-management
+cd Erp-go
 npm run dev
 ```
 
@@ -152,9 +152,9 @@ they disable RLS platform-wide and grant full DML to the public `anon` role.
 
 ## Project Structure
 ```
-store-management/
-├── client/          # React frontend (42 pages, 23 components)
-├── server/          # Node.js backend (42 routes, 10 services)
+Erp-go/
+├── client/          # React frontend (45 pages, 25 components)
+├── server/          # Node.js backend (44 routes, 21 services)
 ├── server/supabase-schema.sql   # Consolidated DB schema (49 tables)
 ├── server/migrations/           # 7 incremental SQL migrations (run manually, in order)
 ├── README.md        # Full documentation

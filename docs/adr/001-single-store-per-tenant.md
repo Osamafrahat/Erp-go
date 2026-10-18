@@ -34,7 +34,7 @@ optional `branch_id` on employees, users, and purchase orders. Schema record:
 
 ## Context
 
-Every tenant in Erp-go maps to exactly one store. Products, inventory, orders,
+Every tenant in Dukkanza maps to exactly one store. Products, inventory, orders,
 cash shifts, employees, and expenses are scoped only by `tenant_id`; there is
 no `branches` table and no `branch_id` column anywhere in the schema.
 

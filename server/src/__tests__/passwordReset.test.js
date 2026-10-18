@@ -188,9 +188,9 @@ describe('clientBaseUrl', () => {
 
   it('uses FRONTEND_URL when CLIENT_URL is unset (the production shape)', () => {
     // This is the exact production config that once mailed a localhost link.
-    process.env.FRONTEND_URL = 'https://erp-go.vercel.app'
-    process.env.ALLOWED_ORIGINS = 'http://localhost:5173,https://erp-go.vercel.app,http://localhost:3001'
-    expect(clientBaseUrl()).toBe('https://erp-go.vercel.app')
+    process.env.FRONTEND_URL = 'https://dukkanza.com'
+    process.env.ALLOWED_ORIGINS = 'http://localhost:5173,https://dukkanza.com,http://localhost:3001'
+    expect(clientBaseUrl()).toBe('https://dukkanza.com')
   })
 
   it('never picks a loopback origin from ALLOWED_ORIGINS when a public one exists', () => {

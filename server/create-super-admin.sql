@@ -12,7 +12,7 @@ BEGIN
       'superadmin',
       crypt('SuperAdmin123!', gen_salt('bf', 10)),
       'Platform Super Admin',
-      'admin@erp-go.com',
+      'admin@dukkanza.com',
       'SUPER_ADMIN',
       '["all"]',
       true,
