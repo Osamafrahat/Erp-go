@@ -171,9 +171,27 @@ export default function PurchaseOrdersPage() {
     }
   }
 
-  const handleSent = () => {
-    toastSuccess(t('purchaseOrders.markedSent'))
-    fetchData()
+  // Sending the order to a supplier transitions it from draft to sent. The
+  // modal reports delivery success, then we persist the status change. We
+  // update state in place (no fetchData here) so the modal's success screen
+  // isn't replaced by the page-level loading spinner; stats refresh on close.
+  const handleSent = async (id) => {
+    try {
+      await purchaseOrdersApi.update(id, { status: 'sent' })
+      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: 'sent' } : o)))
+      toastSuccess(t('purchaseOrders.markedSent'))
+    } catch (err) {
+      toastError(err.response?.data?.error || err.message || t('purchaseOrders.sendFailed'))
+    }
+  }
+
+  // Modal dismissed after a send: re-sync the list and stats with the server
+  // (covers the case where status changed elsewhere) without disturbing the
+  // row the user is looking at.
+  const handleSendClose = () => {
+    const wasSent = sendPO && orders.find((o) => o.id === sendPO.id)?.status === 'sent'
+    setSendPO(null)
+    if (wasSent) fetchData()
   }
 
   const handleReceive = async (id) => {
@@ -384,7 +402,7 @@ className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-surface tex
                           <Eye className="h-4 w-4" />
                         </button>
                         {po.status === 'draft' && (
-<button onClick={()=>handleSend(po.id)}className="p-1.5 text-muted hover:text-blue-600 transition-colors"title={t('send')||'Send'}>
+<button onClick={()=>handleSend(po.id)}className="p-1.5 text-muted hover:text-blue-600 transition-colors"title={t('purchaseOrders.send')||'Send'}>
                             <Send className="h-4 w-4" />
                           </button>
                         )}
@@ -602,8 +620,8 @@ className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-fore
       {sendPO && (
         <SendPOModal
           po={sendPO}
-          onClose={() => setSendPO(null)}
-          onSent={handleSent}
+          onClose={handleSendClose}
+          onSent={() => handleSent(sendPO.id)}
         />
       )}
     </div>
