@@ -83,6 +83,25 @@ export default function PurchaseOrdersPage() {
     setForm({ ...form, items: updated })
   }
 
+  // Selecting a product prefills the price box: acquisition cost first,
+  // then the selling price, then empty (user types it). Both fields are
+  // written in ONE setForm — handleItemChange closes over `form`, so two
+  // sequential calls would drop the product_id change.
+  const handleProductSelect = (index, productId) => {
+    const product = products.find((p) => String(p.id) === String(productId))
+    const price =
+      Number(product?.cost_price) > 0 ? product.cost_price
+      : Number(product?.price) > 0 ? product.price
+      : ''
+    const updated = [...form.items]
+    updated[index] = {
+      ...updated[index],
+      product_id: productId,
+      unit_price: price === '' ? '' : String(price),
+    }
+    setForm({ ...form, items: updated })
+  }
+
   const addItem = () => {
     setForm({ ...form, items: [...form.items, { product_id: '', quantity: '', unit_price: '' }] })
   }
@@ -439,7 +458,7 @@ className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-fore
                           ...products.map((p) => ({ value: String(p.id), label: p.name })),
                         ]}
                         value={item.product_id}
-                        onChange={(v) => handleItemChange(idx, 'product_id', v)}
+                        onChange={(v) => handleProductSelect(idx, v)}
                         placeholder={t('common.searchSelect')}
                         className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-foreground text-sm outline-none"
                       />
