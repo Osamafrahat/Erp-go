@@ -33,7 +33,7 @@ export const useAppStore = create((set, get) => ({
     try {
       const cached = localStorage.getItem('app_settings')
       return cached ? { ...{
-        storeName: 'ERP-GO',
+        storeName: 'Dukkanza',
         storeAddress: '',
         storePhone: '',
         storeLogo: '',
@@ -43,7 +43,7 @@ export const useAppStore = create((set, get) => ({
         receiptFooter: 'Thank you for your purchase!',
         lowStockThreshold: 10,
       }, ...JSON.parse(cached) } : {
-        storeName: 'ERP-GO',
+        storeName: 'Dukkanza',
         storeAddress: '',
         storePhone: '',
         storeLogo: '',
@@ -60,7 +60,7 @@ export const useAppStore = create((set, get) => ({
       }
     } catch {
       return {
-        storeName: 'ERP-GO',
+        storeName: 'Dukkanza',
         storeAddress: '',
         storePhone: '',
         storeLogo: '',

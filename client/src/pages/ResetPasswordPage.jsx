@@ -70,7 +70,7 @@ export default function ResetPasswordPage() {
               <Store className="w-10 h-10 text-accent-foreground" />
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{settings.storeName || 'ERP-GO'}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{settings.storeName || 'Dukkanza'}</h1>
           <p className="text-muted mt-2">{t('auth.reset.subtitle')}</p>
         </div>
 

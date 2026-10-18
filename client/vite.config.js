@@ -7,10 +7,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['erpgologo.svg', 'favicon.ico'],
+      includeAssets: ['dukkanza.svg', 'favicon.ico'],
       manifest: {
-        name: 'ERP-GO - Store Management System',
-        short_name: 'ERP-GO',
+        name: 'Dukkanza - Store Management System',
+        short_name: 'Dukkanza',
         description: 'Complete store management system with POS, inventory, employees, accounting, and Egyptian Tax Authority e-invoice integration.',
         theme_color: '#2563eb',
         background_color: '#f9fafb',
@@ -19,13 +19,13 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'erpgologo.svg',
+            src: 'dukkanza.svg',
             sizes: '192x192',
             type: 'image/svg+xml',
             purpose: 'any',
           },
           {
-            src: 'erpgologo.svg',
+            src: 'dukkanza.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
             purpose: 'any maskable',

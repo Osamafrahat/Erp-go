@@ -19,7 +19,7 @@ export const translations = {
     'dashboard.lowStockAlert': 'Low Stock Alert',
     'dashboard.threshold': 'Threshold',
     'dashboard.left': 'left',
-    'dashboard.welcomeTitle': 'Welcome to ERP-GO',
+    'dashboard.welcomeTitle': 'Welcome to Dukkanza',
     'dashboard.welcomeMessage': 'Use the navigation menu to access your available features',
     'dashboard.startSelling': 'Start Selling',
     'dashboard.startSellingDesc': 'Open POS and process sales',
@@ -64,7 +64,7 @@ export const translations = {
     'nav.commissions': 'Commissions',
     'nav.promotions': 'Promotions',
     'nav.settings': 'Settings',
-    'nav.storeName': 'ERP-GO',
+    'nav.storeName': 'Dukkanza',
     'nav.darkMode': 'Dark Mode',
     'nav.lightMode': 'Light Mode',
     'nav.language': 'Language',
@@ -1370,7 +1370,7 @@ export const translations = {
     'invoices.noOrders': 'No orders found',
 
     // Layout
-    'layout.defaultStoreName': 'ERP-GO',
+    'layout.defaultStoreName': 'Dukkanza',
     'layout.posSystem': 'POS System',
 
     // Activities
@@ -2011,7 +2011,7 @@ export const translations = {
     'pricing.paymentFailed': 'Payment failed',
 
     // Landing Page
-    'landing.brand': 'ERP-GO',
+    'landing.brand': 'Dukkanza',
     'landing.badge': 'All-in-one store management',
     'landing.heroTitle': 'Complete Store',
     'landing.heroTitle2': 'Management System',
@@ -2083,7 +2083,7 @@ export const translations = {
     'landing.entF5': 'Dedicated support',
     'landing.ctaTitle': 'Ready to Manage Your Store?',
     'landing.ctaSubtitle': 'Start your free trial today. No credit card required.',
-    'landing.videoTitle': 'See ERP-GO in Action',
+    'landing.videoTitle': 'See Dukkanza in Action',
     'landing.videoSubtitle': 'A quick tour of the POS, inventory, and reports your team uses every day.',
     'landing.videoSoon': 'Inside system tour — coming soon',
     'landing.footerDesc': 'Intelligent Solutions',
@@ -2104,7 +2104,7 @@ export const translations = {
     'landing.step3Desc': 'Process sales in seconds with our lightning-fast POS. Accept cash, cards, or digital wallets.',
     'landing.step4Title': 'Track Everything',
     'landing.step4Desc': 'Monitor sales, expenses, inventory, and employee performance in real-time dashboards.',
-    'landing.whyUs': 'Why ERP-GO',
+    'landing.whyUs': 'Why Dukkanza',
     'landing.ctaBadge': 'Free to start',
 
     // Generic labels (used without a namespace)
@@ -2558,7 +2558,7 @@ export const translations = {
     'dashboard.lowStockAlert': 'تنبيه المخزون المنخفض',
     'dashboard.threshold': 'الحد',
     'dashboard.left': 'متبقي',
-    'dashboard.welcomeTitle': 'مرحباً بك في ERP-GO',
+    'dashboard.welcomeTitle': 'مرحباً بك في Dukkanza',
     'dashboard.welcomeMessage': 'استخدم قائمة التنقل للوصول إلى الميزات المتاحة',
     'dashboard.startSelling': 'ابدأ البيع',
     'dashboard.startSellingDesc': 'افتح نقطة البيع ومعالجة المبيعات',
@@ -2602,7 +2602,7 @@ export const translations = {
     'nav.commissions': 'العمولات',
     'nav.promotions': 'العروض',
     'nav.settings': 'الإعدادات',
-    'nav.storeName': 'ERP-GO',
+    'nav.storeName': 'Dukkanza',
     'nav.darkMode': 'الوضع الداكن',
     'nav.lightMode': 'الوضع الفاتح',
     'nav.language': 'اللغة',
@@ -3907,7 +3907,7 @@ export const translations = {
     'invoices.noOrders': 'لا توجد طلبات',
 
     // Layout
-    'layout.defaultStoreName': 'ERP-GO',
+    'layout.defaultStoreName': 'Dukkanza',
     'layout.posSystem': 'نظام نقطة البيع',
 
     // Activities
@@ -4548,7 +4548,7 @@ export const translations = {
     'pricing.save': 'وفّر 17%',
 
     // Landing Page
-    'landing.brand': 'ERP-GO',
+    'landing.brand': 'Dukkanza',
     'landing.badge': 'نظام إدارة متجر شامل',
     'landing.heroTitle': 'نظام إدارة متجر',
     'landing.heroTitle2': 'شامل ومتقدم',
@@ -4620,7 +4620,7 @@ export const translations = {
     'landing.entF5': 'دعم مخصص',
     'landing.ctaTitle': 'جاهز لإدارة متجرك؟',
     'landing.ctaSubtitle': 'ابدأ تجربتك المجانية اليوم. لا حاجة لبطاقة ائتمان.',
-    'landing.videoTitle': 'شاهد ERP-GO في العمل',
+    'landing.videoTitle': 'شاهد Dukkanza في العمل',
     'landing.videoSubtitle': 'جولة سريعة في نقطة البيع والمخزون والتقارير التي يستخدمها فريقك كل يوم.',
     'landing.videoSoon': 'جولة داخل النظام — قريباً',
     'landing.footerDesc': 'حلول ذكية',
@@ -4641,7 +4641,7 @@ export const translations = {
     'landing.step3Desc': 'معالجة المبيعات في ثوانٍ مع نقطة بيع سريعة كالبرق. اقبل النقد أو البطاقات أو المحافظ الرقمية.',
     'landing.step4Title': 'تتبع كل شيء',
     'landing.step4Desc': 'راقب المبيعات والمصروفات والمخزون وأداء الموظفين في لوحات تحكم لحظية.',
-    'landing.whyUs': 'لماذا ERP-GO',
+    'landing.whyUs': 'لماذا Dukkanza',
     'landing.ctaBadge': 'مجاني للبدء',
 
     // Generic labels (used without a namespace)

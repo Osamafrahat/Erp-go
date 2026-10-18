@@ -124,8 +124,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2.5">
-              <img src="/erpgologo.svg" alt="ERP-GO" className="h-12 w-auto" />
-<span className="text-xl font-extrabold text-foreground tracking-tight">{t('landing.brand')||'ERP-GO'}</span>
+              <img src="/dukkanza.svg" alt="Dukkanza" className="h-12 w-auto" />
+<span className="text-xl font-extrabold text-foreground tracking-tight">{t('landing.brand')||'Dukkanza'}</span>
             </div>
             <div className="hidden md:flex items-center gap-7">
 <a href="#features"className="text-sm font-medium text-muted hover:text-primary-600 transition-colors">{t('landing.features')||'Features'}</a>
@@ -167,7 +167,7 @@ className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-muted 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-28 lg:py-44">
           <div className="text-center max-w-4xl mx-auto">
             <div className="flex justify-center mb-6 lp-hero-in">
-              <img src="/erpgologo.svg" alt="ERP-GO" className="h-16 sm:h-24 lg:h-32 w-auto lp-float" />
+              <img src="/dukkanza.svg" alt="Dukkanza" className="h-16 sm:h-24 lg:h-32 w-auto lp-float" />
             </div>
 <h1 className="lp-hero-in lp-gradient-text bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 bg-clip-text text-transparent text-3xl sm:text-5xl lg:text-8xl font-extrabold tracking-tight leading-[1.1] mb-8"style={{animationDelay:'120ms'}}>
               {t('landing.heroTitle') || 'Complete Store'}{' '}
@@ -258,7 +258,7 @@ className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.
       <section id="demo" className="py-24 sm:py-32">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="reveal">
-<h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-foreground mb-4">{t('landing.videoTitle')||'See ERP-GO in Action'}</h2>
+<h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-foreground mb-4">{t('landing.videoTitle')||'See Dukkanza in Action'}</h2>
 <p className="text-base sm:text-lg text-muted max-w-2xl mx-auto">{t('landing.videoSubtitle')||'A quick tour of the POS,inventory,and reports your team uses every day.'}</p>
           </div>
           <div
@@ -360,8 +360,8 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-accent te
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src="/erpgologo.svg" alt="ERP-GO" className="h-10 w-auto" />
-<span className="font-extrabold text-foreground tracking-tight">{t('landing.brand')||'ERP-GO'}</span>
+                <img src="/dukkanza.svg" alt="Dukkanza" className="h-10 w-auto" />
+<span className="font-extrabold text-foreground tracking-tight">{t('landing.brand')||'Dukkanza'}</span>
               </div>
 <p className="text-sm text-muted leading-relaxed">{t('landing.footerDesc')||'Intelligent Solutions'}</p>
             </div>
@@ -389,7 +389,7 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-accent te
             </div>
           </div>
 <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted">
-            © {new Date().getFullYear()} {t('landing.brand') || 'ERP-GO'}. {t('landing.footerRights') || 'All rights reserved.'}
+            © {new Date().getFullYear()} {t('landing.brand') || 'Dukkanza'}. {t('landing.footerRights') || 'All rights reserved.'}
           </div>
         </div>
       </footer>
@@ -490,7 +490,7 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-accent te
                 <>
                   <div>
 <h3 className="text-lg font-semibold text-foreground mb-2">القبول بالشروط</h3>
-                    <p>باستخدام منصة ERP-GO، أنت توافق على هذه الشروط. إذا لم توافق، يرجى عدم استخدام المنصة.</p>
+                    <p>باستخدام منصة Dukkanza، أنت توافق على هذه الشروط. إذا لم توافق، يرجى عدم استخدام المنصة.</p>
                   </div>
                   <div>
 <h3 className="text-lg font-semibold text-foreground mb-2">الحسابات والاشتراكات</h3>
@@ -522,7 +522,7 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-accent te
                 <>
                   <div>
 <h3 className="text-lg font-semibold text-foreground mb-2">Acceptance of Terms</h3>
-                    <p>By using ERP-GO, you agree to these terms. If you do not agree, please do not use the platform.</p>
+                    <p>By using Dukkanza, you agree to these terms. If you do not agree, please do not use the platform.</p>
                   </div>
                   <div>
 <h3 className="text-lg font-semibold text-foreground mb-2">Accounts & Subscriptions</h3>
