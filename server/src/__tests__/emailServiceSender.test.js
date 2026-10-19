@@ -2,13 +2,15 @@
 //
 // Every transactional/marketing sender resolves through senderFor so each
 // category can use its own From on the verified dukkanza.com domain instead
-// of one global SMTP_FROM. These tests pin the three resolution rules:
-// category env override > local part derived from the SMTP_FROM domain >
-// Resend test-sender fallback.
+// of one global SMTP_FROM. sendPayload is the single choke point that
+// injects the optional MAIL_REPLY_TO mailbox. These tests pin the
+// resolution rules and the reply mailbox injection — including the camelCase
+// replyTo key the Resend SDK v6 requires (snake_case reply_to is dropped).
 
-import { senderFor } from '../services/emailService.js'
+import { jest } from '@jest/globals'
+import { senderFor, sendPayload } from '../services/emailService.js'
 
-const TRACKED = ['SMTP_FROM', 'MAIL_FROM_SUPPORT', 'MAIL_FROM_BILLING', 'MAIL_FROM_NO_REPLY']
+const TRACKED = ['SMTP_FROM', 'MAIL_FROM_SUPPORT', 'MAIL_FROM_BILLING', 'MAIL_FROM_NO_REPLY', 'MAIL_REPLY_TO']
 let saved
 
 beforeAll(() => {
@@ -54,5 +56,26 @@ describe('senderFor - split sender addresses', () => {
   test('falls back to the Resend test sender when nothing is configured', () => {
     clearAll()
     expect(senderFor('support')).toBe('onboarding@resend.dev')
+  })
+})
+
+describe('sendPayload - reply mailbox injection', () => {
+  const payload = { from: 'support@dukkanza.com', to: 'a@b.c', subject: 's', html: '<p>' }
+
+  test('adds camelCase replyTo when MAIL_REPLY_TO is set (SDK v6 wire key)', () => {
+    clearAll()
+    process.env.MAIL_REPLY_TO = 'inbox@example.com'
+    const send = jest.fn().mockResolvedValue({ data: { id: 'x' }, error: null })
+    sendPayload({ emails: { send } }, payload)
+    expect(send).toHaveBeenCalledWith({ ...payload, replyTo: 'inbox@example.com' })
+    // snake_case would be silently dropped by the SDK — never send it
+    expect(send.mock.calls[0][0].reply_to).toBeUndefined()
+  })
+
+  test('leaves the payload untouched when MAIL_REPLY_TO is unset', () => {
+    clearAll()
+    const send = jest.fn().mockResolvedValue({ data: { id: 'x' }, error: null })
+    sendPayload({ emails: { send } }, payload)
+    expect(send).toHaveBeenCalledWith(payload)
   })
 })

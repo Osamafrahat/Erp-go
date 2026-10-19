@@ -25,9 +25,12 @@ export function senderFor(localPart) {
 
 // Single choke point for every send so an optional reply mailbox
 // (MAIL_REPLY_TO) applies to all categories without touching each template.
-function sendPayload(client, payload) {
+// The Resend SDK v6 builds its own wire body and only forwards camelCase
+// replyTo (mapping it to the API's reply_to) — snake_case is silently
+// dropped, so the payload key here must be replyTo.
+export function sendPayload(client, payload) {
   const replyTo = process.env.MAIL_REPLY_TO
-  return client.emails.send(replyTo ? { ...payload, reply_to: replyTo } : payload)
+  return client.emails.send(replyTo ? { ...payload, replyTo } : payload)
 }
 
 export async function sendEmail({ to, subject, html }) {
