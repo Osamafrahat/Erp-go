@@ -9,16 +9,16 @@ Complete guide to deploy Dukkanza POS on any platform.
 Works on **Windows, Linux, and Mac**. Interactive setup guides you through everything.
 
 ```bash
-git clone https://github.com/Osamafrahat/Erp-go.git
-cd Erp-go
+git clone https://github.com/Osamafrahat/Erp-go.git Dukkanza
+cd Dukkanza
 node setup.js
 ```
 
 Or using npm:
 
 ```bash
-git clone https://github.com/Osamafrahat/Erp-go.git
-cd Erp-go
+git clone https://github.com/Osamafrahat/Erp-go.git Dukkanza
+cd Dukkanza
 npm run setup
 ```
 
@@ -97,8 +97,8 @@ docker compose version
 
 ```bash
 # Clone the repo
-git clone https://github.com/Osamafrahat/Erp-go.git
-cd Erp-go
+git clone https://github.com/Osamafrahat/Erp-go.git Dukkanza
+cd Dukkanza
 
 # Create environment file
 cp .env.docker.example .env.docker

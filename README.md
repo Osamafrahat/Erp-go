@@ -226,8 +226,8 @@ A full-stack retail store management application with Point of Sale (POS), Inven
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/Osamafrahat/Erp-go.git
-   cd Erp-go
+   git clone https://github.com/Osamafrahat/Erp-go.git Dukkanza
+   cd Dukkanza
    ```
 
 2. **Create a Supabase project:**
@@ -305,7 +305,7 @@ Client can be deployed separately to Vercel (already has `vercel.json`).
 ## Project Structure
 
 ```
-Erp-go/
+Dukkanza/
 ├── client/                          # React frontend
 │   ├── public/
 │   │   └── manifest.json            # PWA manifest

@@ -26,7 +26,7 @@
 
 ### Option 1: Start both (if root package.json has dev script)
 ```bash
-cd Erp-go
+cd Dukkanza
 npm run dev
 ```
 
@@ -152,7 +152,7 @@ they disable RLS platform-wide and grant full DML to the public `anon` role.
 
 ## Project Structure
 ```
-Erp-go/
+Dukkanza/
 ├── client/          # React frontend (45 pages, 25 components)
 ├── server/          # Node.js backend (44 routes, 21 services)
 ├── server/supabase-schema.sql   # Consolidated DB schema (49 tables)
