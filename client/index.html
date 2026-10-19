@@ -17,11 +17,18 @@
     <!-- Primary SEO -->
     <title>Dukkanza | Store Management POS & Inventory System for Egypt</title>
     <meta name="description" content="Dukkanza is a complete store management system with POS, inventory tracking, employee management, accounting, and Egyptian Tax Authority (ETA) e-invoice integration. Free trial available." />
-    <meta name="keywords" content="POS system, store management, inventory management, point of sale, Egypt, ERP, small business, stock management, employee management, accounting, e-invoice, ETA, الفاتورة الإلكترونية, مصلحة الضرائب, نظام نقاط البيع, إدارة المتاجر, إدارة المخزون" />
+    <meta name="keywords" content="POS system, store management, inventory management, point of sale, Egypt, ERP, small business, stock management, employee management, accounting, e-invoice, ETA, dukkanza, store setup, ERP for retail, Arabic POS software, Egyptian Pound billing" />
     <meta name="author" content="Dukkanza" />
     <meta name="robots" content="index, follow" />
     <meta name="google-site-verification" content="google9a8124ad5fecbd88" />
     <link rel="canonical" href="https://dukkanza.com/" />
+
+    <!-- Language alternates: the Arabic variant is addressable at /?lang=ar
+         (the app reads the param on boot; see App.jsx) so crawlers can index
+         both languages of the same page. -->
+    <link rel="alternate" hreflang="en" href="https://dukkanza.com/" />
+    <link rel="alternate" hreflang="ar" href="https://dukkanza.com/?lang=ar" />
+    <link rel="alternate" hreflang="x-default" href="https://dukkanza.com/" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -46,6 +53,7 @@
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "Dukkanza",
+      "inLanguage": "en",
       "description": "Complete store management system with POS, inventory tracking, employee management, accounting, and Egyptian Tax Authority (ETA) e-invoice integration.",
       "url": "https://dukkanza.com",
       "applicationCategory": "BusinessApplication",

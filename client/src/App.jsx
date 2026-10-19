@@ -76,6 +76,15 @@ function App() {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
   const mustChangePassword = useUserStore((s) => s.mustChangePassword)
   const refreshUser = useUserStore((s) => s.refreshUser)
+  const setLanguage = useAppStore((s) => s.setLanguage)
+
+  // SEO: the Arabic variant is addressable at /?lang=ar (see hreflang links
+  // in index.html and sitemap.xml). Honour the param on boot, app-wide, so
+  // crawlers and shared links render the language the URL promises.
+  useEffect(() => {
+    const lang = new URLSearchParams(window.location.search).get('lang')
+    if (lang === 'ar' || lang === 'en') setLanguage(lang)
+  }, [setLanguage])
 
   useEffect(() => {
     if (isAuthenticated) {

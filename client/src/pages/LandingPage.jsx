@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
+import { LANDING_SEO } from '../lib/landingSeo'
 import {
   ArrowRight,
   BarChart3,
@@ -56,6 +57,52 @@ const DEMO_VIDEO_SRC = '/videos/demo.mp4'
 
 export default function LandingPage() {
   const { t, language, setLanguage } = useAppStore()
+  // SEO: keep document-level metadata in sync with the active language so the
+  // Arabic variant ranks for Arabic queries (title/description/canonical/JSON-LD).
+  useEffect(() => {
+    const seo = LANDING_SEO[language] || LANDING_SEO.en
+    document.documentElement.lang = seo.lang
+    document.documentElement.dir = seo.lang === 'ar' ? 'rtl' : 'ltr'
+    document.title = seo.title
+    const setMeta = (selector, attr, value) => {
+      const el = document.head.querySelector(selector)
+      if (el) el.setAttribute(attr, value)
+    }
+    setMeta('meta[name="description"]', 'content', seo.description)
+    setMeta('meta[name="keywords"]', 'content', seo.keywords)
+    setMeta('meta[property="og:title"]', 'content', seo.title)
+    setMeta('meta[property="og:description"]', 'content', seo.description)
+    setMeta('meta[property="og:url"]', 'content', seo.canonical)
+    setMeta('meta[property="og:locale"]', 'content', seo.ogLocale)
+    setMeta('meta[name="twitter:title"]', 'content', seo.title)
+    setMeta('meta[name="twitter:description"]', 'content', seo.description)
+    setMeta('link[rel="canonical"]', 'href', seo.canonical)
+    const ld = document.head.querySelector('script[type="application/ld+json"]')
+    if (ld) {
+      ld.textContent = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: seo.ldName,
+        inLanguage: seo.lang,
+        description: seo.ldDescription,
+        url: seo.canonical,
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Web',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'EGP', description: 'Free plan available' },
+        aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.8', ratingCount: '150' },
+      }, null, 2)
+    }
+  }, [language])
+  // Keep the URL in step with the toggle so the AR variant stays crawlable
+  // and shareable (/?lang=ar); LandingPage is the only SEO-indexed page.
+  const toggleLanguage = () => {
+    const next = language === 'en' ? 'ar' : 'en'
+    setLanguage(next)
+    const url = new URL(window.location.href)
+    if (next === 'ar') url.searchParams.set('lang', 'ar')
+    else url.searchParams.delete('lang')
+    window.history.replaceState({}, '', url)
+  }
   const [openModal, setOpenModal] = useState(null)
   const [hasVideo, setHasVideo] = useState(false)
   const [playing, setPlaying] = useState(false)
@@ -132,7 +179,7 @@ export default function LandingPage() {
 <a href="#how"className="text-sm font-medium text-muted hover:text-[#364fab] transition-colors">{t('landing.howItWorks')||'How It Works'}</a>
 <Link to="/login"className="text-sm font-medium text-muted hover:text-[#364fab] transition-colors">{t('users.signIn')||'Login'}</Link>
               <button
-                onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+                onClick={toggleLanguage}
 className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-muted hover:text-[#364fab] border border-border rounded-lg hover:border-[#364fab]/40 transition-all"
               >
                 <Globe className="w-4 h-4" />
@@ -144,7 +191,7 @@ className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-muted 
             </div>
             <div className="md:hidden flex items-center gap-2">
               <button
-                onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+                onClick={toggleLanguage}
 className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-muted border border-border rounded-lg"
               >
                 <Globe className="w-3.5 h-3.5" />
