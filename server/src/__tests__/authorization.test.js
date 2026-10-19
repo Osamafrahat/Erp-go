@@ -250,6 +250,10 @@ describe('route guard inventory', () => {
   // a JWT is impossible there; authenticity is verified inside the handler.
   // Password recovery is deliberately public (the requester has no session);
   // abuse is capped by the loginLimiter mount and tokens are single-use.
+  // The inbound support relay is called by Resend with a Svix HMAC signature
+  // over the raw body — a JWT is impossible there; the handler 401s without a
+  // valid signature and only ever forwards to the configured owner mailbox
+  // (loop-guarded), which is the security argument for this surface.
   const PUBLIC_ALLOWLIST = [
     ['auth.js', '/login'],
     ['auth.js', '/signup'],
@@ -257,6 +261,7 @@ describe('route guard inventory', () => {
     ['auth.js', '/forgot-password'],
     ['auth.js', '/reset-password'],
     ['paymob.js', '/webhook'],
+    ['emailInbound.js', '/'],
   ]
 
   function mutationRegistrations(src) {

@@ -15,6 +15,7 @@ import { authRouter } from './routes/auth.js'
 import { authenticateToken, optionalAuthenticateToken, requireManager, setTenantContext } from './middleware/auth.js'
 
 import productsRouter from './routes/products.js'
+import emailInboundRouter from './routes/emailInbound.js'
 import categoriesRouter from './routes/categories.js'
 import ordersRouter from './routes/orders.js'
 import stockRouter from './routes/stock.js'
@@ -132,6 +133,11 @@ const corsOptions = {
 }
 app.use(cors(corsOptions))
 
+// Inbound support-mail relay (Resend email.received webhook). Mounted before
+// express.json with its own raw body parser - Svix verification hashes the
+// exact request bytes. The signature IS the auth, so this path intentionally
+// sits ahead of the general /api rate limiter.
+app.use('/api/email/inbound', emailInboundRouter)
 app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
