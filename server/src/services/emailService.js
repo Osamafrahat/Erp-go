@@ -91,7 +91,7 @@ export async function sendPromotionEmail({ recipients, promotion, storeName }) {
           <p style="margin-top: 20px;">سارع بالاستفادة من العرض قبل انتهائه!</p>
         </div>
         <div class="footer">
-          <p>${storeName} | جميع الحقوق محفوظة © ${new Date().getFullYear()}</p>
+          <p>${storeName} | © ${new Date().getFullYear()} Dukkanza. All rights reserved. | جميع الحقوق محفوظة</p>
         </div>
       </div>
     </body>
@@ -158,7 +158,7 @@ function transactionalShell({ titleEn, titleAr, bodyEn, bodyAr }) {
         <div class="content" dir="rtl">${bodyAr}</div>
         <hr class="divider">
         <div class="content" dir="ltr" style="padding-top:0">${bodyEn}</div>
-        <div class="footer">© ${new Date().getFullYear()}</div>
+        <div class="footer">© ${new Date().getFullYear()} Dukkanza. All rights reserved. | جميع الحقوق محفوظة</div>
       </div>
     </body>
     </html>
@@ -298,7 +298,7 @@ export async function sendCustomEmail({ recipients, subject, message, storeName 
       <div class="container">
         <div class="header"><h1>${escapeHtml(subject)}</h1></div>
         <div class="content"><p>${escapeHtml(message)}</p></div>
-        <div class="footer"><p>${storeName} | جميع الحقوق محفوظة © ${new Date().getFullYear()}</p></div>
+        <div class="footer"><p>${storeName} | © ${new Date().getFullYear()} Dukkanza. All rights reserved. | جميع الحقوق محفوظة</p></div>
       </div>
     </body>
     </html>
