@@ -377,7 +377,7 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-[#ff4f00]
 <h4 className="font-bold text-foreground mb-3">{t('landing.footerSupport')||'Support'}</h4>
 <ul className="space-y-2.5 text-sm text-muted">
 <li><a href="https://wa.me/201555256213"target="_blank"rel="noopener noreferrer"className="hover:text-[#364fab] transition-colors">WhatsApp</a></li>
-<li><a href="mailto:support.erp.go@gmail.com"className="hover:text-[#364fab] transition-colors">Email</a></li>
+<li><a href="mailto:support@dukkanza.com"className="hover:text-[#364fab] transition-colors">Email</a></li>
               </ul>
             </div>
             <div>
@@ -434,7 +434,7 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-[#ff4f00]
                   </div>
                   <div>
 <h3 className="text-lg font-semibold text-foreground mb-2">التواصل</h3>
-                    <p>لأي استفسارات حول سياسة الخصوصية، تواصل معنا عبر البريد الإلكتروني: support.erp.go@gmail.com</p>
+                    <p>لأي استفسارات حول سياسة الخصوصية، تواصل معنا عبر البريد الإلكتروني: support@dukkanza.com</p>
                   </div>
                 </>
               ) : (
@@ -468,7 +468,7 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-[#ff4f00]
                   </div>
                   <div>
 <h3 className="text-lg font-semibold text-foreground mb-2">Contact</h3>
-                    <p>For any questions about this Privacy Policy, contact us at: support.erp.go@gmail.com</p>
+                    <p>For any questions about this Privacy Policy, contact us at: support@dukkanza.com</p>
                   </div>
                 </>
               )}

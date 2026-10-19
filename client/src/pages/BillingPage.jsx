@@ -28,7 +28,7 @@ cancelled:'bg-danger-soft text-danger-soft-foreground',
 past_due:'bg-warning-soft text-warning-soft-foreground',
 }
 
-const SUPPORT_EMAIL = 'support.erp.go@gmail.com'
+const SUPPORT_EMAIL = 'support@dukkanza.com'
 const SUPPORT_WHATSAPP = '201555256213'
 
 function ContactSupportModal({ open, onClose, t, currentUser }) {
