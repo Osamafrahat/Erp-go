@@ -380,6 +380,16 @@ router.delete('/tenants/:id', async (req, res) => {
     await safeDel('promotions', `tenant_id = ${tid}`)
     await safeDel('activity_log', `tenant_id = ${tid}`)
 
+    // Branch transfers: stock_transfer_items.product_id -> products and
+    // stock_transfers.created_by -> users are NO ACTION, and items have no
+    // tenant_id. Deleting transfers by tenant first cascades the items
+    // (items.transfer_id -> stock_transfers is CASCADE), unblocking both
+    // products and users below.
+    await safeDel('stock_transfers', `tenant_id = ${tid}`)
+    // fiscal_periods.closed_by -> users is NO ACTION and is never deleted
+    // below; clear it before the users delete to avoid a second-wave failure.
+    await safeDel('fiscal_periods', `tenant_id = ${tid}`)
+
     // 4. Top-level
     await safeDel('products', `tenant_id = ${tid}`)
     await safeDel('categories', `tenant_id = ${tid}`)
