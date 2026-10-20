@@ -103,7 +103,7 @@ reviewed, Fly deploy only for server phases.
 | Missed import after a move | eslint + `unused-imports` + production build fail loudly |
 | Hidden dynamic requires/`import()` paths | pre-move grep for `import(` with variable paths |
 | Workbox/PWA cache serving stale bundles | index.html revision handles it (already proven in rename phases) |
-| Offline data orphaning | **never** rename `store-management-offline` IndexedDB or other runtime identifiers |
+| Offline data orphaning | IndexedDB renamed to `Dukkanza-offline` (2026-10-20, by user decision) with a one-time copy migration from `store-management-offline`; legacy DB left intact (reversible); no other runtime identifiers renamed |
 | GitNexus index drift after moves | re-run `node .gitnexus/run.cjs analyze` at each phase end |
 
 ## 6. Explicit non-goals

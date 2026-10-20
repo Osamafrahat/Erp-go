@@ -8,7 +8,7 @@ import { clearCachedProducts } from '../lib/offlineDB'
 // setBranch() clears the caches that hold a snapshot of the OLD branch:
 //   1. localStorage 'cart-storage' — the zustand-persisted POS cart (product
 //      rows snapshotted under the previous branch's stock/prices).
-//   2. IndexedDB 'store-management-offline' -> object store 'products' — the
+//   2. IndexedDB 'Dukkanza-offline' -> object store 'products' — the
 //      offline cache POSPage seeds its product list from (loadCachedData()).
 //      Note: this lives in IndexedDB, NOT localStorage (POSPage lines 191-201
 //      + lib/offlineDB.js). The DB's 'pendingOrders'/'syncMeta' stores are

@@ -1,6 +1,7 @@
 import { openDB } from 'idb'
 
-const DB_NAME = 'store-management-offline'
+const DB_NAME = 'Dukkanza-offline'
+const LEGACY_DB_NAME = 'store-management-offline'
 const DB_VERSION = 1
 
 let dbPromise = null
@@ -48,9 +49,41 @@ function getDB() {
           db.createObjectStore('syncMeta', { keyPath: 'key' })
         }
       },
+    }).then(async (db) => {
+      await migrateLegacyDB(db)
+      return db
     })
   }
   return dbPromise
+}
+
+// One-time migration: earlier installs cached data (including the
+// pendingOrders offline sales queue) under the pre-rename database.
+// Copy it forward once, then mark the migration done. The legacy
+// database is left untouched so this stays reversible.
+async function migrateLegacyDB(db) {
+  try {
+    if (await db.get('syncMeta', 'legacyMigrationDone')) return
+    if (typeof indexedDB.databases !== 'function') return
+    const existing = await indexedDB.databases()
+    if (!existing.some((d) => d.name === LEGACY_DB_NAME)) {
+      await db.put('syncMeta', { key: 'legacyMigrationDone', value: new Date().toISOString() })
+      return
+    }
+    const legacy = await openDB(LEGACY_DB_NAME, 1)
+    for (const name of legacy.objectStoreNames) {
+      if (!db.objectStoreNames.contains(name)) continue
+      const rows = await legacy.getAll(name)
+      if (!rows.length) continue
+      const tx = db.transaction(name, 'readwrite')
+      for (const row of rows) await tx.store.put(row)
+      await tx.done
+    }
+    legacy.close()
+    await db.put('syncMeta', { key: 'legacyMigrationDone', value: new Date().toISOString() })
+  } catch (err) {
+    console.warn('[offlineDB] legacy migration skipped:', err)
+  }
 }
 
 // --- Products ---
