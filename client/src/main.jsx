@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { initSentry, Sentry } from './lib/sentry'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 initSentry()
 
@@ -26,6 +28,8 @@ className="px-4 py-2 bg-surface-secondary text-white rounded-lg text-sm"
       }
     >
       <App />
+      <Analytics />
+      <SpeedInsights />
     </Sentry.ErrorBoundary>
   </StrictMode>,
 )
