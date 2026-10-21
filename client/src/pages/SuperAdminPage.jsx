@@ -53,6 +53,22 @@ export default function SuperAdminPage() {
     setTimeout(() => setToast(null), 3000)
   }, [])
 
+  // Wallet-tab badge: pending transfer count, refreshed on an interval while
+  // the panel is open (declared before the role-guard return for the same
+  // hook-ordering reason as showToast above).
+  const [pendingCount, setPendingCount] = useState(0)
+  const refreshPendingCount = useCallback(() => {
+    superAdminApi
+      .getWalletPendingCount()
+      .then(({ data }) => setPendingCount(data?.count || 0))
+      .catch(() => {}) // badge is decorative - never surface a poll error
+  }, [])
+  useEffect(() => {
+    refreshPendingCount()
+    const id = setInterval(refreshPendingCount, 45000)
+    return () => clearInterval(id)
+  }, [refreshPendingCount])
+
   if (currentUser?.role !== 'SUPER_ADMIN') {
     return (
 <div className="flex flex-col items-center justify-center h-64 text-muted">
@@ -97,7 +113,10 @@ toast.type==='error'?'bg-danger text-white':'bg-success text-white'
         {tabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
-            onClick={() => setTab(key)}
+            onClick={() => {
+              setTab(key)
+              if (key === 'wallet') refreshPendingCount()
+            }}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               tab === key
 ?'border-accent text-accent'
@@ -106,6 +125,14 @@ toast.type==='error'?'bg-danger text-white':'bg-success text-white'
           >
             <Icon className="w-4 h-4" />
             {label}
+            {key === 'wallet' && pendingCount > 0 && (
+              <span
+                className="min-w-[1.25rem] px-1.5 py-0.5 text-[11px] font-bold leading-none text-white bg-danger rounded-full"
+                aria-label={t('admin.pendingWalletTransfers') || 'Pending wallet transfers'}
+              >
+                {pendingCount > 99 ? '99+' : pendingCount}
+              </span>
+            )}
           </button>
         ))}
       </div>

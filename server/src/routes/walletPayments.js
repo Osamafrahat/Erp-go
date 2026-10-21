@@ -6,6 +6,7 @@ import { authenticateToken, requireManager, requireSuperAdmin } from '../middlew
 import { logActivity } from '../middleware/activityLogger.js'
 import { planEntitlements } from '../services/planLimits.js'
 import { notifySubscriptionActivated } from '../services/lifecycleEmails.js'
+import { notifyWalletTransfer } from '../services/telegramNotify.js'
 import {
   getWalletMethods,
   isValidWalletTypeId,
@@ -181,6 +182,19 @@ walletUserRouter.post('/submit', authenticateToken, requireManager, submitLimite
     })
 
     console.log(`[Wallet] tenant ${req.user.tenantId} submitted ${planSlug}/${period} ${amount} EGP via ${walletType}`)
+
+    // Operator push - best-effort, never blocks or fails the response (the
+    // submission has already succeeded at this point).
+    notifyWalletTransfer({
+      tenantId: req.user.tenantId,
+      planSlug,
+      billingPeriod: period,
+      amountEgp: amount,
+      walletType,
+      referenceNote: reference,
+      paymentCode,
+    }).catch((e) => console.error('[Wallet] telegram notify failed:', e.message))
+
     res.status(201).json({ request: created })
   } catch (err) {
     console.error('[Wallet] submit error:', err.message)
@@ -215,6 +229,26 @@ walletAdminRouter.get('/', async (req, res) => {
   } catch (err) {
     console.error('[Wallet] admin list error:', err.message)
     res.status(500).json({ error: 'Could not load payment requests' })
+  }
+})
+
+// Lightweight badge source for the panel: pending count only, no rows and
+// no screenshots. Registered before GET /:id so the path is not swallowed
+// by the :id param route.
+walletAdminRouter.get('/pending-count', async (req, res) => {
+  try {
+    const { count, error } = await supabase
+      .from('wallet_payment_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending')
+    if (error) {
+      if (isMissingTableError(error)) return res.json({ count: 0 })
+      throw error
+    }
+    res.json({ count: count || 0 })
+  } catch (err) {
+    console.error('[Wallet] pending-count error:', err.message)
+    res.status(500).json({ error: 'Could not load pending count' })
   }
 })
 

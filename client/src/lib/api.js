@@ -412,6 +412,7 @@ export const superAdminApi = {
   getAnalytics: (params) => api.get('/super-admin/analytics', { params }),
   getBanners: () => api.get('/super-admin/banners'),
   getWalletPayments: (params) => api.get('/super-admin/wallet', { params }),
+  getWalletPendingCount: () => api.get('/super-admin/wallet/pending-count'),
   getWalletPayment: (id) => api.get(`/super-admin/wallet/${id}`),
   confirmWalletPayment: (id) => api.post(`/super-admin/wallet/${id}/confirm`),
   rejectWalletPayment: (id, data) => api.post(`/super-admin/wallet/${id}/reject`, data),
