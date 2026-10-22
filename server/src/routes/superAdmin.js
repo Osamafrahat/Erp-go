@@ -329,7 +329,7 @@ router.delete('/tenants/:id', async (req, res) => {
     // so no request input is ever interpolated into a query.
     const safeDel = async (table, where) => {
       if (!/^[a-z_]+$/.test(table)) throw new Error(`Invalid table name: ${table}`)
-      const match = /^(tenant_id|id|order_id|refund_id|journal_entry_id|payroll_id|purchase_order_id) (= ([0-9]+)|IN \(([0-9]+(,[0-9]+)*)\))$/.exec(where)
+      const match = /^(tenant_id|id|order_id|refund_id|payroll_id|purchase_order_id) (= ([0-9]+)|IN \(([0-9]+(,[0-9]+)*)\))$/.exec(where)
       if (!match) throw new Error(`Unsupported delete condition for ${table}`)
       const column = match[1]
       const query = supabase.from(table).delete()
@@ -344,13 +344,11 @@ router.delete('/tenants/:id', async (req, res) => {
 
     // 1. Collect parent IDs first
     const { data: orders } = await supabase.from('orders').select('id').eq('tenant_id', tid)
-    const { data: journals } = await supabase.from('journal_entries').select('id').eq('tenant_id', tid)
     const { data: pays } = await supabase.from('payroll').select('id').eq('tenant_id', tid)
     const { data: pos } = await supabase.from('purchase_orders').select('id').eq('tenant_id', tid)
     const { data: refs } = await supabase.from('refunds').select('id').eq('tenant_id', tid)
 
     const oIds = (orders || []).map(r => r.id)
-    const jIds = (journals || []).map(r => r.id)
     const pIds = (pays || []).map(r => r.id)
     const poIds = (pos || []).map(r => r.id)
     const rIds = (refs || []).map(r => r.id)
@@ -358,7 +356,14 @@ router.delete('/tenants/:id', async (req, res) => {
     // 2. Delete deepest children
     if (oIds.length) await safeDel('order_items', `order_id IN (${oIds.join(',')})`)
     if (rIds.length) await safeDel('refund_items', `refund_id IN (${rIds.join(',')})`)
-    if (jIds.length) await safeDel('journal_entry_lines', `journal_entry_id IN (${jIds.join(',')})`)
+    // journal_entry_lines.account_id -> accounts is NO ACTION, so the lines
+    // must go before accounts below. Delete them by tenant_id - the column
+    // accountingEngine sets on every insert - NOT by the parent FK column:
+    // that column is named entry_id, and filtering on a guessed, nonexistent
+    // name made this delete 400 and every tenant with journal data report a
+    // phantom "incomplete" delete. tenant_id is also O(1): no IN-list of
+    // entry ids to outgrow request limits.
+    await safeDel('journal_entry_lines', `tenant_id = ${tid}`)
     if (pIds.length) await safeDel('payroll_items', `payroll_id IN (${pIds.join(',')})`)
     if (poIds.length) await safeDel('purchase_order_items', `purchase_order_id IN (${poIds.join(',')})`)
     await safeDel('payment_splits', `tenant_id = ${tid}`)
