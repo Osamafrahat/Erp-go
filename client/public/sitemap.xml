@@ -73,4 +73,76 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
+  <url>
+    <loc>https://dukkanza.com/about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dukkanza.com/about" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://dukkanza.com/about?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dukkanza.com/about" />
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://dukkanza.com/about?lang=ar</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dukkanza.com/about" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://dukkanza.com/about?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dukkanza.com/about" />
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dukkanza.com/contact</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dukkanza.com/contact" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://dukkanza.com/contact?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dukkanza.com/contact" />
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://dukkanza.com/contact?lang=ar</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dukkanza.com/contact" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://dukkanza.com/contact?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dukkanza.com/contact" />
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dukkanza.com/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dukkanza.com/privacy" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://dukkanza.com/privacy?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dukkanza.com/privacy" />
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dukkanza.com/privacy?lang=ar</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dukkanza.com/privacy" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://dukkanza.com/privacy?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dukkanza.com/privacy" />
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://dukkanza.com/refund-policy</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dukkanza.com/refund-policy" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://dukkanza.com/refund-policy?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dukkanza.com/refund-policy" />
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dukkanza.com/refund-policy?lang=ar</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://dukkanza.com/refund-policy" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://dukkanza.com/refund-policy?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://dukkanza.com/refund-policy" />
+    <lastmod>2026-10-22</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
 </urlset>

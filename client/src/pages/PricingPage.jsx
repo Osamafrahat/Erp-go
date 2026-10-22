@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppStore } from '../stores/appStore'
 import { useUserStore } from '../stores/userStore'
 import { paymobApi, billingApi, walletApi } from '../lib/api'
-import { Check, X, Star, Zap, Crown, CreditCard, Smartphone, Loader2, ArrowDown, ArrowLeft, ArrowRight, Copy, Upload, Clock, Wallet } from 'lucide-react'
+import { Check, X, Star, Zap, Crown, CreditCard, Smartphone, Loader2, ArrowDown, ArrowLeft, ArrowRight, Copy, Upload, Clock, Wallet, ShoppingCart, Package, Users, Truck, Tag, Wrench, Calculator, BarChart3, Building2, MessageSquare, ShieldCheck } from 'lucide-react'
 import api from '../lib/api'
 
 const TIER_ORDER = { free: 0, pro: 1, enterprise: 2 }
@@ -94,6 +94,25 @@ function getTiers(t, plans = [], billingPeriod = 'monthly') {
     },
   ]
 }
+
+// The module overview shown above the plan cards: every plan ships the
+// complete feature set — plans differ by limits, not by modules. Names and
+// descriptions are bilingual inline (the same pattern the landing legal
+// content uses) so translations.js does not grow a 24-key block.
+const SERVICES = [
+  { key: 'pos', icon: ShoppingCart, en: 'POS & Sales', ar: 'نقطة البيع والمبيعات', descEn: 'Fast checkout, invoices, cash shifts & refunds', descAr: 'دفع سريع وفواتير وورديات نقدية ومرتجعات' },
+  { key: 'inventory', icon: Package, en: 'Inventory', ar: 'المخزون', descEn: 'Products, stock levels, purchase orders & dead stock', descAr: 'المنتجات ومستويات المخزون وطلبات الشراء والمخزون الميت' },
+  { key: 'customers', icon: Users, en: 'Customers & Credit', ar: 'العملاء والبيع بالآجل', descEn: 'Customer accounts, credit sales & statements', descAr: 'حسابات العملاء والبيع بالآجل وكشوف الحساب' },
+  { key: 'suppliers', icon: Truck, en: 'Suppliers & Purchasing', ar: 'الموردون والمشتريات', descEn: 'Supplier registry, purchases & returns', descAr: 'سجل الموردين والمشتريات والمرتجعات' },
+  { key: 'promotions', icon: Tag, en: 'Promotions & Commissions', ar: 'العروض والعمولات', descEn: 'Discounts, promos & sales commissions', descAr: 'الخصومات والعروض وعمولات المبيعات' },
+  { key: 'services', icon: Wrench, en: 'Service Center', ar: 'مركز الصيانة', descEn: 'Service plans, devices & repair tracking', descAr: 'خطط الصيانة والأجهزة وتتبع الإصلاحات' },
+  { key: 'hr', icon: Clock, en: 'HR & Payroll', ar: 'الموارد البشرية والرواتب', descEn: 'Attendance, leave, shifts, payroll & reviews', descAr: 'الحضور والإجازات والورديات والرواتب والتقييمات' },
+  { key: 'accounting', icon: Calculator, en: 'Accounting', ar: 'المحاسبة', descEn: 'Chart of accounts, journals & payments', descAr: 'دليل الحسابات والقيود والمدفوعات' },
+  { key: 'reports', icon: BarChart3, en: 'Reports & Analytics', ar: 'التقارير والتحليلات', descEn: 'Sales, profit, inventory & activity reports', descAr: 'تقارير المبيعات والأرباح والمخزون والنشاط' },
+  { key: 'branches', icon: Building2, en: 'Multi-Branch', ar: 'الفروع المتعددة', descEn: 'Per-branch stock, sales & transfers', descAr: 'مخزون ومبيعات وتحويلات لكل فرع' },
+  { key: 'chat', icon: MessageSquare, en: 'Team Chat', ar: 'المحادثة الداخلية', descEn: 'Store ↔ support chat inside the app', descAr: 'محادثة بين المتجر والدعم داخل التطبيق' },
+  { key: 'backup', icon: ShieldCheck, en: 'Backups & Security', ar: 'النسخ الاحتياطي والأمان', descEn: 'Automatic backups, roles & permissions', descAr: 'نسخ احتياطي تلقائي وصلاحيات وادوار' },
+]
 
 const colorMap = {
   gray: {
@@ -392,6 +411,31 @@ export default function PricingPage() {
             </button>
           </div>
         </div>
+
+        {/* Services overview — what every plan includes, before the prices */}
+        <section className="mb-12">
+          <h2 className="text-xl font-bold text-foreground text-center">
+            {t('pricing.servicesTitle') || 'One platform, every module'}
+          </h2>
+          <p className="mt-2 mb-6 mx-auto max-w-2xl text-center text-sm text-muted">
+            {t('pricing.servicesSubtitle') || 'Every plan includes the complete feature set — plans differ by limits, not by modules.'}
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {SERVICES.map((svc) => {
+              const Icon = svc.icon
+              return (
+                <div key={svc.key} className="rounded-xl border border-border bg-surface p-4 shadow-sm">
+                  <Icon className="w-5 h-5 text-accent mb-2" />
+                  <p className="text-sm font-semibold text-foreground">{language === 'ar' ? svc.ar : svc.en}</p>
+                  <p className="mt-1 text-xs text-muted leading-snug">{language === 'ar' ? svc.descAr : svc.descEn}</p>
+                </div>
+              )
+            })}
+          </div>
+          <p className="mt-4 text-center text-xs text-muted">
+            {t('pricing.includedAllPlans') || 'Included in all plans'}
+          </p>
+        </section>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {tiers.map((tier) => {

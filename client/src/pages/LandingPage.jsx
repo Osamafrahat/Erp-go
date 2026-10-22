@@ -411,12 +411,14 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-[#ff4f00]
 <span className="font-extrabold text-foreground tracking-tight">{t('landing.brand')||'Dukkanza'}</span>
               </div>
 <p className="text-sm text-muted leading-relaxed">{t('landing.footerDesc')||'Intelligent Solutions'}</p>
+<Link to="/about"className="mt-3 inline-block text-sm text-muted hover:text-[#364fab] transition-colors">{t('landing.footerAbout')||'About Us'}</Link>
             </div>
             <div>
 <h4 className="font-bold text-foreground mb-3">{t('landing.footerProduct')||'Product'}</h4>
 <ul className="space-y-2.5 text-sm text-muted">
 <li><a href="#features"className="hover:text-[#364fab] transition-colors">{t('landing.features')||'Features'}</a></li>
 <li><a href="#how"className="hover:text-[#364fab] transition-colors">{t('landing.howItWorks')||'How It Works'}</a></li>
+<li><Link to="/pricing"className="hover:text-[#364fab] transition-colors">{t('landing.footerPricing')||'Pricing'}</Link></li>
 <li><Link to="/login"className="hover:text-[#364fab] transition-colors">{t('users.signIn')||'Login'}</Link></li>
               </ul>
             </div>
@@ -425,12 +427,14 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-[#ff4f00]
 <ul className="space-y-2.5 text-sm text-muted">
 <li><a href="https://wa.me/201555256213"target="_blank"rel="noopener noreferrer"className="hover:text-[#364fab] transition-colors">WhatsApp</a></li>
 <li><a href="mailto:support@dukkanza.com"className="hover:text-[#364fab] transition-colors">Email</a></li>
+<li><Link to="/contact"className="hover:text-[#364fab] transition-colors">{t('landing.footerContact')||'Contact Us'}</Link></li>
               </ul>
             </div>
             <div>
 <h4 className="font-bold text-foreground mb-3">{t('landing.footerLegal')||'Legal'}</h4>
 <ul className="space-y-2.5 text-sm text-muted">
-<li><button onClick={()=>setOpenModal('privacy')}className="hover:text-[#364fab] transition-colors text-left">{t('landing.footerPrivacy')||'Privacy Policy'}</button></li>
+<li><Link to="/privacy"className="hover:text-[#364fab] transition-colors">{t('landing.footerPrivacy')||'Privacy Policy'}</Link></li>
+<li><Link to="/refund-policy"className="hover:text-[#364fab] transition-colors">{t('landing.footerRefund')||'Refund & Cancellation Policy'}</Link></li>
 <li><button onClick={()=>setOpenModal('terms')}className="hover:text-[#364fab] transition-colors text-left">{t('landing.footerTerms')||'Terms of Service'}</button></li>
               </ul>
             </div>
@@ -440,89 +444,6 @@ className="inline-flex items-center gap-2.5 px-10 py-4 bg-surface text-[#ff4f00]
           </div>
         </div>
       </footer>
-
-      {/* Privacy Policy Modal */}
-      {openModal === 'privacy' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setOpenModal(null)}>
-<div className="bg-surface rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl"onClick={(e)=>e.stopPropagation()}>
-<div className="sticky top-0 bg-surface border-b border-border px-6 py-4 flex items-center justify-between rounded-t-2xl">
-<h2 className="text-xl font-bold text-foreground">{language==='ar'?'سياسة الخصوصية':'Privacy Policy'}</h2>
-<button onClick={()=>setOpenModal(null)}className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-hover text-muted transition-colors">✕</button>
-            </div>
-<div className="px-6 py-6 space-y-6 text-sm text-muted leading-relaxed">
-              {language === 'ar' ? (
-                <>
-                  <div>
-<h3 className="text-lg font-semibold text-foreground mb-2">المعلومات التي نجمعها</h3>
-                    <p>نقوم بجمع المعلومات التالية عند إنشاء حسابك واستخدام المنصة:</p>
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                      <li>الاسم واسم المتجر وعنوان البريد الإلكتروني</li>
-                      <li>بيانات المعاملات المالية (المبيعات، المصروفات، الفواتير)</li>
-                      <li>معلومات الموظفين والعملاء التي تدخلها في النظام</li>
-                      <li>عنوان IP ومعلومات الجهاز لأغراض الأمان</li>
-                    </ul>
-                  </div>
-                  <div>
-<h3 className="text-lg font-semibold text-foreground mb-2">كيف نستخدم معلوماتك</h3>
-                    <ul className="list-disc pl-5 space-y-1">
-                      <li>تشغيل وتحسين خدمات المنصة</li>
-                      <li>إرسال إشعارات متعلقة بحسابك واشتراكك</li>
-                      <li>حماية حسابك ومنع الوصول غير المصرح به</li>
-                      <li>الامتثال للمتطلبات القانونية</li>
-                    </ul>
-                  </div>
-                  <div>
-<h3 className="text-lg font-semibold text-foreground mb-2">أمن البيانات</h3>
-                    <p>نستخدم تشفير SSL/TLS لحماية بياناتك. بياناتك محفوظة بشكل آمن في بنية Supabase السحابية مع عزل كامل لكل مستأجر.</p>
-                  </div>
-                  <div>
-<h3 className="text-lg font-semibold text-foreground mb-2">حقوقك</h3>
-                    <p>يحق لك الوصول إلى بياناتك وتصديرها وحذفها في أي وقت. يمكنك طلب حذف حسابك بالكامل من خلال الدعم الفني.</p>
-                  </div>
-                  <div>
-<h3 className="text-lg font-semibold text-foreground mb-2">التواصل</h3>
-                    <p>لأي استفسارات حول سياسة الخصوصية، تواصل معنا عبر البريد الإلكتروني: support@dukkanza.com</p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-<h3 className="text-lg font-semibold text-foreground mb-2">Information We Collect</h3>
-                    <p>We collect the following information when you create your account and use the platform:</p>
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                      <li>Your name, store name, and email address</li>
-                      <li>Financial transaction data (sales, expenses, invoices)</li>
-                      <li>Employee and customer information you enter into the system</li>
-                      <li>IP address and device information for security purposes</li>
-                    </ul>
-                  </div>
-                  <div>
-<h3 className="text-lg font-semibold text-foreground mb-2">How We Use Your Information</h3>
-                    <ul className="list-disc pl-5 space-y-1">
-                      <li>To operate and improve platform services</li>
-                      <li>To send notifications related to your account and subscription</li>
-                      <li>To protect your account and prevent unauthorized access</li>
-                      <li>To comply with legal requirements</li>
-                    </ul>
-                  </div>
-                  <div>
-<h3 className="text-lg font-semibold text-foreground mb-2">Data Security</h3>
-                    <p>We use SSL/TLS encryption to protect your data. Your data is securely stored in Supabase cloud infrastructure with full tenant isolation.</p>
-                  </div>
-                  <div>
-<h3 className="text-lg font-semibold text-foreground mb-2">Your Rights</h3>
-                    <p>You have the right to access, export, and delete your data at any time. You can request full account deletion through our support team.</p>
-                  </div>
-                  <div>
-<h3 className="text-lg font-semibold text-foreground mb-2">Contact</h3>
-                    <p>For any questions about this Privacy Policy, contact us at: support@dukkanza.com</p>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Terms of Service Modal */}
       {openModal === 'terms' && (

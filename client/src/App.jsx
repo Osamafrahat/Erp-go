@@ -54,6 +54,10 @@ const PurchaseOrdersPage = lazy(() => import('./pages/PurchaseOrdersPage'))
 const BranchesPage = lazy(() => import('./pages/BranchesPage'))
 const CommissionsPage = lazy(() => import('./pages/CommissionsPage'))
 const DeadStockReportPage = lazy(() => import('./pages/DeadStockReportPage'))
+const AboutPage = lazy(() => import('./pages/AboutPage'))
+const ContactPage = lazy(() => import('./pages/ContactPage'))
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
+const RefundPolicyPage = lazy(() => import('./pages/RefundPolicyPage'))
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated)
@@ -171,6 +175,12 @@ function App() {
                 <Route path="/branches" element={<ProtectedRoute><Layout><BranchesPage /></Layout></ProtectedRoute>} />
                 <Route path="/commissions" element={<ProtectedRoute><Layout><CommissionsPage /></Layout></ProtectedRoute>} />
                 <Route path="/dead-stock" element={<ProtectedRoute><Layout><DeadStockReportPage /></Layout></ProtectedRoute>} />
+
+                {/* Public pages — no auth, no sidebar (same family as /pricing) */}
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/refund-policy" element={<RefundPolicyPage />} />
 
                 <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />} />
               </Routes>

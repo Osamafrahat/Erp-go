@@ -53,4 +53,12 @@ describe('landing SEO - crawler wiring', () => {
     expect(sm).toContain('hreflang="ar"')
     expect(sm).toContain('https://dukkanza.com/?lang=ar')
   })
+
+  it('sitemap.xml lists the public content pages with AR alternates', () => {
+    const sm = read('public/sitemap.xml')
+    for (const page of ['/about', '/contact', '/privacy', '/refund-policy']) {
+      expect(sm, page).toContain(`https://dukkanza.com${page}`)
+      expect(sm, `${page} ar`).toContain(`https://dukkanza.com${page}?lang=ar`)
+    }
+  })
 })
