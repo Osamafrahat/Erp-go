@@ -1,4 +1,5 @@
 import { captureException } from '../services/sentry.js'
+import { notifyOperatorOnce } from '../services/telegramNotify.js'
 
 /**
  * Reports every 5xx JSON response to Sentry, even when a route handled its
@@ -34,6 +35,21 @@ export function capture500Responses(req, res, next) {
       tenantId: req.user?.tenantId,
       userId: req.user?.id,
     })
+
+    // Telegram alert for the same trigger, deduped per route+status for
+    // an hour (shared key with the error-handler hook below, so a failure
+    // travelling via next(err) reports exactly once across both). SECURITY:
+    // the query string is stripped before the path reaches the message -
+    // URLs may carry tokens or PII, and none of it should leave the box.
+    const pathOnly = (req.originalUrl || '/').split('?')[0]
+    notifyOperatorOnce({
+      key: `5xx ${req.method} ${pathOnly} ${res.statusCode}`,
+      cooldownSec: 3600,
+      emoji: '\u{1F525}',
+      title: `Server error (${res.statusCode})`,
+      lines: [`${req.method} ${pathOnly}`, String(detail || res.statusCode)],
+      link: false,
+    }).catch(() => {})
   }
 
   const originalJson = res.json.bind(res)

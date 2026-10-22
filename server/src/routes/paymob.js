@@ -5,6 +5,7 @@ import { authenticateToken, requireManager } from '../middleware/auth.js'
 import { logActivity } from '../middleware/activityLogger.js'
 import { planEntitlements } from '../services/planLimits.js'
 import { notifySubscriptionActivated } from '../services/lifecycleEmails.js'
+import { notifyOperatorOnce } from '../services/telegramNotify.js'
 
 const router = Router()
 
@@ -267,6 +268,23 @@ router.post('/webhook', async (req, res) => {
     const verification = await verifyPaymobCallback(body)
     if (!verification.ok) {
       console.warn(`[Paymob] Webhook rejected (${verification.reason})`)
+      // Terminal rejections only (4xx: a declined payment or a bad
+      // signature/replay) - 5xx is transient verification trouble that
+      // Paymob redelivers, and pushing that would spam on retries.
+      // Deduped by reason+order because Paymob DOES retry 4xx deliveries.
+      // SECURITY: reason is a fixed string from this file; the order id
+      // comes from an UNVERIFIED body (this branch is pre-verification),
+      // so it is only ever rendered as escaped/clipped text, and the key
+      // it feeds is bounded by the dedupe registry's memory caps.
+      if (verification.status < 500) {
+        notifyOperatorOnce({
+          key: `paymob-reject-${verification.reason}-${merchantOrderId || 'none'}`.slice(0, 400),
+          cooldownSec: 1800,
+          emoji: '\u{274C}',
+          title: 'Paymob payment rejected',
+          lines: [`Order: ${merchantOrderId || 'unknown'}`, `Reason: ${verification.reason}`],
+        }).catch(() => {})
+      }
       // Non-2xx so Paymob retries on transient failures, but do not leak why.
       return res.status(verification.status).json({ error: 'Verification failed' })
     }

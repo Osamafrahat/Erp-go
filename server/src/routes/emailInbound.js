@@ -11,6 +11,7 @@
 import express from 'express'
 import { Resend } from 'resend'
 import { senderFor } from '../services/emailService.js'
+import { notifyOperator } from '../services/telegramNotify.js'
 
 const router = express.Router()
 
@@ -85,6 +86,18 @@ router.post('/', express.raw({ type: '*/*', limit: '5mb' }), async (req, res) =>
     }
     if (svixId) seenIds.add(svixId)
     console.log('[INBOUND] forwarded', event.data.email_id, '->', forwardTo)
+
+    // Operator push. SECURITY: sits AFTER the Svix signature check, the
+    // duplicate guard and the loop guard, so only verified, first-delivery,
+    // non-loop mail can ever reach the bot - an unsigned POST cannot use it
+    // as a spam relay. From and subject are attacker-influenced strings;
+    // notifyOperator escapes and clips both (no body/attachments travel).
+    notifyOperator({
+      emoji: '\u{1F4E7}',
+      title: 'New support email',
+      lines: [`From: ${from}`, `Subject: ${event.data?.subject || '(no subject)'}`],
+    }).catch(() => {})
+
     res.json({ ok: true, forwarded: event.data.email_id })
   } catch (err) {
     console.error('[INBOUND] handler error:', err)

@@ -7,6 +7,7 @@ import { logActivity } from '../middleware/activityLogger.js'
 import { ensureDefaultBranch } from '../services/branches.js'
 import { sanitizeSearch } from '../helpers/search.js'
 import { sendWelcomeEmail } from '../services/emailService.js'
+import { notifyOperator } from '../services/telegramNotify.js'
 
 const router = Router()
 
@@ -212,6 +213,13 @@ router.post('/tenants', [
     sendWelcomeEmail({ to: adminEmail, name: adminFullName, storeName: name, trial: tier === 'free' }).catch((err) =>
       console.error('[EMAIL] Welcome failed:', err.message)
     )
+
+    // Operator push — fire-and-forget; name/tier/username escaped centrally.
+    notifyOperator({
+      emoji: '\u{1F3EA}',
+      title: 'Tenant created (super admin)',
+      lines: [`Store: ${name}`, `Tier: ${tier}`, `Admin: ${adminUsername}`],
+    }).catch((err) => console.error('[SuperAdmin] telegram push failed:', err.message))
 
     res.status(201).json({ tenant, message: 'Tenant and admin user created. Admin must change password on first login.' })
   } catch (err) {

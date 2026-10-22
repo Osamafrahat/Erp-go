@@ -9,6 +9,7 @@ import fs from 'fs'
 import { fileURLToPath } from 'url'
 import { errorHandler } from './middleware/errorHandler.js'
 import { capture500Responses } from './middleware/capture500.js'
+import { notifyOperator } from './services/telegramNotify.js'
 import { activityLogger } from './middleware/activityLogger.js'
 import { loginLimiter } from './middleware/loginLimiter.js'
 import { authRouter } from './routes/auth.js'
@@ -299,6 +300,23 @@ if (process.env.NODE_ENV !== 'test') {
     startSubscriptionExpiryCron()
     startKeepAliveCron()
     startActivityRetentionCron()
+
+    // Deploy confirmation. FLY_APP_NAME gates it so local development
+    // never pings the production bot; fire-and-forget so the listen
+    // callback is never held open by the Telegram timeout.
+    if (process.env.FLY_APP_NAME) {
+      notifyOperator({
+        emoji: '\u{1F680}',
+        title: 'Server booted',
+        lines: [
+          `App: ${process.env.FLY_APP_NAME}`,
+          `Machine: ${process.env.FLY_MACHINE_ID || 'unknown'}`,
+          `Time: ${new Date().toISOString()}`,
+          ...(process.env.SOURCE_COMMIT ? [`Commit: ${String(process.env.SOURCE_COMMIT).slice(0, 12)}`] : []),
+        ],
+        link: false,
+      }).catch(() => {})
+    }
   })
 }
 

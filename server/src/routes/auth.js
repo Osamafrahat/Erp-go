@@ -8,6 +8,7 @@ import { logActivity } from '../middleware/activityLogger.js'
 import supabase from '../db/supabase.js'
 import { issueResetToken, consumeResetToken } from '../services/passwordReset.js'
 import { sendWelcomeEmail } from '../services/emailService.js'
+import { notifyOperator } from '../services/telegramNotify.js'
 import { ensureDefaultBranch } from '../services/branches.js'
 
 const router = Router()
@@ -227,6 +228,14 @@ router.post('/signup', [
     sendWelcomeEmail({ to: email, name: fullName, storeName, trial: true }).catch((err) =>
       console.error('[EMAIL] Welcome failed:', err.message)
     )
+
+    // Operator push - same fire-and-forget contract as the email above.
+    // storeName/username are user-supplied; notifyOperator escapes them.
+    notifyOperator({
+      emoji: '\u{1F3EA}',
+      title: 'New tenant signup',
+      lines: [`Store: ${storeName}`, `Admin: ${username}`, `Tenant: #${tenant.id} (free trial)`],
+    }).catch((err) => console.error('[SIGNUP] telegram push failed:', err.message))
 
     const token = generateToken({ ...user, session_token: newSessionToken })
 

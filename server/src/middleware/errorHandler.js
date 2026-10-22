@@ -1,4 +1,5 @@
 import { captureException } from '../services/sentry.js'
+import { notifyOperatorOnce } from '../services/telegramNotify.js'
 
 export function errorHandler(err, req, res, next) {
   console.error('Error:', err.message || err)
@@ -20,6 +21,22 @@ export function errorHandler(err, req, res, next) {
       tenantId: req.user?.tenantId,
       userId: req.user?.id,
     })
+
+    // Telegram alert for failures arriving via next(err) - capture500's
+    // res.json wrapper is skipped here because the flag above is already
+    // set, so this hook and that one together report each failure once
+    // (shared dedupe key). SECURITY: query string stripped before the
+    // path reaches the message (URLs may carry tokens/PII); the detail is
+    // the server-side error text only - headers and bodies never leave.
+    const pathOnly = (req.originalUrl || '/').split('?')[0]
+    notifyOperatorOnce({
+      key: `5xx ${req.method} ${pathOnly} ${reportedStatus}`,
+      cooldownSec: 3600,
+      emoji: '\u{1F525}',
+      title: `Server error (${reportedStatus})`,
+      lines: [`${req.method} ${pathOnly}`, String(err.message || err)],
+      link: false,
+    }).catch(() => {})
   }
 
   // CORS errors — return 403, not 500

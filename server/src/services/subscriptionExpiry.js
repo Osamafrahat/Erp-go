@@ -2,6 +2,7 @@ import cron from 'node-cron'
 import supabase from '../db/supabase.js'
 import { logActivity } from '../middleware/activityLogger.js'
 import { planEntitlements } from './planLimits.js'
+import { notifyOperator, notifyOperatorOnce } from './telegramNotify.js'
 
 let expiryCheckJob = null
 
@@ -89,6 +90,7 @@ export async function checkExpiredSubscriptions() {
 
     if (expiredTenants && expiredTenants.length > 0) {
       console.log(`[SubscriptionExpiry] Found ${expiredTenants.length} expired paid subscription(s)`)
+      const paidExpired = []
 
       for (const tenant of expiredTenants) {
         const { error: updateErr } = await supabase
@@ -116,7 +118,18 @@ export async function checkExpiredSubscriptions() {
             details: { from_tier: tenant.subscription_tier, to_tier: 'free', reason: 'subscription_expired' },
             tenant_id: tenant.id,
           })
+          paidExpired.push(`${tenant.name} (was ${tenant.subscription_tier})`)
         }
+      }
+
+      // One batch message per run: each transition is one-shot (the query
+      // above stops matching once the row is updated), so no dedupe key.
+      if (paidExpired.length) {
+        await notifyOperator({
+          emoji: '\u{26D4}',
+          title: 'Paid subscription(s) expired',
+          lines: paidExpired.map((t) => `${t} -> free`),
+        })
       }
     }
 
@@ -132,6 +145,7 @@ export async function checkExpiredSubscriptions() {
 
     if (expiredTrials && expiredTrials.length > 0) {
       console.log(`[SubscriptionExpiry] Found ${expiredTrials.length} expired trial(s)`)
+      const trialExpired = []
 
       for (const tenant of expiredTrials) {
         const { error: updateErr } = await supabase
@@ -160,12 +174,50 @@ export async function checkExpiredSubscriptions() {
             details: { from_tier: 'trial', to_tier: 'free', reason: 'trial_expired' },
             tenant_id: tenant.id,
           })
+          trialExpired.push(tenant.name)
         }
+      }
+
+      if (trialExpired.length) {
+        await notifyOperator({
+          emoji: '\u{231B}',
+          title: 'Trial(s) ended',
+          lines: trialExpired.map((t) => `${t} -> free`),
+        })
       }
     }
 
     if ((!expiredTenants || expiredTenants.length === 0) && (!expiredTrials || expiredTrials.length === 0)) {
       console.log('[SubscriptionExpiry] No expired subscriptions or trials found.')
+    }
+
+    // 3. Warn ahead of expiry (within 3 days). One message per tenant per
+    // distinct expiry timestamp - the cooldown key carries it, so the daily
+    // job re-arms automatically for the next expiry without ever re-spamming
+    // the current one (and a restart simply costs at most one duplicate).
+    const soonLimit = new Date()
+    soonLimit.setDate(soonLimit.getDate() + 3)
+    const { data: soonTenants, error: soonError } = await supabase
+      .from('tenants')
+      .select('id, name, subscription_tier, subscription_expires_at')
+      .eq('subscription_status', 'active')
+      .not('subscription_tier', 'eq', 'free')
+      .not('subscription_expires_at', 'is', null)
+      .gt('subscription_expires_at', now)
+      .lte('subscription_expires_at', soonLimit.toISOString())
+
+    if (soonError) throw soonError
+
+    if (soonTenants && soonTenants.length > 0) {
+      for (const t of soonTenants) {
+        await notifyOperatorOnce({
+          key: `expiring-${t.id}-${t.subscription_expires_at}`,
+          cooldownSec: 7 * 24 * 3600,
+          emoji: '\u{23F3}',
+          title: 'Subscription expiring soon',
+          lines: [`${t.name} (${t.subscription_tier})`, `Expires: ${String(t.subscription_expires_at).slice(0, 10)}`],
+        })
+      }
     }
   } catch (err) {
     console.error('[SubscriptionExpiry] Error:', err.message)
