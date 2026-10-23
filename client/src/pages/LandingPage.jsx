@@ -51,10 +51,6 @@ function StepCard({ num, icon: Icon, title, desc }) {
   )
 }
 
-// Drop a demo file at client/public/videos/demo.mp4 and the play button
-// appears automatically — until then the section shows the animated mock.
-const DEMO_VIDEO_SRC = '/videos/demo.mp4'
-
 export default function LandingPage() {
   const { t, language, setLanguage } = useAppStore()
   // SEO: keep document-level metadata in sync with the active language so the
@@ -104,7 +100,9 @@ export default function LandingPage() {
     window.history.replaceState({}, '', url)
   }
   const [openModal, setOpenModal] = useState(null)
-  const [hasVideo, setHasVideo] = useState(false)
+  // Tour video plays as a click-to-load lite embed: the animated mock and
+  // play button stand in until the user opts in — no third-party iframe
+  // (or YouTube request) happens on initial page load.
   const [playing, setPlaying] = useState(false)
 
   // Reveal-on-scroll: every .reveal element fades/slides in once it enters
@@ -128,20 +126,6 @@ export default function LandingPage() {
     )
     els.forEach((el) => io.observe(el))
     return () => io.disconnect()
-  }, [])
-
-  // Probe for a demo video. A missing file is rewritten to index.html by the
-  // SPA fallback, so the content type is what tells us the real state.
-  useEffect(() => {
-    let cancelled = false
-    fetch(DEMO_VIDEO_SRC, { method: 'HEAD' })
-      .then((r) => {
-        if (cancelled) return
-        const ct = r.headers.get('content-type') || ''
-        setHasVideo(r.ok && !ct.includes('text/html'))
-      })
-      .catch(() => { if (!cancelled) setHasVideo(false) })
-    return () => { cancelled = true }
   }, [])
 
   const features = [
@@ -300,8 +284,9 @@ className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.
         </div>
       </section>
 
-      {/* Product demo video — plays /videos/demo.mp4 once that file exists;
-          until then it shows the animated mock and hides the play affordance */}
+      {/* System tour — official YouTube tour (ID p46whL10hJ4) as a
+          click-to-load lite embed: the animated mock and play button stand in
+          until the user opts in, so no third-party iframe loads on page view */}
       <section id="demo" className="py-24 sm:py-32">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="reveal">
@@ -312,18 +297,18 @@ className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.
 className="reveal relative mt-10 mx-auto w-full max-w-4xl aspect-video rounded-3xl overflow-hidden shadow-2xl shadow-[#364fab]/20 border border-border bg-gradient-to-br from-[#2b3e94] via-gray-900 to-gray-950"
             style={{ '--reveal-delay': '120ms' }}
           >
-            {playing && hasVideo ? (
-              <video
+            {playing ? (
+              <iframe
                 className="absolute inset-0 h-full w-full bg-black"
-                src={DEMO_VIDEO_SRC}
-                controls
-                autoPlay
-                playsInline
-                onError={() => { setPlaying(false); setHasVideo(false) }}
+                src="https://www.youtube-nocookie.com/embed/p46whL10hJ4?autoplay=1&rel=0"
+                title={t('landing.videoTitle') || 'See Dukkanza in Action'}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
               />
             ) : (
               <>
-                {/* Animated POS mock — stands in until a real demo.mp4 lands in /videos */}
+                {/* Animated POS mock — pre-click facade for the tour video */}
                 <div className="absolute inset-0 flex flex-col gap-3 p-4 sm:gap-5 sm:p-8" aria-hidden="true">
                   <div className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full bg-rose-400/80" />
@@ -349,11 +334,11 @@ className="lp-tile flex flex-col justify-end rounded-xl border border-white/10 b
                   </div>
                 </div>
 
-                {hasVideo && !playing && (
+                {!playing && (
                   <button
                     type="button"
                     onClick={() => setPlaying(true)}
-                    aria-label={t('landing.videoTitle') || 'Play demo video'}
+                    aria-label={t('landing.videoPlay') || 'Play the system tour video'}
                     className="group absolute inset-0 flex items-center justify-center"
                   >
 <span className="lp-play-ring flex h-16 w-16 items-center justify-center rounded-full bg-white/95 text-[#ff4f00] shadow-xl transition-transform duration-300 group-hover:scale-110 sm:h-20 sm:w-20">
@@ -362,13 +347,6 @@ className="lp-tile flex flex-col justify-end rounded-xl border border-white/10 b
                       </svg>
                     </span>
                   </button>
-                )}
-
-                {!hasVideo && (
-<div className="absolute bottom-4 start-4 flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-3.5 py-1.5 text-xs font-semibold text-white/90 backdrop-blur">
-<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success"/>
-                    {t('landing.videoSoon') || 'Inside system tour — coming soon'}
-                  </div>
                 )}
               </>
             )}
