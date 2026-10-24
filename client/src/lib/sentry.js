@@ -24,6 +24,11 @@ export function initSentry() {
         // would otherwise drown out real failures.
         /ResizeObserver loop/,
         /Script error/,
+        // register() rejections for our own PWA worker. The source now
+        // catches them (onRegisterError in main.jsx); this pattern also
+        // silences stale cached bundles still running the old injected
+        // script and extension-triggered re-registrations.
+        /Failed to register a ServiceWorker/,
       ],
       beforeSend(event) {
         // Some browser extensions wrap navigator.serviceWorker.register in
@@ -34,6 +39,22 @@ export function initSentry() {
         const values = event.exception?.values || []
         const frames = values.flatMap((v) => v.stacktrace?.frames || [])
         if (frames.some((f) => `${f.function || ''}${f.filename || ''}`.includes('wrsParams'))) {
+          return null
+        }
+        // Same family, subtler form: some wrappers reject with a bare
+        // "Rejected" and no marker at all (Sentry issue ERP-GO-CLIENT-2
+        // kept arriving after the wrsParams filter above shipped).
+        // "ServiceWorkerContainer" only ever appears in stack frames for
+        // service-worker registration — our app code never calls it
+        // directly — so that pairing is precise; a plain "Rejected" from
+        // application code still reports.
+        if (
+          values.some(
+            (v) =>
+              `${v.value || ''}`.includes('Rejected') &&
+              (v.stacktrace?.frames || []).some((f) => `${f.function || ''}`.includes('ServiceWorker')),
+          )
+        ) {
           return null
         }
         return event
